@@ -1,6 +1,7 @@
 "use client"
 
 import { FC, useState, useContext, useEffect } from "react"
+import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { SIDEBAR_WIDTH } from "../ui/dashboard"
 import { NewWorkspaceDialog } from "../project/new-workspace-dialog"
@@ -74,6 +75,7 @@ import {
   IconChevronRight,
   IconFolder,
   IconLayoutSidebar,
+  IconLayoutSidebarLeftExpand,
   IconBrandGoogle,
   IconTrash,
   IconPencil
@@ -104,14 +106,18 @@ interface SidebarProps {
   onMainViewChange?: (view: string) => void
   currentView?: string
   onToggleSidebar?: () => void
+  isMinimized?: boolean
 }
 
-export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, currentView, onToggleSidebar }) => {
+export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, currentView, onToggleSidebar, isMinimized = false }) => {
   const router = useRouter()
   const { open } = useSearch()
   const { handleNewChat } = useChatHandler()
   const { profile, workspaces, chats, selectedWorkspace, setWorkspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
   const [authUser, setAuthUser] = useState<any>(null)
+  const [isHovering, setIsHovering] = useState(false)
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     const getAuthUser = async () => {
@@ -330,34 +336,170 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
       onDragEnd={handleDragEnd}
     >
       <div
-        className="flex flex-col h-screen"
+        className={`flex flex-col h-screen ${isMinimized ? 'cursor-pointer' : ''}`}
         style={{ 
-          width: `${SIDEBAR_WIDTH}px`,
+          width: isMinimized ? '60px' : `${SIDEBAR_WIDTH}px`,
           backgroundColor: '#090909'
         }}
+        onMouseEnter={() => isMinimized && setIsHovering(true)}
+        onMouseLeave={() => isMinimized && setIsHovering(false)}
+        onClick={() => isMinimized && onToggleSidebar?.()}
       >
       {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <Image 
-            src="/wessley_thumb_chat.svg" 
-            alt="Wessley" 
-            width={24}
-            height={24}
-          />
+      <div className={`flex items-center ${isMinimized ? 'justify-center' : 'justify-between'} p-4`}>
+        <div className="flex items-center gap-2 relative">
+          {isMinimized ? (
+            <div 
+              className="relative group"
+              onMouseEnter={(e) => e.stopPropagation()}
+              onMouseLeave={(e) => e.stopPropagation()}
+            >
+              {isHovering ? (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  <IconLayoutSidebarLeftExpand 
+                    size={24}
+                    className="text-white/80 hover:text-white transition-colors duration-200"
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ scale: 1, opacity: 1 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  <Image 
+                    src="/wessley_thumb_chat.svg" 
+                    alt="Wessley" 
+                    width={24}
+                    height={24}
+                  />
+                </motion.div>
+              )}
+              {isHovering && (
+                <div className="absolute left-10 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                  Open Sidebar
+                </div>
+              )}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ scale: 1, opacity: 1 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <Image 
+                src="/wessley_thumb_chat.svg" 
+                alt="Wessley" 
+                width={24}
+                height={24}
+              />
+            </motion.div>
+          )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleToggleSidebar}
-          className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
-        >
-          <IconLayoutSidebar size={16} />
-        </Button>
+        {!isMinimized && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleSidebar}
+            className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <IconLayoutSidebar size={16} />
+          </Button>
+        )}
       </div>
 
       {/* Main Content */}
       <ScrollArea className="flex-1 px-3">
+        {isMinimized ? (
+          <div className="space-y-3 pb-4">
+            {/* Minimized Icons */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleNewChat()
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('newchat')
+                  }}
+                  onMouseLeave={() => setHoveredIcon(null)}
+                  className="h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200"
+                >
+                  <IconPlus size={20} />
+                </Button>
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    open()
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('search')
+                  }}
+                  onMouseLeave={() => setHoveredIcon(null)}
+                  className="h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200"
+                >
+                  <IconSearch size={20} />
+                </Button>
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleViewChange('explore')
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('explore')
+                  }}
+                  onMouseLeave={() => setHoveredIcon(null)}
+                  className={`h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200 ${
+                    currentView === 'explore' ? 'bg-white/10 text-white' : ''
+                  }`}
+                >
+                  <IconCompass size={20} />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Dynamic tooltip positioned next to hovered icon */}
+            {hoveredIcon && (
+              <div 
+                className="fixed bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-[9999] pointer-events-none transform -translate-y-1/2"
+                style={{ 
+                  left: tooltipPosition.x, 
+                  top: tooltipPosition.y 
+                }}
+              >
+                {hoveredIcon === 'newchat' && 'New chat'}
+                {hoveredIcon === 'search' && 'Search'}
+                {hoveredIcon === 'explore' && 'Explore'}
+              </div>
+            )}
+          </div>
+        ) : (
         <div className="space-y-4 pb-4">
           
           {/* Primary Actions */}
@@ -559,13 +701,19 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             })()}
           </div>
         </div>
+        )}
       </ScrollArea>
 
       {/* Account Section */}
       <div className="p-3">
         {profile ? (
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full overflow-hidden">
+          <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3'}`}>
+            <div className={`relative ${isMinimized ? 'group' : ''}`}>
+              <div 
+                className={`h-8 w-8 rounded-full overflow-hidden relative z-10 ${isMinimized ? 'hover:ring-2 hover:ring-gray-600/50 transition-all duration-200' : ''}`}
+                onMouseEnter={(e) => isMinimized && e.stopPropagation()}
+                onMouseLeave={(e) => isMinimized && e.stopPropagation()}
+              >
               {(authUser?.user_metadata?.avatar_url || profile.avatar_url || profile.image_url) ? (
                 <Image
                   src={authUser?.user_metadata?.avatar_url || profile.avatar_url || profile.image_url || ''}
@@ -581,30 +729,50 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   </span>
                 </div>
               )}
+              </div>
+              {isMinimized && (
+                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                  Profile
+                </div>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-xs font-medium text-foreground truncate">
-                {authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || profile.display_name || profile.full_name || profile.username || 'User'}
-              </h3>
-              <p className="text-xs font-normal text-gray-500">
-                {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' : 
-                 profile.subscription_tier === 'pro' ? 'Pro' : 
-                 profile.subscription_tier === 'enterprise' ? 'Enterprise' : 'Free'}
-              </p>
-            </div>
+            {!isMinimized && (
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs font-medium text-foreground truncate">
+                  {authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || profile.display_name || profile.full_name || profile.username || 'User'}
+                </h3>
+                <p className="text-xs font-normal text-gray-500">
+                  {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' : 
+                   profile.subscription_tier === 'pro' ? 'Pro' : 
+                   profile.subscription_tier === 'enterprise' ? 'Enterprise' : 'Free'}
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <>
-            <div className="bg-red-500 p-2 text-white font-bold">DEBUG: No profile found</div>
-            <div className="space-y-2">
-            <Button
-              onClick={handleGoogleLogin}
-              className="w-full justify-start h-9 px-3 bg-white text-black hover:bg-white/90"
-            >
-              <IconBrandGoogle size={16} className="mr-2" />
-              Sign in with Google
-            </Button>
-            <p className="text-xs text-white/60 text-center">Sign in to access your projects and chat history</p>
+            {!isMinimized && <div className="bg-red-500 p-2 text-white font-bold">DEBUG: No profile found</div>}
+            <div className={`space-y-2 ${isMinimized ? 'flex flex-col items-center' : ''}`}>
+            <div className={`relative ${isMinimized ? 'group' : ''}`}>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleGoogleLogin()
+                }}
+                onMouseEnter={(e) => isMinimized && e.stopPropagation()}
+                onMouseLeave={(e) => isMinimized && e.stopPropagation()}
+                className={`${isMinimized ? 'h-8 w-8 p-0 relative z-10 rounded-lg' : 'w-full justify-start h-9 px-3'} bg-white text-black hover:bg-gray-200 transition-all duration-200`}
+              >
+                <IconBrandGoogle size={16} className={isMinimized ? '' : 'mr-2'} />
+                {!isMinimized && 'Sign in with Google'}
+              </Button>
+              {isMinimized && (
+                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                  Sign in with Google
+                </div>
+              )}
+            </div>
+            {!isMinimized && <p className="text-xs text-white/60 text-center">Sign in to access your projects and chat history</p>}
             </div>
           </>
         )}

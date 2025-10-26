@@ -43,6 +43,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
     router.replace(`${pathname}?view=${view}`)
   }
   const [showSidebar, setShowSidebar] = useState(true) // Default to open
+  const [isMinimized, setIsMinimized] = useState(false) // Add minimized state
   
   // Safely access localStorage after hydration
   useEffect(() => {
@@ -61,8 +62,23 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   }, [showSidebar])
 
   const handleToggleSidebar = () => {
-    setShowSidebar(prevState => !prevState)
-    localStorage.setItem("showSidebar", String(!showSidebar))
+    if (showSidebar && !isMinimized) {
+      // From expanded: minimize first
+      setIsMinimized(true)
+    } else if (showSidebar && isMinimized) {
+      // From minimized: expand back to full
+      setIsMinimized(false)
+    } else {
+      // Hidden: show expanded
+      setShowSidebar(true)
+      setIsMinimized(false)
+    }
+  }
+
+  // Separate handler for hiding sidebar completely
+  const handleHideSidebar = () => {
+    setShowSidebar(false)
+    setIsMinimized(false)
   }
 
   return (
@@ -72,7 +88,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
       <motion.div
         className="shrink-0"
         animate={{
-          width: showSidebar ? `${SIDEBAR_WIDTH}px` : "0px"
+          width: showSidebar ? (isMinimized ? "60px" : `${SIDEBAR_WIDTH}px`) : "0px"
         }}
         transition={{
           duration: 0.4,
@@ -84,6 +100,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
           onMainViewChange={handleMainViewChange}
           currentView={mainView}
           onToggleSidebar={handleToggleSidebar}
+          isMinimized={isMinimized}
         />
       </motion.div>
 
