@@ -7,6 +7,7 @@ import { getProfileByUserId } from "@/db/profile"
 import { getUserOnboarding } from "@/db/user-onboarding"
 import { getUserPreferences } from "@/db/user-preferences"
 import { getUserSocialLinks } from "@/db/user-social-links"
+import { getChatsByUserId } from "@/db/chats"
 import { getWorkspaceImageFromStorage } from "@/db/storage/workspace-images"
 import { getWorkspacesByUserId } from "@/db/workspaces"
 import { convertBlobToBase64 } from "@/lib/blob-to-b64"
@@ -45,7 +46,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   // ITEMS STORE
   const [assistants, setAssistants] = useState<Tables<"assistants">[]>([])
   const [collections, setCollections] = useState<Tables<"collections">[]>([])
-  const [chats, setChats] = useState<Tables<"chats">[]>([])
+  const [chats, setChats] = useState<Tables<"chat_conversations">[]>([])
   const [files, setFiles] = useState<Tables<"files">[]>([])
   const [folders, setFolders] = useState<Tables<"folders">[]>([])
   const [models, setModels] = useState<Tables<"models">[]>([])
@@ -89,7 +90,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     includeWorkspaceInstructions: true,
     embeddingsProvider: "openai"
   })
-  const [selectedChat, setSelectedChat] = useState<Tables<"chats"> | null>(null)
+  const [selectedChat, setSelectedChat] = useState<Tables<"chat_conversations"> | null>(null)
   const [chatFileItems, setChatFileItems] = useState<Tables<"file_items">[]>([])
 
   // ACTIVE CHAT STORE
@@ -252,6 +253,10 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
 
       const workspaces = await getWorkspacesByUserId(user.id)
       setWorkspaces(workspaces)
+
+      // Load user's chats
+      const userChats = await getChatsByUserId(user.id)
+      setChats(userChats)
 
       for (const workspace of workspaces) {
         let workspaceImageUrl = ""

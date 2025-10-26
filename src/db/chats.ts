@@ -25,6 +25,35 @@ export const getChatsByWorkspaceId = async (workspaceId: string) => {
   return chats
 }
 
+export const getChatsByUserId = async (userId: string) => {
+  const { data: chats, error } = await supabase
+    .from("chat_conversations")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return chats || []
+}
+
+export const getOrphanedChatsByUserId = async (userId: string) => {
+  const { data: chats, error } = await supabase
+    .from("chat_conversations")
+    .select("*")
+    .eq("user_id", userId)
+    .is("workspace_id", null)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return chats || []
+}
+
 export const createChat = async (chat: TablesInsert<"chat_conversations">) => {
   const { data: createdChat, error } = await supabase
     .from("chat_conversations")

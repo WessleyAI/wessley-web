@@ -1,7 +1,7 @@
 // Only used in use-chat-handler.tsx to keep it clean
 
 import { createChatFiles } from "@/db/chat-files"
-import { createChat } from "@/db/chats"
+import { createChat, updateChat } from "@/db/chats"
 import { createMessageFileItems } from "@/db/message-file-items"
 import { createMessages, updateMessage } from "@/db/messages"
 import { uploadMessageImage } from "@/db/storage/message-images"
@@ -23,6 +23,35 @@ import React from "react"
 import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
 
+export const generateChatTitle = async (
+  userMessage: string,
+  assistantMessage: string
+): Promise<string> => {
+  try {
+    const response = await fetch("/api/chat/generate-title", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userMessage: userMessage.substring(0, 500), // Limit input length
+        assistantMessage: assistantMessage.substring(0, 500)
+      })
+    })
+
+    if (!response.ok) {
+      console.error("Failed to generate chat title:", response.statusText)
+      return userMessage.substring(0, 50) + "..." // Fallback to user message
+    }
+
+    const data = await response.json()
+    return data.title || userMessage.substring(0, 50) + "..."
+  } catch (error) {
+    console.error("Error generating chat title:", error)
+    return userMessage.substring(0, 50) + "..." // Fallback to user message
+  }
+}
+
 export const validateChatSettings = (
   chatSettings: ChatSettings | null,
   modelData: LLM | undefined,
@@ -40,10 +69,6 @@ export const validateChatSettings = (
 
   if (!profile) {
     throw new Error("Profile not found")
-  }
-
-  if (!selectedWorkspace) {
-    throw new Error("Workspace not found")
   }
 
   if (!messageContent) {
@@ -346,47 +371,44 @@ export const processResponse = async (
 export const handleCreateChat = async (
   chatSettings: ChatSettings,
   profile: Tables<"profiles">,
-  selectedWorkspace: Tables<"workspaces">,
+  selectedWorkspace: Tables<"workspaces"> | null,
   messageContent: string,
-  selectedAssistant: Tables<"assistants">,
+  selectedAssistant: Tables<"assistants"> | null,
   newMessageFiles: ChatFile[],
-  setSelectedChat: React.Dispatch<React.SetStateAction<Tables<"chats"> | null>>,
-  setChats: React.Dispatch<React.SetStateAction<Tables<"chats">[]>>,
+  setSelectedChat: React.Dispatch<React.SetStateAction<Tables<"chat_conversations"> | null>>,
+  setChats: React.Dispatch<React.SetStateAction<Tables<"chat_conversations">[]>>,
   setChatFiles: React.Dispatch<React.SetStateAction<ChatFile[]>>
 ) => {
   const createdChat = await createChat({
     user_id: profile.user_id,
-    workspace_id: selectedWorkspace.id,
+    workspace_id: selectedWorkspace?.id || null,
     assistant_id: selectedAssistant?.id || null,
-    context_length: chatSettings.contextLength,
-    include_profile_context: chatSettings.includeProfileContext,
-    include_workspace_instructions: chatSettings.includeWorkspaceInstructions,
-    model: chatSettings.model,
-    name: messageContent.substring(0, 100),
-    prompt: chatSettings.prompt,
-    temperature: chatSettings.temperature,
-    embeddings_provider: chatSettings.embeddingsProvider
+    ai_model: chatSettings.model,
+    title: messageContent.substring(0, 100),
+    system_prompt: chatSettings.prompt || null
   })
 
   setSelectedChat(createdChat)
   setChats(chats => [createdChat, ...chats])
 
-  await createChatFiles(
-    newMessageFiles.map(file => ({
-      user_id: profile.user_id,
-      chat_id: createdChat.id,
-      file_id: file.id
-    }))
-  )
+  if (newMessageFiles && newMessageFiles.length > 0) {
+    await createChatFiles(
+      newMessageFiles.map(file => ({
+        user_id: profile.user_id,
+        chat_id: createdChat.id,
+        file_id: file.id
+      }))
+    )
 
-  setChatFiles(prev => [...prev, ...newMessageFiles])
+    setChatFiles(prev => [...prev, ...newMessageFiles])
+  }
 
   return createdChat
 }
 
 export const handleCreateMessages = async (
   chatMessages: ChatMessage[],
-  currentChat: Tables<"chats">,
+  currentChat: Tables<"chat_conversations">,
   profile: Tables<"profiles">,
   modelData: LLM,
   messageContent: string,
@@ -507,5 +529,29 @@ export const handleCreateMessages = async (
     })
 
     setChatMessages(finalChatMessages)
+  }
+
+  // Auto-generate chat title after first message exchange
+  if (!isRegeneration && chatMessages.length === 0) {
+    try {
+      const newTitle = await generateChatTitle(messageContent, generatedText)
+      
+      // Update the chat title in the database
+      const updatedChat = await updateChat(currentChat.id, {
+        title: newTitle
+      })
+
+      // Update the local state to reflect the new title
+      setChatMessages(prevMessages => prevMessages.map(msg => ({
+        ...msg,
+        message: {
+          ...msg.message,
+          chat_id: updatedChat.id
+        }
+      })))
+    } catch (error) {
+      console.error("Failed to update chat title:", error)
+      // Don't throw error here as the main message creation was successful
+    }
   }
 }

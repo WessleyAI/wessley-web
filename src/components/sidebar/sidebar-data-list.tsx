@@ -55,7 +55,7 @@ export const SidebarDataList: FC<SidebarDataListProps> = ({
   ) => {
     switch (contentType) {
       case "chats":
-        return <ChatItem key={item.id} chat={item as Tables<"chats">} />
+        return <ChatItem key={item.id} chat={item as Tables<"chat_conversations">} />
 
       case "presets":
         return <PresetItem key={item.id} preset={item as Tables<"presets">} />

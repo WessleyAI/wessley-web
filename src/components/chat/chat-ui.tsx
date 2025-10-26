@@ -19,6 +19,7 @@ import { ChatMessages } from "./chat-messages"
 import { ChatScrollButtons } from "./chat-scroll-buttons"
 import { ChatSecondaryButtons } from "./chat-secondary-buttons"
 import { StarterPrompts } from "./starter-prompts"
+import { ChatWelcomeScreen } from "./chat-welcome-screen"
 
 interface ChatUIProps {}
 
@@ -77,6 +78,13 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
       setLoading(false)
     }
   }, [])
+
+  // Focus input when chat loads and if userInput is available, trigger auto-send
+  useEffect(() => {
+    if (!loading && params.chatid) {
+      handleFocusChatInput()
+    }
+  }, [loading, params.chatid])
 
   const fetchMessages = async () => {
     const fetchedMessages = await getMessagesByChatId(params.chatid as string)
@@ -185,6 +193,11 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
 
   if (loading) {
     return <Loading />
+  }
+
+  // Show welcome screen when no specific chat is selected
+  if (!params.chatid) {
+    return <ChatWelcomeScreen />
   }
 
   return (

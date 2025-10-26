@@ -6,6 +6,60 @@ import { SIDEBAR_WIDTH } from "../ui/dashboard"
 import { NewWorkspaceDialog } from "../project/new-workspace-dialog"
 import { useSearch } from "../search/search-provider"
 import { ChatbotUIContext } from "@/context/context"
+import { useChatHandler } from "../chat/chat-hooks/use-chat-handler"
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragOverlay, 
+  DragStartEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable
+} from "@dnd-kit/core"
+import { updateChat } from "@/db/chats"
+
+// Helper components for drag and drop
+const DraggableChat = ({ chat, children }: { chat: any, children: React.ReactNode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: chat.id,
+  })
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    opacity: isDragging ? 0.5 : 1,
+  } : undefined
+
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      {children}
+    </div>
+  )
+}
+
+const DroppableSection = ({ id, children }: { id: string, children: React.ReactNode }) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id,
+  })
+
+  const style = {
+    backgroundColor: isOver ? 'rgba(255, 255, 255, 0.1)' : undefined,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children}
+    </div>
+  )
+}
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
@@ -55,6 +109,7 @@ interface SidebarProps {
 export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, currentView, onToggleSidebar }) => {
   const router = useRouter()
   const { open } = useSearch()
+  const { handleNewChat } = useChatHandler()
   const { profile, workspaces, chats, selectedWorkspace, setWorkspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
   const [authUser, setAuthUser] = useState<any>(null)
 
@@ -75,6 +130,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [workspaceForAction, setWorkspaceForAction] = useState<any>(null)
   const [newName, setNewName] = useState("")
+
+  // Drag and drop state
+  const [draggedItem, setDraggedItem] = useState<any>(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  )
 
   const handleProjectClick = (projectId: string) => {
     // Find the workspace by ID
@@ -126,12 +191,22 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   }
 
   const handleRename = (workspace: any) => {
+    // Only allow rename if user owns the workspace
+    if (workspace.user_id !== profile?.user_id) {
+      console.warn('User does not have permission to rename this workspace')
+      return
+    }
     setSelectedWorkspace(workspace)
     setNewName(workspace.name)
     setRenameDialogOpen(true)
   }
 
   const handleDelete = (workspace: any) => {
+    // Only allow deletion if user owns the workspace
+    if (workspace.user_id !== profile?.user_id) {
+      console.warn('User does not have permission to delete this workspace')
+      return
+    }
     console.log('handleDelete called with workspace:', workspace)
     setWorkspaceForAction(workspace)
     setDeleteDialogOpen(true)
@@ -198,16 +273,69 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     setWorkspaceForAction(null)
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const draggedChat = chats.find(chat => chat.id === active.id)
+    if (draggedChat) {
+      setDraggedItem(draggedChat)
+    }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setDraggedItem(null)
+
+    if (!over) return
+
+    const draggedChatId = active.id as string
+    const targetWorkspaceId = over.id as string
+
+    // Find the dragged chat
+    const draggedChat = chats.find(chat => chat.id === draggedChatId)
+    if (!draggedChat) return
+
+    try {
+      // Update chat workspace association in database
+      let newWorkspaceId = null
+      if (targetWorkspaceId !== 'general-chats') {
+        newWorkspaceId = targetWorkspaceId
+      }
+
+      await updateChat(draggedChatId, {
+        workspace_id: newWorkspaceId
+      })
+
+      // Update local state
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === draggedChatId 
+            ? { ...chat, workspace_id: newWorkspaceId }
+            : chat
+        )
+      )
+
+      console.log(`Moved chat ${draggedChatId} to workspace ${newWorkspaceId || 'general'}`)
+    } catch (error) {
+      console.error('Error moving chat:', error)
+    }
+  }
+
   if (!showSidebar) return null
 
   return (
-    <div
-      className="flex flex-col h-screen"
-      style={{ 
-        width: `${SIDEBAR_WIDTH}px`,
-        backgroundColor: '#090909'
-      }}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
+      <div
+        className="flex flex-col h-screen"
+        style={{ 
+          width: `${SIDEBAR_WIDTH}px`,
+          backgroundColor: '#090909'
+        }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
@@ -237,7 +365,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             <Button
               variant="ghost"
               className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
-              onClick={() => handleViewChange('chat')}
+              onClick={handleNewChat}
             >
               <IconEdit size={16} className="mr-3" />
               New chat
@@ -325,13 +453,17 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   </Button>
                 </NewWorkspaceDialog>
 
-                {workspaces.length > 0 && workspaces.map((workspace) => {
-                  const workspaceChats = chats.filter(chat => chat.workspace_id === workspace.id)
+                {workspaces.length > 0 && workspaces.filter(workspace => workspace.user_id === profile?.user_id).map((workspace) => {
+                  const workspaceChats = chats.filter(chat => 
+                    chat.workspace_id === workspace.id && 
+                    chat.user_id === profile?.user_id
+                  )
                   return (
                     <div key={workspace.id}>
-                      <ContextMenu>
-                        <ContextMenuTrigger asChild>
-                          <Button
+                      <DroppableSection id={workspace.id}>
+                        <ContextMenu>
+                          <ContextMenuTrigger asChild>
+                            <Button
                             variant="ghost"
                             className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
                               selectedProject === workspace.id ? 'bg-white/10 text-white' : ''
@@ -366,18 +498,20 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                       {expandedProjects.has(workspace.id) && workspaceChats.length > 0 && (
                         <div className="ml-8 space-y-0.5">
                           {workspaceChats.slice(0, 5).map((chat) => (
-                            <Button
-                              key={chat.id}
-                              variant="ghost"
-                              className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
-                              onClick={() => router.push(`/c/${chat.id}`)}
-                            >
-                              <div className="w-1 h-1 rounded-full bg-white/30 mr-2"></div>
-                              <span className="truncate">{chat.title || 'New Chat'}</span>
-                            </Button>
+                            <DraggableChat key={chat.id} chat={chat}>
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
+                                onClick={() => router.push(`/c/${chat.id}`)}
+                              >
+                                <div className="w-1 h-1 rounded-full bg-white/30 mr-2"></div>
+                                <span className="truncate">{chat.title || 'New Chat'}</span>
+                              </Button>
+                            </DraggableChat>
                           ))}
                         </div>
                       )}
+                      </DroppableSection>
                     </div>
                   )
                 })}
@@ -402,22 +536,25 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             </button>
             
             {expandedSections.has('chats') && (() => {
-              // Show only chats that are NOT associated with any specific workspace (general chats)
-              const generalChats = chats.filter(chat => !chat.workspace_id || 
-                !workspaces.some(workspace => workspace.id === chat.workspace_id))
+              // Show only orphaned chats (workspace_id is null) that belong to current user
+              const generalChats = chats.filter(chat => 
+                chat.workspace_id === null && 
+                chat.user_id === profile?.user_id
+              )
               return generalChats.length > 0 && (
-                <>
+                <DroppableSection id="general-chats">
                   {generalChats.slice(0, 5).map((chat) => (
-                    <Button
-                      key={chat.id}
-                      variant="ghost"
-                      className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
-                      onClick={() => router.push(`/c/${chat.id}`)}
-                    >
-                      <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
-                    </Button>
+                    <DraggableChat key={chat.id} chat={chat}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
+                        onClick={() => router.push(`/c/${chat.id}`)}
+                      >
+                        <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
+                      </Button>
+                    </DraggableChat>
                   ))}
-                </>
+                </DroppableSection>
               )
             })()}
           </div>
@@ -536,6 +673,15 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+
+      <DragOverlay>
+        {draggedItem ? (
+          <div className="bg-white/20 p-2 rounded text-white text-sm">
+            {draggedItem.title || 'Chat'}
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   )
 }

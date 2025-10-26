@@ -42,7 +42,7 @@ interface ChatItem {
 
 export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const router = useRouter()
-  const { chats, profile, setChats } = useContext(ChatbotUIContext)
+  const { chats, profile, setChats, setSelectedChat, setUserInput: setGlobalUserInput } = useContext(ChatbotUIContext)
   const [chatInput, setChatInput] = useState("")
   
   // Filter chats by workspace/project ID
@@ -73,6 +73,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       
       console.log('Chat created successfully:', newChat)
       setChats(prevChats => [...prevChats, newChat])
+      
+      // Set the selected chat in context
+      setSelectedChat(newChat)
+      
+      // Set the user input for the chat
+      setGlobalUserInput(chatInput.trim())
+      
       setChatInput("")
       router.push(`/c/${newChat.id}`)
     } catch (error) {
@@ -202,7 +209,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`New chat in ${projectName}`}
-                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none"
+                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
