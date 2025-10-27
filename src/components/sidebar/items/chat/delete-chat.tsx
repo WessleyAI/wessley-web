@@ -9,12 +9,12 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { ChatbotUIContext } from "@/context/context"
+import { useChatStore } from "@/stores/chat-store"
 import { deleteChat } from "@/db/chats"
 import useHotkey from "@/lib/hooks/use-hotkey"
 import { Tables } from "@/supabase/types"
 import { IconTrash } from "@tabler/icons-react"
-import { FC, useContext, useRef, useState } from "react"
+import { FC, useRef, useState } from "react"
 
 interface DeleteChatProps {
   chat: Tables<"chats">
@@ -23,7 +23,7 @@ interface DeleteChatProps {
 export const DeleteChat: FC<DeleteChatProps> = ({ chat }) => {
   useHotkey("Backspace", () => setShowChatDialog(true))
 
-  const { setChats } = useContext(ChatbotUIContext)
+  const { removeConversation } = useChatStore()
   const { handleNewChat } = useChatHandler()
 
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -33,7 +33,7 @@ export const DeleteChat: FC<DeleteChatProps> = ({ chat }) => {
   const handleDeleteChat = async () => {
     await deleteChat(chat.id)
 
-    setChats(prevState => prevState.filter(c => c.id !== chat.id))
+    removeConversation(chat.id)
 
     setShowChatDialog(false)
 

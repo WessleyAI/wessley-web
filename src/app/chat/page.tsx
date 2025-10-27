@@ -1,12 +1,7 @@
 'use client'
 
-import { ChatUI } from "@/components/chat/chat-ui"
-import { Dashboard } from "@/components/ui/dashboard"
+import { Bench } from '@/components/dashboard/bench'
 
 export default function ChatPage() {
-  return (
-    <Dashboard>
-      <ChatUI />
-    </Dashboard>
-  )
+  return <Bench />
 }

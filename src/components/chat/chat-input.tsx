@@ -1,281 +1,129 @@
-import { ChatbotUIContext } from "@/context/context"
-import useHotkey from "@/lib/hooks/use-hotkey"
-import { LLM_LIST } from "@/lib/models/llm/llm-list"
-import { cn } from "@/lib/utils"
-import {
-  IconBolt,
-  IconCirclePlus,
-  IconPlayerStopFilled,
-  IconSend
-} from "@tabler/icons-react"
-import Image from "next/image"
-import { FC, useContext, useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
-import { Input } from "../ui/input"
-import { TextareaAutosize } from "../ui/textarea-autosize"
-import { ChatCommandInput } from "./chat-command-input"
-import { ChatFilesDisplay } from "./chat-files-display"
-import { useChatHandler } from "./chat-hooks/use-chat-handler"
-import { useChatHistoryHandler } from "./chat-hooks/use-chat-history"
-import { usePromptAndCommand } from "./chat-hooks/use-prompt-and-command"
-import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
+'use client'
 
-interface ChatInputProps {}
+import React, { useState, useRef, KeyboardEvent } from 'react'
+import { useChatStore } from '@/stores/chat-store'
+import { Button } from '@/components/ui/button'
+import { Send, Loader2, Plus, Mic } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 
-export const ChatInput: FC<ChatInputProps> = ({}) => {
-  const { t } = useTranslation()
+interface ChatInputProps {
+  disabled?: boolean
+}
 
-  useHotkey("l", () => {
-    handleFocusChatInput()
-  })
+export function ChatInput({ disabled }: ChatInputProps) {
+  const { 
+    userInput, 
+    isGenerating, 
+    setUserInput, 
+    setIsGenerating,
+    activeConversation,
+    addMessage
+  } = useChatStore()
+  
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const [isTyping, setIsTyping] = useState<boolean>(false)
-
-  const {
-    isAssistantPickerOpen,
-    focusAssistant,
-    setFocusAssistant,
-    userInput,
-    chatMessages,
-    isGenerating,
-    selectedPreset,
-    selectedAssistant,
-    focusPrompt,
-    setFocusPrompt,
-    focusFile,
-    focusTool,
-    setFocusTool,
-    isToolPickerOpen,
-    isPromptPickerOpen,
-    setIsPromptPickerOpen,
-    isFilePickerOpen,
-    setFocusFile,
-    chatSettings,
-    selectedTools,
-    setSelectedTools,
-    assistantImages
-  } = useContext(ChatbotUIContext)
-
-  const {
-    chatInputRef,
-    handleSendMessage,
-    handleStopMessage,
-    handleFocusChatInput
-  } = useChatHandler()
-
-  const { handleInputChange } = usePromptAndCommand()
-
-  const { filesToAccept, handleSelectDeviceFile } = useSelectFileHandler()
-
-  const {
-    setNewMessageContentToNextUserMessage,
-    setNewMessageContentToPreviousUserMessage
-  } = useChatHistoryHandler()
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setTimeout(() => {
-      handleFocusChatInput()
-    }, 200) // FIX: hacky
-  }, [selectedPreset, selectedAssistant])
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!isTyping && event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault()
-      setIsPromptPickerOpen(false)
-      handleSendMessage(userInput, chatMessages, false)
-    }
-
-    // Consolidate conditions to avoid TypeScript error
-    if (
-      isPromptPickerOpen ||
-      isFilePickerOpen ||
-      isToolPickerOpen ||
-      isAssistantPickerOpen
-    ) {
-      if (
-        event.key === "Tab" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown"
-      ) {
-        event.preventDefault()
-        // Toggle focus based on picker type
-        if (isPromptPickerOpen) setFocusPrompt(!focusPrompt)
-        if (isFilePickerOpen) setFocusFile(!focusFile)
-        if (isToolPickerOpen) setFocusTool(!focusTool)
-        if (isAssistantPickerOpen) setFocusAssistant(!focusAssistant)
+  const handleSubmit = async () => {
+    if (!userInput.trim() || isGenerating || disabled) return
+    
+    const message = userInput.trim()
+    setUserInput('')
+    setIsGenerating(true)
+    
+    try {
+      // Add user message
+      if (activeConversation) {
+        addMessage({
+          id: crypto.randomUUID(),
+          conversation_id: activeConversation.id,
+          content: message,
+          role: 'user',
+          user_id: activeConversation.user_id,
+          ai_model: null,
+          attached_media_ids: null,
+          metadata: null,
+          created_at: new Date().toISOString(),
+          ai_tokens_used: null,
+          ai_confidence_score: null
+        })
+        
+        // TODO: Call API to get assistant response
+        // For now, add a placeholder response
+        setTimeout(() => {
+          addMessage({
+            id: crypto.randomUUID(),
+            conversation_id: activeConversation.id,
+            content: "I'm a vehicle electrical assistant. I can help you understand wiring diagrams, troubleshoot electrical issues, and answer questions about automotive electrical systems. What would you like to know?",
+            role: 'assistant',
+            user_id: null,
+            ai_model: 'gpt-4',
+            attached_media_ids: null,
+            metadata: null,
+            created_at: new Date().toISOString(),
+            ai_tokens_used: 150,
+            ai_confidence_score: 0.95
+          })
+          setIsGenerating(false)
+        }, 1000)
       }
-    }
-
-    if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToPreviousUserMessage()
-    }
-
-    if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToNextUserMessage()
-    }
-
-    //use shift+ctrl+up and shift+ctrl+down to navigate through chat history
-    if (event.key === "ArrowUp" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToPreviousUserMessage()
-    }
-
-    if (event.key === "ArrowDown" && event.shiftKey && event.ctrlKey) {
-      event.preventDefault()
-      setNewMessageContentToNextUserMessage()
-    }
-
-    if (
-      isAssistantPickerOpen &&
-      (event.key === "Tab" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown")
-    ) {
-      event.preventDefault()
-      setFocusAssistant(!focusAssistant)
+    } catch (error) {
+      console.error('Error sending message:', error)
+      setIsGenerating(false)
     }
   }
 
-  const handlePaste = (event: React.ClipboardEvent) => {
-    const imagesAllowed = LLM_LIST.find(
-      llm => llm.modelId === chatSettings?.model
-    )?.imageInput
-
-    const items = event.clipboardData.items
-    for (const item of items) {
-      if (item.type.indexOf("image") === 0) {
-        if (!imagesAllowed) {
-          toast.error(
-            `Images are not supported for this model. Use models like GPT-4 Vision instead.`
-          )
-          return
-        }
-        const file = item.getAsFile()
-        if (!file) return
-        handleSelectDeviceFile(file)
-      }
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSubmit()
     }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserInput(e.target.value)
   }
 
   return (
-    <>
-      <div className="flex flex-col flex-wrap justify-center gap-2">
-        <ChatFilesDisplay />
-
-        {selectedTools &&
-          selectedTools.map((tool, index) => (
-            <div
-              key={index}
-              className="flex justify-center"
-              onClick={() =>
-                setSelectedTools(
-                  selectedTools.filter(
-                    selectedTool => selectedTool.id !== tool.id
-                  )
-                )
-              }
-            >
-              <div className="flex cursor-pointer items-center justify-center space-x-1 rounded-lg bg-purple-600 px-3 py-1 hover:opacity-50">
-                <IconBolt size={20} />
-
-                <div>{tool.name}</div>
-              </div>
-            </div>
-          ))}
-
-        {selectedAssistant && (
-          <div className="border-primary mx-auto flex w-fit items-center space-x-2 rounded-lg border p-1.5">
-            {selectedAssistant.image_path && (
-              <Image
-                className="rounded"
-                src={
-                  assistantImages.find(
-                    img => img.path === selectedAssistant.image_path
-                  )?.base64
-                }
-                width={28}
-                height={28}
-                alt={selectedAssistant.name}
-              />
-            )}
-
-            <div className="text-sm font-bold">
-              Talking to {selectedAssistant.name}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="border-input relative mt-3 flex min-h-[60px] w-full items-center justify-center rounded-xl border-2">
-        <div className="absolute bottom-[76px] left-0 max-h-[300px] w-full overflow-auto rounded-xl dark:border-none">
-          <ChatCommandInput />
-        </div>
-
-        <>
-          <IconCirclePlus
-            className="absolute bottom-[12px] left-3 cursor-pointer p-1 hover:opacity-50"
-            size={32}
-            onClick={() => fileInputRef.current?.click()}
-          />
-
-          {/* Hidden input to select files from device */}
-          <Input
-            ref={fileInputRef}
-            className="hidden"
-            type="file"
-            onChange={e => {
-              if (!e.target.files) return
-              handleSelectDeviceFile(e.target.files[0])
-            }}
-            accept={filesToAccept}
-          />
-        </>
-
-        <TextareaAutosize
-          textareaRef={chatInputRef}
-          className="ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-md flex w-full resize-none rounded-md border-none bg-transparent px-14 py-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder={t(
-            // `Ask anything. Type "@" for assistants, "/" for prompts, "#" for files, and "!" for tools.`
-            `Ask anything. Type @  /  #  !`
-          )}
-          onValueChange={handleInputChange}
+    <div className="w-full">
+      <div className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-3 border border-gray-600/20">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        
+        <Input
+          ref={inputRef}
           value={userInput}
-          minRows={1}
-          maxRows={18}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          onCompositionStart={() => setIsTyping(true)}
-          onCompositionEnd={() => setIsTyping(false)}
+          placeholder="Ask anything"
+          disabled={disabled || isGenerating}
+          className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto py-0"
         />
-
-        <div className="absolute bottom-[14px] right-3 cursor-pointer hover:opacity-50">
-          {isGenerating ? (
-            <IconPlayerStopFilled
-              className="hover:bg-background animate-pulse rounded bg-transparent p-1"
-              onClick={handleStopMessage}
-              size={30}
-            />
-          ) : (
-            <IconSend
-              className={cn(
-                "bg-primary text-secondary rounded p-1",
-                !userInput && "cursor-not-allowed opacity-50"
-              )}
-              onClick={() => {
-                if (!userInput) return
-
-                handleSendMessage(userInput, chatMessages, false)
-              }}
-              size={30}
-            />
-          )}
-        </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+        >
+          <Mic className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+        >
+          <div className="w-4 h-4 flex items-center justify-center">
+            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full ml-0.5"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full ml-0.5"></div>
+          </div>
+        </Button>
       </div>
-    </>
+    </div>
   )
 }

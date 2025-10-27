@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { ThreeScene } from "@/components/3d/ThreeScene"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
   IconClipboard, 
   IconCalculator,
@@ -14,7 +15,11 @@ import {
   IconPlayerRecord,
   IconFolder,
   IconSettings,
-  IconUser
+  IconUser,
+  IconTrash,
+  IconPencil,
+  IconCar,
+  IconMenu2
 } from "@tabler/icons-react"
 import {
   Select,
@@ -23,10 +28,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { ChatbotUIContext } from "@/context/context"
 import { useRouter } from "next/navigation"
 import { Tables } from "@/supabase/types"
-import { createChat } from "@/db/chats"
+import { createChat, updateChat, deleteChat } from "@/db/chats"
+import { getVehiclesByWorkspaceId, createVehicle, updateVehicle } from "@/db/vehicles"
+import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
 
 interface ProjectSpaceProps {
   projectName: string
@@ -45,8 +67,43 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const { chats, profile, setChats, setSelectedChat, setUserInput: setGlobalUserInput } = useContext(ChatbotUIContext)
   const [chatInput, setChatInput] = useState("")
   
+  // Context menu and dialog state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedChatForAction, setSelectedChatForAction] = useState<Tables<"chat_conversations"> | null>(null)
+  const [newChatName, setNewChatName] = useState("")
+  
+  // Vehicle state
+  const [vehicle, setVehicle] = useState<Tables<"vehicles"> | null>(null)
+  const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false)
+  const [vehicleMake, setVehicleMake] = useState("")
+  const [vehicleModel, setVehicleModel] = useState("")
+  const [vehicleYear, setVehicleYear] = useState("")
+  
+  // Scene controls sidebar state
+  const [showSceneControls, setShowSceneControls] = useState(true)
+  const [isSceneControlsMinimized, setIsSceneControlsMinimized] = useState(true)
+  
   // Filter chats by workspace/project ID
   const projectChats = chats.filter(chat => chat.workspace_id === projectId)
+
+  // Load vehicle data on component mount
+  React.useEffect(() => {
+    const loadVehicle = async () => {
+      try {
+        const vehicles = await getVehiclesByWorkspaceId(projectId)
+        if (vehicles.length > 0) {
+          setVehicle(vehicles[0]) // Get the first vehicle for this workspace
+        }
+      } catch (error) {
+        console.error('Error loading vehicle:', error)
+      }
+    }
+    
+    if (projectId) {
+      loadVehicle()
+    }
+  }, [projectId])
 
   const handleStartChat = async () => {
     console.log('handleStartChat called', { chatInput: chatInput.trim(), profile: !!profile, projectId })
@@ -93,8 +150,113 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
     }
   }
 
+  const handleRenameChat = (chat: Tables<"chat_conversations">) => {
+    setSelectedChatForAction(chat)
+    setNewChatName(chat.title || "")
+    setRenameDialogOpen(true)
+  }
+
+  const handleDeleteChat = (chat: Tables<"chat_conversations">) => {
+    setSelectedChatForAction(chat)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmRename = async () => {
+    if (!selectedChatForAction || !newChatName.trim()) return
+    
+    try {
+      await updateChat(selectedChatForAction.id, { title: newChatName.trim() })
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.id === selectedChatForAction.id 
+            ? { ...chat, title: newChatName.trim() }
+            : chat
+        )
+      )
+    } catch (error) {
+      console.error('Error renaming chat:', error)
+    }
+    
+    setRenameDialogOpen(false)
+    setSelectedChatForAction(null)
+    setNewChatName("")
+  }
+
+  const confirmDelete = async () => {
+    if (!selectedChatForAction) return
+    
+    try {
+      await deleteChat(selectedChatForAction.id)
+      setChats(prevChats => 
+        prevChats.filter(chat => chat.id !== selectedChatForAction.id)
+      )
+    } catch (error) {
+      console.error('Error deleting chat:', error)
+    }
+    
+    setDeleteDialogOpen(false)
+    setSelectedChatForAction(null)
+  }
+
+  const handleEditVehicle = () => {
+    if (vehicle) {
+      setVehicleMake(vehicle.make)
+      setVehicleModel(vehicle.model)
+      setVehicleYear(vehicle.year.toString())
+    } else {
+      setVehicleMake("")
+      setVehicleModel("")
+      setVehicleYear("")
+    }
+    setVehicleDialogOpen(true)
+  }
+
+  const confirmVehicle = async () => {
+    if (!vehicleMake.trim() || !vehicleModel.trim() || !vehicleYear.trim() || !profile) return
+    
+    try {
+      const yearNum = parseInt(vehicleYear)
+      if (isNaN(yearNum)) {
+        console.error('Invalid year format')
+        return
+      }
+
+      if (vehicle) {
+        // Update existing vehicle
+        const updatedVehicle = await updateVehicle(vehicle.id, {
+          make: vehicleMake.trim(),
+          model: vehicleModel.trim(),
+          year: yearNum
+        })
+        setVehicle(updatedVehicle)
+      } else {
+        // Create new vehicle
+        const newVehicle = await createVehicle({
+          workspace_id: projectId,
+          make: vehicleMake.trim(),
+          model: vehicleModel.trim(),
+          year: yearNum
+        })
+        setVehicle(newVehicle)
+      }
+    } catch (error) {
+      console.error('Error saving vehicle:', error)
+    }
+    
+    setVehicleDialogOpen(false)
+    setVehicleMake("")
+    setVehicleModel("")
+    setVehicleYear("")
+  }
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative">
+    <div className="flex h-full">
+      <div className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative"
+        style={{
+          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px',
+          transition: 'margin-right 0.3s ease-in-out'
+        }}
+      >
       {/* Top Bar with Model Selection - Floating above scene */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
@@ -145,6 +307,18 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           <motion.button
             whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
             whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            title="Scene Controls"
+            onClick={() => {
+              setShowSceneControls(true)
+              setIsSceneControlsMinimized(false)
+            }}
+          >
+            <IconMenu2 className="w-4 h-4" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileTap={{ scale: 0.95 }}
             className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200 text-sm"
           >
             Share
@@ -172,7 +346,20 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           <div className="flex items-center gap-3">
             <IconFolder className="w-6 h-6 text-gray-400" />
             <h1 className="text-xl font-medium">{projectName}</h1>
-            <span className="text-sm text-gray-500">Hyundai Galloper 00'</span>
+            <motion.button
+              onClick={handleEditVehicle}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <IconCar className="w-4 h-4" />
+              <span>
+                {vehicle 
+                  ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` 
+                  : 'Set vehicle model'
+                }
+              </span>
+            </motion.button>
           </div>
           <Button 
             variant="outline" 
@@ -222,47 +409,215 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         </motion.div>
 
         {/* Chat History with Separators */}
-        <div className="w-full flex-1 overflow-auto">
+        <div className="w-full max-h-96">
           {projectChats.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-32">
               <div className="text-center text-gray-500">
                 <p>No chats yet...</p>
                 <p className="text-sm mt-2">Start a conversation above to begin</p>
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-gray-700/50">
-              {projectChats.map((chat, index) => (
-                <motion.div 
-                  key={chat.id} 
-                  className="flex items-start justify-between p-4 hover:bg-[#3a3a3a]/50 cursor-pointer transition-all duration-200 rounded-lg mx-2"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  whileHover={{ 
-                    backgroundColor: "rgba(58, 58, 58, 0.7)",
-                    x: 4,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => router.push(`/c/${chat.id}`)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium mb-1 text-white truncate">{chat.title}</h3>
-                    <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-                      {/* Show latest message or placeholder */}
-                      New conversation
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-500 ml-4 shrink-0">
-                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
+            <ScrollArea className="h-full project-chat-scroll">
+              <div className="divide-y divide-gray-700/50 pr-4">
+                {projectChats.map((chat, index) => (
+                  <ContextMenu key={chat.id}>
+                    <ContextMenuTrigger asChild>
+                      <motion.div 
+                        className="flex items-start justify-between p-4 hover:bg-[#3a3a3a]/50 cursor-pointer transition-all duration-200 rounded-lg mx-2"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        whileHover={{ 
+                          backgroundColor: "rgba(58, 58, 58, 0.7)",
+                          x: 4,
+                          transition: { duration: 0.2 }
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          router.push(`/c/${chat.id}`)
+                        }}
+                        onContextMenu={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-medium mb-1 text-white truncate">{chat.title}</h3>
+                          <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                            {/* Show latest message or placeholder */}
+                            New conversation
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-500 ml-4 shrink-0">
+                          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </motion.div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        handleRenameChat(chat)
+                      }}>
+                        <IconPencil size={14} className="mr-2" />
+                        Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteChat(chat)
+                        }}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <IconTrash size={14} className="mr-2" />
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                ))}
+              </div>
+            </ScrollArea>
           )}
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+            <DialogDescription>
+              Enter a new name for "{selectedChatForAction?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newChatName}
+                onChange={(e) => setNewChatName(e.target.value)}
+                className="col-span-3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    confirmRename()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmRename} disabled={!newChatName.trim()}>
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Chat</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedChatForAction?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Dialog */}
+      <Dialog open={vehicleDialogOpen} onOpenChange={setVehicleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
+            <DialogDescription>
+              {vehicle 
+                ? 'Update the vehicle information for this project.'
+                : 'Set the vehicle model for this project to get more accurate assistance.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="make" className="text-right">
+                Make
+              </Label>
+              <Input
+                id="make"
+                value={vehicleMake}
+                onChange={(e) => setVehicleMake(e.target.value)}
+                placeholder="e.g., Hyundai"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="model" className="text-right">
+                Model
+              </Label>
+              <Input
+                id="model"
+                value={vehicleModel}
+                onChange={(e) => setVehicleModel(e.target.value)}
+                placeholder="e.g., Galloper"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="year" className="text-right">
+                Year
+              </Label>
+              <Input
+                id="year"
+                value={vehicleYear}
+                onChange={(e) => setVehicleYear(e.target.value)}
+                placeholder="e.g., 2000"
+                className="col-span-3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    confirmVehicle()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmVehicle} 
+              disabled={!vehicleMake.trim() || !vehicleModel.trim() || !vehicleYear.trim()}
+            >
+              {vehicle ? 'Update' : 'Set Vehicle'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      </div>
+
+      {/* Scene Controls Sidebar */}
+      <SceneControlsSidebar 
+        isOpen={showSceneControls}
+        onClose={() => setShowSceneControls(false)}
+        isMinimized={isSceneControlsMinimized}
+        onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
+      />
     </div>
   )
 }

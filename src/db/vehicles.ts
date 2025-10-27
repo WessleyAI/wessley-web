@@ -1,9 +1,10 @@
-import { supabase } from "@/lib/supabase/browser-client"
+import { createClient } from "@/lib/supabase/client"
 import { TablesInsert, TablesUpdate } from "@/supabase/types"
 
 export const createVehicle = async (
   vehicle: TablesInsert<"vehicles">
 ) => {
+  const supabase = createClient()
   const { data: createdVehicle, error } = await supabase
     .from("vehicles")
     .insert([vehicle])
@@ -18,6 +19,7 @@ export const createVehicle = async (
 }
 
 export const getVehiclesByWorkspaceId = async (workspaceId: string) => {
+  const supabase = createClient()
   const { data: vehicles, error } = await supabase
     .from("vehicles")
     .select("*")
@@ -35,6 +37,7 @@ export const updateVehicle = async (
   vehicleId: string,
   vehicle: TablesUpdate<"vehicles">
 ) => {
+  const supabase = createClient()
   const { data: updatedVehicle, error } = await supabase
     .from("vehicles")
     .update(vehicle)
@@ -50,6 +53,7 @@ export const updateVehicle = async (
 }
 
 export const deleteVehicle = async (vehicleId: string) => {
+  const supabase = createClient()
   const { error } = await supabase
     .from("vehicles")
     .delete()

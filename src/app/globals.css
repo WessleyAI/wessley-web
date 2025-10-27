@@ -146,3 +146,82 @@ body {
 }
 
 /* Remove color overrides to fix button styling */
+
+/* Custom Sidebar Scrollbar */
+.sidebar-scroll [data-radix-scroll-area-viewport] {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 transparent;
+}
+
+.sidebar-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+  border-radius: 10px;
+  border: none;
+}
+
+.sidebar-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* Position scrollbar on the left side */
+.sidebar-scroll [data-radix-scroll-area-scrollbar][data-orientation="vertical"] {
+  left: 4px;
+  right: auto;
+  width: 6px;
+}
+
+.sidebar-scroll [data-radix-scroll-area-thumb] {
+  background-color: #6b7280;
+  border-radius: 10px;
+}
+
+.sidebar-scroll [data-radix-scroll-area-thumb]:hover {
+  background-color: #9ca3af;
+}
+
+/* Custom Project Chat Scrollbar */
+.project-chat-scroll [data-radix-scroll-area-viewport] {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 transparent;
+}
+
+.project-chat-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  width: 6px;
+}
+
+.project-chat-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-chat-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background-color: #6b7280;
+  border-radius: 10px;
+  border: none;
+}
+
+.project-chat-scroll [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* Position scrollbar on the right side for project chat */
+.project-chat-scroll [data-radix-scroll-area-scrollbar][data-orientation="vertical"] {
+  right: 0px;
+  width: 6px;
+}
+
+.project-chat-scroll [data-radix-scroll-area-thumb] {
+  background-color: #6b7280;
+  border-radius: 10px;
+}
+
+.project-chat-scroll [data-radix-scroll-area-thumb]:hover {
+  background-color: #9ca3af;
+}

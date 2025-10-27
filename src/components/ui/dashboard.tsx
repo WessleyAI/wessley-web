@@ -61,6 +61,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
     localStorage.setItem("showSidebar", showSidebar.toString())
   }, [showSidebar])
 
+
   const handleToggleSidebar = () => {
     if (showSidebar && !isMinimized) {
       // From expanded: minimize first

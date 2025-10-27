@@ -7,6 +7,7 @@ import { SIDEBAR_WIDTH } from "../ui/dashboard"
 import { NewWorkspaceDialog } from "../project/new-workspace-dialog"
 import { useSearch } from "../search/search-provider"
 import { ChatbotUIContext } from "@/context/context"
+import { useChatStore } from "@/stores/chat-store"
 import { useChatHandler } from "../chat/chat-hooks/use-chat-handler"
 import { 
   DndContext, 
@@ -20,7 +21,7 @@ import {
   useDroppable,
   useDraggable
 } from "@dnd-kit/core"
-import { updateChat } from "@/db/chats"
+import { updateChat, deleteChat } from "@/db/chats"
 
 // Helper components for drag and drop
 const DraggableChat = ({ chat, children }: { chat: any, children: React.ReactNode }) => {
@@ -113,7 +114,18 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   const router = useRouter()
   const { open } = useSearch()
   const { handleNewChat } = useChatHandler()
-  const { profile, workspaces, chats, selectedWorkspace, setWorkspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
+  const { profile, workspaces, chats: contextChats, selectedWorkspace, setWorkspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
+  const { conversations, setConversations, removeConversation, updateConversationTitle, updateConversationWorkspace } = useChatStore()
+  
+  // Sync conversations from context to Zustand store
+  useEffect(() => {
+    if (contextChats && contextChats.length > 0) {
+      setConversations(contextChats)
+    }
+  }, [contextChats, setConversations])
+  
+  // Use conversations from Zustand store instead of ChatbotUIContext
+  const chats = conversations
   const [authUser, setAuthUser] = useState<any>(null)
   const [isHovering, setIsHovering] = useState(false)
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
@@ -136,6 +148,12 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [workspaceForAction, setWorkspaceForAction] = useState<any>(null)
   const [newName, setNewName] = useState("")
+  
+  // Chat rename/delete state
+  const [chatRenameDialogOpen, setChatRenameDialogOpen] = useState(false)
+  const [chatDeleteDialogOpen, setChatDeleteDialogOpen] = useState(false)
+  const [selectedChatForAction, setSelectedChatForAction] = useState<any>(null)
+  const [newChatName, setNewChatName] = useState("")
 
   // Drag and drop state
   const [draggedItem, setDraggedItem] = useState<any>(null)
@@ -279,6 +297,46 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     setWorkspaceForAction(null)
   }
 
+  const handleRenameChat = (chat: any) => {
+    setSelectedChatForAction(chat)
+    setNewChatName(chat.title || "")
+    setChatRenameDialogOpen(true)
+  }
+
+  const handleDeleteChat = (chat: any) => {
+    setSelectedChatForAction(chat)
+    setChatDeleteDialogOpen(true)
+  }
+
+  const confirmChatRename = async () => {
+    if (!selectedChatForAction || !newChatName.trim()) return
+    
+    try {
+      await updateChat(selectedChatForAction.id, { title: newChatName.trim() })
+      updateConversationTitle(selectedChatForAction.id, newChatName.trim())
+    } catch (error) {
+      console.error('Error renaming chat:', error)
+    }
+    
+    setChatRenameDialogOpen(false)
+    setSelectedChatForAction(null)
+    setNewChatName("")
+  }
+
+  const confirmChatDelete = async () => {
+    if (!selectedChatForAction) return
+    
+    try {
+      // Unlink chat from user instead of deleting from database
+      removeConversation(selectedChatForAction.id)
+    } catch (error) {
+      console.error('Error removing chat:', error)
+    }
+    
+    setChatDeleteDialogOpen(false)
+    setSelectedChatForAction(null)
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
     const draggedChat = chats.find(chat => chat.id === active.id)
@@ -311,14 +369,8 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
         workspace_id: newWorkspaceId
       })
 
-      // Update local state
-      setChats(prevChats => 
-        prevChats.map(chat => 
-          chat.id === draggedChatId 
-            ? { ...chat, workspace_id: newWorkspaceId }
-            : chat
-        )
-      )
+      // Update the Zustand store to reflect the workspace change
+      updateConversationWorkspace(draggedChatId, newWorkspaceId)
 
       console.log(`Moved chat ${draggedChatId} to workspace ${newWorkspaceId || 'general'}`)
     } catch (error) {
@@ -416,7 +468,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
       </div>
 
       {/* Main Content */}
-      <ScrollArea className="flex-1 px-3">
+      <ScrollArea className="flex-1 px-3 sidebar-scroll">
         {isMinimized ? (
           <div className="space-y-3 pb-4">
             {/* Minimized Icons */}
@@ -431,7 +483,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   }}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect()
-                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('newchat')
                   }}
                   onMouseLeave={() => setHoveredIcon(null)}
@@ -451,7 +503,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   }}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect()
-                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('search')
                   }}
                   onMouseLeave={() => setHoveredIcon(null)}
@@ -471,7 +523,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   }}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect()
-                    setTooltipPosition({ x: rect.right + 8, y: rect.top + rect.height / 2 })
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('explore')
                   }}
                   onMouseLeave={() => setHoveredIcon(null)}
@@ -641,14 +693,36 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                         <div className="ml-8 space-y-0.5">
                           {workspaceChats.slice(0, 5).map((chat) => (
                             <DraggableChat key={chat.id} chat={chat}>
-                              <Button
-                                variant="ghost"
-                                className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
-                                onClick={() => router.push(`/c/${chat.id}`)}
-                              >
-                                <div className="w-1 h-1 rounded-full bg-white/30 mr-2"></div>
-                                <span className="truncate">{chat.title || 'New Chat'}</span>
-                              </Button>
+                              <ContextMenu>
+                                <ContextMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
+                                    onClick={() => router.push(`/c/${chat.id}`)}
+                                  >
+                                    <span className="truncate">{chat.title || 'New Chat'}</span>
+                                  </Button>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent>
+                                  <ContextMenuItem onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleRenameChat(chat)
+                                  }}>
+                                    <IconPencil size={14} className="mr-2" />
+                                    Rename
+                                  </ContextMenuItem>
+                                  <ContextMenuItem 
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDeleteChat(chat)
+                                    }}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    <IconTrash size={14} className="mr-2" />
+                                    Delete
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                             </DraggableChat>
                           ))}
                         </div>
@@ -687,13 +761,36 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                 <DroppableSection id="general-chats">
                   {generalChats.slice(0, 5).map((chat) => (
                     <DraggableChat key={chat.id} chat={chat}>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
-                        onClick={() => router.push(`/c/${chat.id}`)}
-                      >
-                        <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
-                      </Button>
+                      <ContextMenu>
+                        <ContextMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
+                            onClick={() => router.push(`/c/${chat.id}`)}
+                          >
+                            <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
+                          </Button>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          <ContextMenuItem onClick={(e) => {
+                            e.stopPropagation()
+                            handleRenameChat(chat)
+                          }}>
+                            <IconPencil size={14} className="mr-2" />
+                            Rename
+                          </ContextMenuItem>
+                          <ContextMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteChat(chat)
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <IconTrash size={14} className="mr-2" />
+                            Delete
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
                     </DraggableChat>
                   ))}
                 </DroppableSection>
@@ -835,6 +932,67 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                 console.log('Delete button clicked')
                 confirmDelete()
               }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chat Rename Dialog */}
+      <Dialog open={chatRenameDialogOpen} onOpenChange={setChatRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+            <DialogDescription>
+              Enter a new name for "{selectedChatForAction?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="chatname" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="chatname"
+                value={newChatName}
+                onChange={(e) => setNewChatName(e.target.value)}
+                className="col-span-3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    confirmChatRename()
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChatRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmChatRename} disabled={!newChatName.trim()}>
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chat Delete Dialog */}
+      <Dialog open={chatDeleteDialogOpen} onOpenChange={setChatDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Chat</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedChatForAction?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChatDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmChatDelete}
             >
               Delete
             </Button>
