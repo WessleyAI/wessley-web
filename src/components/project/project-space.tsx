@@ -43,12 +43,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import { ChatbotUIContext } from "@/context/context"
 import { useRouter } from "next/navigation"
 import { Tables } from "@/supabase/types"
 import { createChat, updateChat, deleteChat } from "@/db/chats"
 import { getVehiclesByWorkspaceId, createVehicle, updateVehicle } from "@/db/vehicles"
 import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
+
+// Chat skeleton component
+const ProjectChatSkeleton = () => (
+  <div className="flex items-start justify-between p-4 mx-2">
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-4 w-3/4 bg-gray-600/50" />
+      <Skeleton className="h-3 w-1/2 bg-gray-600/30" />
+    </div>
+    <Skeleton className="h-3 w-16 bg-gray-600/30" />
+  </div>
+)
 
 interface ProjectSpaceProps {
   projectName: string
@@ -75,6 +87,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   
   // Vehicle state
   const [vehicle, setVehicle] = useState<Tables<"vehicles"> | null>(null)
+  const [isLoadingVehicle, setIsLoadingVehicle] = useState(true)
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false)
   const [vehicleMake, setVehicleMake] = useState("")
   const [vehicleModel, setVehicleModel] = useState("")
@@ -84,19 +97,32 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const [showSceneControls, setShowSceneControls] = useState(true)
   const [isSceneControlsMinimized, setIsSceneControlsMinimized] = useState(true)
   
+  // Loading states
+  const [isLoadingChats, setIsLoadingChats] = useState(true)
+  
   // Filter chats by workspace/project ID
   const projectChats = chats.filter(chat => chat.workspace_id === projectId)
+  
+  // Set loading state based on chats data
+  React.useEffect(() => {
+    if (chats !== undefined) {
+      setIsLoadingChats(false)
+    }
+  }, [chats])
 
   // Load vehicle data on component mount
   React.useEffect(() => {
     const loadVehicle = async () => {
       try {
+        setIsLoadingVehicle(true)
         const vehicles = await getVehiclesByWorkspaceId(projectId)
         if (vehicles.length > 0) {
           setVehicle(vehicles[0]) // Get the first vehicle for this workspace
         }
       } catch (error) {
         console.error('Error loading vehicle:', error)
+      } finally {
+        setIsLoadingVehicle(false)
       }
     }
     
@@ -346,20 +372,27 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           <div className="flex items-center gap-3">
             <IconFolder className="w-6 h-6 text-gray-400" />
             <h1 className="text-xl font-medium">{projectName}</h1>
-            <motion.button
-              onClick={handleEditVehicle}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <IconCar className="w-4 h-4" />
-              <span>
-                {vehicle 
-                  ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` 
-                  : 'Set vehicle model'
-                }
-              </span>
-            </motion.button>
+            {isLoadingVehicle ? (
+              <div className="flex items-center gap-2 text-sm px-2 py-1">
+                <IconCar className="w-4 h-4 text-gray-500" />
+                <Skeleton className="h-4 w-32 bg-gray-600/50" />
+              </div>
+            ) : (
+              <motion.button
+                onClick={handleEditVehicle}
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <IconCar className="w-4 h-4" />
+                <span>
+                  {vehicle 
+                    ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` 
+                    : 'Set vehicle model'
+                  }
+                </span>
+              </motion.button>
+            )}
           </div>
           <Button 
             variant="outline" 
@@ -420,7 +453,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           ) : (
             <ScrollArea className="h-full project-chat-scroll">
               <div className="divide-y divide-gray-700/50 pr-4">
-                {projectChats.map((chat, index) => (
+                {isLoadingChats ? (
+                  // Show skeleton loading states
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <ProjectChatSkeleton key={index} />
+                  ))
+                ) : (
+                  projectChats.map((chat, index) => (
                   <ContextMenu key={chat.id}>
                     <ContextMenuTrigger asChild>
                       <motion.div 
@@ -472,7 +511,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
-                ))}
+                )))}
               </div>
             </ScrollArea>
           )}

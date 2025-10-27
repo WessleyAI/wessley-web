@@ -8,6 +8,7 @@ import { NewWorkspaceDialog } from "../project/new-workspace-dialog"
 import { useSearch } from "../search/search-provider"
 import { ChatbotUIContext } from "@/context/context"
 import { useChatStore } from "@/stores/chat-store"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useChatHandler } from "../chat/chat-hooks/use-chat-handler"
 import { 
   DndContext, 
@@ -22,6 +23,13 @@ import {
   useDraggable
 } from "@dnd-kit/core"
 import { updateChat, deleteChat } from "@/db/chats"
+
+// Chat skeleton component
+const ChatSkeleton = ({ className }: { className?: string }) => (
+  <div className={className}>
+    <Skeleton className="h-8 w-full bg-gray-700/50" />
+  </div>
+)
 
 // Helper components for drag and drop
 const DraggableChat = ({ chat, children }: { chat: any, children: React.ReactNode }) => {
@@ -121,11 +129,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   useEffect(() => {
     if (contextChats && contextChats.length > 0) {
       setConversations(contextChats)
+      setIsLoadingChats(false)
+    } else if (contextChats !== undefined) {
+      // Empty array means loaded but no chats
+      setIsLoadingChats(false)
     }
   }, [contextChats, setConversations])
   
   // Use conversations from Zustand store instead of ChatbotUIContext
   const chats = conversations
+  const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [authUser, setAuthUser] = useState<any>(null)
   const [isHovering, setIsHovering] = useState(false)
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
@@ -689,42 +702,49 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                         </ContextMenuContent>
                       </ContextMenu>
                       
-                      {expandedProjects.has(workspace.id) && workspaceChats.length > 0 && (
+                      {expandedProjects.has(workspace.id) && (
                         <div className="ml-8 space-y-0.5">
-                          {workspaceChats.slice(0, 5).map((chat) => (
-                            <DraggableChat key={chat.id} chat={chat}>
-                              <ContextMenu>
-                                <ContextMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
-                                    onClick={() => router.push(`/c/${chat.id}`)}
-                                  >
-                                    <span className="truncate">{chat.title || 'New Chat'}</span>
-                                  </Button>
-                                </ContextMenuTrigger>
-                                <ContextMenuContent>
-                                  <ContextMenuItem onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRenameChat(chat)
-                                  }}>
-                                    <IconPencil size={14} className="mr-2" />
-                                    Rename
-                                  </ContextMenuItem>
-                                  <ContextMenuItem 
-                                    onClick={(e) => {
+                          {isLoadingChats ? (
+                            // Show skeleton loading states
+                            Array.from({ length: 3 }).map((_, index) => (
+                              <ChatSkeleton key={index} />
+                            ))
+                          ) : (
+                            workspaceChats.slice(0, 5).map((chat) => (
+                              <DraggableChat key={chat.id} chat={chat}>
+                                <ContextMenu>
+                                  <ContextMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
+                                      onClick={() => router.push(`/c/${chat.id}`)}
+                                    >
+                                      <span className="truncate">{chat.title || 'New Chat'}</span>
+                                    </Button>
+                                  </ContextMenuTrigger>
+                                  <ContextMenuContent>
+                                    <ContextMenuItem onClick={(e) => {
                                       e.stopPropagation()
-                                      handleDeleteChat(chat)
-                                    }}
-                                    className="text-red-600 focus:text-red-600"
-                                  >
-                                    <IconTrash size={14} className="mr-2" />
-                                    Delete
-                                  </ContextMenuItem>
-                                </ContextMenuContent>
-                              </ContextMenu>
-                            </DraggableChat>
-                          ))}
+                                      handleRenameChat(chat)
+                                    }}>
+                                      <IconPencil size={14} className="mr-2" />
+                                      Rename
+                                    </ContextMenuItem>
+                                    <ContextMenuItem 
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDeleteChat(chat)
+                                      }}
+                                      className="text-red-600 focus:text-red-600"
+                                    >
+                                      <IconTrash size={14} className="mr-2" />
+                                      Delete
+                                    </ContextMenuItem>
+                                  </ContextMenuContent>
+                                </ContextMenu>
+                              </DraggableChat>
+                            ))
+                          )}
                         </div>
                       )}
                       </DroppableSection>
@@ -757,10 +777,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                 chat.workspace_id === null && 
                 chat.user_id === profile?.user_id
               )
-              return generalChats.length > 0 && (
+              return (isLoadingChats || generalChats.length > 0) && (
                 <DroppableSection id="general-chats">
-                  {generalChats.slice(0, 5).map((chat) => (
-                    <DraggableChat key={chat.id} chat={chat}>
+                  {isLoadingChats ? (
+                    // Show skeleton loading states for general chats
+                    Array.from({ length: 3 }).map((_, index) => (
+                      <ChatSkeleton key={index} className="px-3 py-1" />
+                    ))
+                  ) : (
+                    generalChats.slice(0, 5).map((chat) => (
+                      <DraggableChat key={chat.id} chat={chat}>
                       <ContextMenu>
                         <ContextMenuTrigger asChild>
                           <Button
@@ -791,8 +817,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                           </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
-                    </DraggableChat>
-                  ))}
+                      </DraggableChat>
+                    ))
+                  )}
                 </DroppableSection>
               )
             })()}
