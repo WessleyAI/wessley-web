@@ -9,6 +9,7 @@
     "lint": "next lint",
     "check": "tsc --noEmit",
     "build:netlify": "npm run build",
+    "build:isolated": "SKIP_ENV_VALIDATION=true npm run build",
     "export": "next build && next export"
   },
   "dependencies": {

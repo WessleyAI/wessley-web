@@ -1,7 +1,7 @@
 [build]
-  base = "apps/web"
+  base = "."
   publish = "apps/web/.next"
-  command = "npm run build"
+  command = "npx turbo build --filter=web"
 
 [build.environment]
   # Disable linting errors during build to prevent deployment failures
@@ -9,6 +9,8 @@
   NEXT_IGNORE_TYPECHECK = "true"
   # Skip build optimization checks
   NEXT_SKIP_VALIDATION = "true"
+  # Skip environment validation for services not used in web build
+  SKIP_ENV_VALIDATION = "true"
 
 # Redirects for client-side routing
 [[redirects]]
