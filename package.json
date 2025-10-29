@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "build:netlify": "npm run build",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^14.2.1",

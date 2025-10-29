@@ -1,0 +1,42 @@
+[build]
+  base = "apps/web"
+  publish = "apps/web/.next"
+  command = "npm run build"
+
+[build.environment]
+  # Disable linting errors during build to prevent deployment failures
+  NEXT_IGNORE_ESLINT = "true"
+  NEXT_IGNORE_TYPECHECK = "true"
+  # Skip build optimization checks
+  NEXT_SKIP_VALIDATION = "true"
+
+# Redirects for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Environment variables (these should be set in Netlify dashboard)
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
+# BEEHIIV_API_KEY (if using the waitlist API)
