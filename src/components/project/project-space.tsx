@@ -276,12 +276,18 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   }
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative"
-        style={{
-          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px',
-          transition: 'margin-right 0.3s ease-in-out'
+    <motion.div 
+      className="flex h-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.div 
+        className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative"
+        animate={{
+          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px'
         }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
       {/* Top Bar with Model Selection - Floating above scene */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
@@ -648,7 +654,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         </DialogContent>
       </Dialog>
 
-      </div>
+      </motion.div>
 
       {/* Scene Controls Sidebar */}
       <SceneControlsSidebar 
@@ -657,6 +663,6 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         isMinimized={isSceneControlsMinimized}
         onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
       />
-    </div>
+    </motion.div>
   )
 }

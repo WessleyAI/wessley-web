@@ -37,14 +37,14 @@ export function useAuth() {
     })
     
     if (error) {
-      console.error('Error signing in with Google:', error)
+      // Silent error handling - could add toast notification here
     }
   }
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      console.error('Error signing out:', error)
+      // Silent error handling - could add toast notification here
     }
   }
 

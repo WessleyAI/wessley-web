@@ -2,6 +2,7 @@
 
 import React, { useEffect, useContext } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Dashboard } from '@/components/ui/dashboard'
 import { useChatStore } from '@/stores/chat-store'
 import { ChatInterface } from '@/components/chat/chat-interface'
@@ -101,13 +102,31 @@ export function Bench({ chatId }: BenchProps) {
   }
 
   const renderMainContent = () => {
-    // Always show the new chat interface (it handles both states internally)
-    return <ChatInterface onNewChat={handleNewChat} onQuickStart={handleQuickStart} chatId={chatId} />
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={chatId || 'default'}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="w-full h-full"
+        >
+          <ChatInterface onNewChat={handleNewChat} onQuickStart={handleQuickStart} chatId={chatId} />
+        </motion.div>
+      </AnimatePresence>
+    )
   }
 
   return (
-    <Dashboard>
-      {renderMainContent()}
-    </Dashboard>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Dashboard>
+        {renderMainContent()}
+      </Dashboard>
+    </motion.div>
   )
 }

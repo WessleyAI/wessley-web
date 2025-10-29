@@ -31,6 +31,19 @@ const ChatSkeleton = ({ className }: { className?: string }) => (
   </div>
 )
 
+// Profile skeleton component
+const ProfileSkeleton = ({ isMinimized }: { isMinimized: boolean }) => (
+  <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3'}`}>
+    <Skeleton className="h-8 w-8 rounded-full bg-gray-700/50" />
+    {!isMinimized && (
+      <div className="flex-1 min-w-0 space-y-1">
+        <Skeleton className="h-3 w-20 bg-gray-600/50" />
+        <Skeleton className="h-3 w-16 bg-gray-600/30" />
+      </div>
+    )}
+  </div>
+)
+
 // Helper components for drag and drop
 const DraggableChat = ({ chat, children }: { chat: any, children: React.ReactNode }) => {
   const {
@@ -85,7 +98,6 @@ import {
   IconFolder,
   IconLayoutSidebar,
   IconLayoutSidebarLeftExpand,
-  IconBrandGoogle,
   IconTrash,
   IconPencil
 } from "@tabler/icons-react"
@@ -140,6 +152,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   const chats = conversations
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [authUser, setAuthUser] = useState<any>(null)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [isHovering, setIsHovering] = useState(false)
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
@@ -149,6 +162,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       setAuthUser(user)
+      setIsLoadingProfile(false)
     }
     getAuthUser()
   }, [profile])
@@ -217,15 +231,6 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     setExpandedSections(newExpanded)
   }
 
-  const handleGoogleLogin = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/chat`
-      }
-    })
-  }
 
   const handleRename = (workspace: any) => {
     // Only allow rename if user owns the workspace
@@ -400,10 +405,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div
+      <motion.div
         className={`flex flex-col h-screen ${isMinimized ? 'cursor-pointer' : ''}`}
-        style={{ 
+        animate={{ 
           width: isMinimized ? '60px' : `${SIDEBAR_WIDTH}px`,
+        }}
+        transition={{ 
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}
+        style={{ 
           backgroundColor: '#090909'
         }}
         onMouseEnter={() => isMinimized && setIsHovering(true)}
@@ -830,7 +841,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
 
       {/* Account Section */}
       <div className="p-3">
-        {profile ? (
+        {isLoadingProfile ? (
+          <ProfileSkeleton isMinimized={isMinimized} />
+        ) : profile ? (
           <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3'}`}>
             <div className={`relative ${isMinimized ? 'group' : ''}`}>
               <div 
@@ -873,33 +886,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
               </div>
             )}
           </div>
-        ) : (
-          <>
-            {!isMinimized && <div className="bg-red-500 p-2 text-white font-bold">DEBUG: No profile found</div>}
-            <div className={`space-y-2 ${isMinimized ? 'flex flex-col items-center' : ''}`}>
-            <div className={`relative ${isMinimized ? 'group' : ''}`}>
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleGoogleLogin()
-                }}
-                onMouseEnter={(e) => isMinimized && e.stopPropagation()}
-                onMouseLeave={(e) => isMinimized && e.stopPropagation()}
-                className={`${isMinimized ? 'h-8 w-8 p-0 relative z-10 rounded-lg' : 'w-full justify-start h-9 px-3'} bg-white text-black hover:bg-gray-200 transition-all duration-200`}
-              >
-                <IconBrandGoogle size={16} className={isMinimized ? '' : 'mr-2'} />
-                {!isMinimized && 'Sign in with Google'}
-              </Button>
-              {isMinimized && (
-                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
-                  Sign in with Google
-                </div>
-              )}
-            </div>
-            {!isMinimized && <p className="text-xs text-white/60 text-center">Sign in to access your projects and chat history</p>}
-            </div>
-          </>
-        )}
+        ) : null}
       </div>
 
       {/* Rename Dialog */}
@@ -1026,7 +1013,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
+      </motion.div>
 
       <DragOverlay>
         {draggedItem ? (

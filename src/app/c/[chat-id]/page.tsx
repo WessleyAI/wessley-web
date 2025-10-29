@@ -1,11 +1,14 @@
 'use client'
 
-import { useParams } from 'next/navigation'
-import { Bench } from '@/components/dashboard/bench'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default function ChatPage() {
-  const params = useParams()
-  const chatId = params['chat-id'] as string
-  
-  return <Bench chatId={chatId} />
+export default function ChatIdRedirect() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/')
+  }, [router])
+
+  return null
 }

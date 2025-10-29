@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function ChatRedirect() {
+export default function CallbackRedirect() {
   const router = useRouter()
 
   useEffect(() => {
