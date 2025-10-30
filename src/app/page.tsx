@@ -92,23 +92,23 @@ export default function Home() {
 
   if (isSubmitted) {
     return (
-      <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center">
+      <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
         <motion.div 
-          className="text-center space-y-6 max-w-md"
+          className="text-center space-y-4 sm:space-y-6 max-w-md mx-auto"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <motion.div
             animate={pulseAnimation}
-            className="text-6xl mb-4"
+            className="text-4xl sm:text-6xl mb-2 sm:mb-4"
           >
             🎉
           </motion.div>
-          <h2 className="keania-one-regular tracking-wide text-3xl" style={{color: '#22E974'}}>
+          <h2 className="keania-one-regular tracking-wide text-2xl sm:text-3xl" style={{color: '#22E974'}}>
             YOU'RE IN!
           </h2>
-          <p className="font-sans text-black dark:text-white font-semibold text-lg">
+          <p className="font-sans text-black dark:text-white font-semibold text-base sm:text-lg">
             Thanks for joining the waitlist — we'll let you know the moment Wessley is ready to power up your project car journey.
           </p>
           <p className="font-sans text-black/70 dark:text-white/70 text-sm">
@@ -120,19 +120,19 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-80px)] flex items-center">
+    <div className="relative min-h-[calc(100vh-80px)] flex items-center px-4 sm:px-0">
       <motion.div 
-        className="relative z-10 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 w-full"
+        className="relative z-10 grid grid-cols-1 gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-16 w-full"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Left Column: Hero Content */}
-        <div className="flex flex-col justify-center space-y-8 pl-8 lg:pl-12">
-          <motion.div className="space-y-6" variants={itemVariants}>
+        <div className="flex flex-col justify-center space-y-6 sm:space-y-8 px-4 sm:pl-8 lg:pl-12">
+          <motion.div className="space-y-4 sm:space-y-6" variants={itemVariants}>
             <motion.h1 
-              className="keania-one-regular tracking-wide" 
-              style={{color: '#22E974', fontSize: '52px'}}
+              className="keania-one-regular tracking-wide text-3xl sm:text-4xl lg:text-5xl xl:text-6xl" 
+              style={{color: '#22E974'}}
               animate={{
                 textShadow: [
                   '0 0 20px rgba(34, 233, 116, 0.3)',
@@ -149,8 +149,7 @@ export default function Home() {
               MEET WESSLEY.
             </motion.h1>
             <motion.p 
-              className="font-sans text-black dark:text-white max-w-lg font-semibold" 
-              style={{fontSize: '24px'}}
+              className="font-sans text-black dark:text-white max-w-lg font-semibold text-lg sm:text-xl lg:text-2xl" 
               variants={itemVariants}
             >
               A virtual garage where Wessley, your personal vehicle guru, guides you.
@@ -158,7 +157,7 @@ export default function Home() {
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+            <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
                 <motion.div 
                   className="flex-1"
@@ -172,7 +171,7 @@ export default function Home() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-4 py-3 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 h-12"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 h-10 sm:h-12"
                     disabled={isLoading}
                   />
                 </motion.div>
@@ -190,8 +189,7 @@ export default function Home() {
                   <Button 
                     type="submit"
                     size="lg" 
-                    className="bg-primary text-black hover:bg-transparent hover:text-black px-8 py-3 rounded-lg font-inter font-black w-full sm:w-auto h-12"
-                    style={{fontSize: '16px'}}
+                    className="bg-primary text-black hover:bg-transparent hover:text-black px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-inter font-black w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Joining...' : 'Join Waitlist →'}
@@ -210,14 +208,14 @@ export default function Home() {
 
         {/* Right Column: Animated Illustrations */}
         <motion.div 
-          className="flex items-center justify-center"
+          className="flex items-center justify-center px-4 mt-8 lg:mt-0"
           variants={itemVariants}
         >
           {/* Light mode illustration */}
           <motion.img 
             src="/illus-light.png" 
             alt="Wessley AI Illustration" 
-            className="max-w-full h-auto dark:hidden"
+            className="w-full max-w-sm sm:max-w-md lg:max-w-full h-auto dark:hidden"
             animate={floatAnimation}
             whileHover={{ 
               scale: 1.05,
@@ -229,7 +227,7 @@ export default function Home() {
           <motion.img 
             src="/illus-dark.png" 
             alt="Wessley AI Illustration" 
-            className="max-w-full h-auto hidden dark:block"
+            className="w-full max-w-sm sm:max-w-md lg:max-w-full h-auto hidden dark:block"
             animate={floatAnimation}
             whileHover={{ 
               scale: 1.05,

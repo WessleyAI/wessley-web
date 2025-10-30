@@ -12,7 +12,7 @@ export function AppShell({ children, onDashboardOpen }: AppShellProps) {
   return (
     <div className="min-h-screen bg-transparent font-sans antialiased">
       <TopNav onDashboardOpen={onDashboardOpen} />
-      <main className="container mx-auto px-6">
+      <main className="container mx-auto px-4 sm:px-6">
         {children}
       </main>
       <FloatingButtons />
