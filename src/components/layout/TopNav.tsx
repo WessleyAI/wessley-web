@@ -14,21 +14,21 @@ export function TopNav({ onDashboardOpen }: TopNavProps = {}) {
   const { signInWithGoogle } = useAuth()
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4">
+    <nav className="flex items-center justify-between px-4 sm:px-6 py-4">
       {/* Left: Logo only */}
       <div className="flex items-center">
         <Logo />
       </div>
       
       {/* Right: All navigation items */}
-      <div className="flex items-center space-x-6">
-        {/* About and Contact buttons */}
-        <div className="hidden space-x-6 md:flex">
+      <div className="flex items-center space-x-2 sm:space-x-6">
+        {/* About and Contact buttons - always visible on mobile and desktop */}
+        <div className="flex items-center space-x-2 sm:space-x-6">
           <Link 
             href="https://github.com/SaharBarak/wessley.ai" 
             target="_blank"
             rel="noopener noreferrer"
-            className="text-black dark:text-white hover:text-primary transition-colors font-inter font-bold"
+            className="text-black dark:text-white hover:text-primary transition-colors font-inter font-bold text-sm sm:text-base"
           >
             About
           </Link>
@@ -36,14 +36,14 @@ export function TopNav({ onDashboardOpen }: TopNavProps = {}) {
             href="https://www.linkedin.com/in/saharbarak/" 
             target="_blank"
             rel="noopener noreferrer"
-            className="text-black dark:text-white hover:text-primary transition-colors font-inter font-bold"
+            className="text-black dark:text-white hover:text-primary transition-colors font-inter font-bold text-sm sm:text-base"
           >
             Contact
           </Link>
         </div>
         
-        {/* Login and Sign up buttons */}
-        <div className="flex items-center space-x-2">
+        {/* Login and Sign up buttons - hidden on mobile */}
+        <div className="hidden md:flex items-center space-x-2">
           <motion.div
             whileHover={{ 
               scale: 1.05,
