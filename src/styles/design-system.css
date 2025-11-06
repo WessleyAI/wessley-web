@@ -1,0 +1,74 @@
+/* Design System - Typography */
+
+:root {
+  /* Base font size - 16px is browser default */
+  --font-size-base: 1rem; /* 16px */
+
+  /* Typography Scale */
+  --font-size-xs: 1.02rem;      /* 16.32px (19.2px * 0.85) */
+  --font-size-sm: 1.19rem;      /* 19.04px (22.4px * 0.85) */
+  --font-size-md: 1.084rem;     /* 17.34px (20.4px * 0.85) */
+  --font-size-base: 1.36rem;    /* 21.76px (25.6px * 0.85) */
+  --font-size-lg: 1.53rem;      /* 24.48px (28.8px * 0.85) */
+  --font-size-xl: 2.04rem;      /* 32.64px (38.4px * 0.85) */
+  --font-size-2xl: 2.72rem;     /* 43.52px (51.2px * 0.85) */
+  --font-size-3xl: 3.4rem;      /* 54.4px (64px * 0.85) */
+  --font-size-4xl: 4.42rem;     /* 70.72px (83.2px * 0.85) */
+  --font-size-5xl: 5.44rem;     /* 87.04px (102.4px * 0.85) */
+
+  /* Line Heights */
+  --line-height-tight: 1.1;
+  --line-height-snug: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.05em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing Scale (using em for relative sizing) */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 0.75rem;  /* 12px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+  --spacing-3xl: 4rem;    /* 64px */
+
+  /* Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-dark: #515151;
+  --color-gray-light: #F0F0F0;
+  --color-accent-green: #8BE196;
+  --color-accent-dark: #2A272F;
+  --color-text-light: #463B47;
+
+  /* Border Radius */
+  --border-radius: 8px;
+}
+
+/* Utility Classes */
+.text-hero {
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-regular);
+}
+
+.text-subheader {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-regular);
+}
+
+.text-nav {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
