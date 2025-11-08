@@ -250,10 +250,10 @@
 
 .section2-car-illustration {
   position: absolute;
-  top: var(--spacing-3xl);
-  right: 23%;
+  top: calc(var(--spacing-3xl) * 2);
+  right: 18%;
   z-index: 10;
-  transform: scale(0.8);
+  transform: scale(1.4);
 }
 
 @media screen and (max-width: 768px) {
@@ -265,7 +265,39 @@
     justify-content: center;
     padding: 0;
     margin-top: var(--spacing-lg);
-    transform: scale(0.65);
+    transform: scale(0.55) !important;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1023px) {
+  .section2-car-illustration {
+    top: calc(var(--spacing-3xl) * 1.8);
+    right: 20%;
+    transform: scale(1.2);
+  }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1215px) {
+  .section2-car-illustration {
+    top: calc(var(--spacing-3xl) * 2);
+    right: 18%;
+    transform: scale(1.35);
+  }
+}
+
+@media screen and (min-width: 1216px) and (max-width: 1407px) {
+  .section2-car-illustration {
+    top: calc(var(--spacing-3xl) * 2.2);
+    right: 16%;
+    transform: scale(1.5);
+  }
+}
+
+@media screen and (min-width: 1408px) {
+  .section2-car-illustration {
+    top: calc(var(--spacing-3xl) * 2.5);
+    right: 15%;
+    transform: scale(1.7);
   }
 }
 

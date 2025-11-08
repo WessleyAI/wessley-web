@@ -166,23 +166,22 @@ export default function Waitlist() {
         <div className="section2-container">
           {/* Car Illustration - Top Right (not pushed down) */}
           <div className="section2-car-illustration">
-            <motion.div
+            <motion.img
+              src="/second/car-illus.svg"
+              alt="Car Illustration"
+              className="w-full h-auto"
+              style={{ maxWidth: '700px' }}
+              initial={{ y: 0 }}
               animate={{
-                y: [0, -15, 0],
+                y: [0, -15, 0]
               }}
               transition={{
                 duration: 4,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
+                repeatType: "loop"
               }}
-            >
-              <img
-                src="/second/car-illus.svg"
-                alt="Car Illustration"
-                className="w-full h-auto"
-                style={{ maxWidth: '700px' }}
-              />
-            </motion.div>
+            />
           </div>
 
           {/* Text Content - Pushed down */}
