@@ -44,7 +44,7 @@ export function WaitlistHeader() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center pl-6"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center pl-4"
       style={{
         height: '42px',
         color: '#D7D7D7',

@@ -5,6 +5,7 @@
   --font-size-base: 1rem; /* 16px */
 
   /* Typography Scale */
+  --font-size-xxs: 0.75rem;     /* 12px */
   --font-size-xs: 1.02rem;      /* 16.32px (19.2px * 0.85) */
   --font-size-sm: 1.19rem;      /* 19.04px (22.4px * 0.85) */
   --font-size-md: 1.084rem;     /* 17.34px (20.4px * 0.85) */
@@ -34,6 +35,7 @@
   --font-weight-bold: 700;
 
   /* Spacing Scale (using em for relative sizing) */
+  --spacing-xxs: 0.75rem; /* 12px */
   --spacing-xs: 0.5rem;   /* 8px */
   --spacing-sm: 0.75rem;  /* 12px */
   --spacing-md: 1rem;     /* 16px */
@@ -52,7 +54,7 @@
   --color-text-light: #463B47;
 
   /* Border Radius */
-  --border-radius: 8px;
+  --border-radius: 0.5rem; /* 8px */
 }
 
 /* Utility Classes */

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { WaitlistHeader } from '@/components/waitlist/WaitlistHeader'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { TwitterIcon } from '@/components/ui/twitter-icon'
+import { ExploreSection } from '@/components/waitlist/explore/ExploreSection'
+import { NavigationOverlay } from '@/components/waitlist/explore/NavigationOverlay'
 
 export default function Waitlist() {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -72,7 +74,8 @@ export default function Waitlist() {
             height: 'calc((15vh + var(--spacing-3xl) * 3 - 2vh) * 0.83)',
             zIndex: 2,
             backgroundImage: `url(/sections/background-2.svg)`,
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            opacity: 0.98
           }}
         />
 
@@ -118,21 +121,21 @@ export default function Waitlist() {
             <div>
               <h2
                 style={{
-                  fontSize: 'calc(var(--font-size-4xl) * 0.9)',
+                  fontSize: 'calc(var(--font-size-4xl) * 0.81)',
                   lineHeight: 'var(--line-height-tight)',
                   fontWeight: 'var(--font-weight-semibold)',
                   fontFamily: 'var(--font-dm-sans)',
                   color: '#8BE196',
                   whiteSpace: 'nowrap',
                   letterSpacing: 'var(--letter-spacing-tight)',
-                  marginBottom: 'var(--spacing-sm)'
+                  marginBottom: 'var(--font-size-xxs)'
                 }}
               >
                 Wessley
               </h2>
               <h1
                 style={{
-                  fontSize: 'calc(var(--font-size-4xl) * 0.72)',
+                  fontSize: 'calc(var(--font-size-4xl) * 0.648)',
                   lineHeight: 'var(--line-height-tight)',
                   fontWeight: 'var(--font-weight-medium)',
                   fontFamily: 'var(--font-dm-sans)',
@@ -155,7 +158,8 @@ export default function Waitlist() {
                 color: '#ffffff',
                 textAlign: 'left',
                 maxWidth: '33.15rem',
-                marginTop: '3%'
+                marginTop: '1%',
+                marginLeft: '15%'
               }}
             >
               Wessley understands every circuit,
@@ -231,14 +235,17 @@ export default function Waitlist() {
         </div>
       </section>
 
-      {/* Section 3 - Explore (150vh) */}
+      {/* Section 3 - Explore (100vh) */}
       <section
         className="relative w-full flex items-start justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(/sections/background-3.svg)`,
-          minHeight: '150vh'
+          minHeight: '100vh'
         }}
       >
+        {/* Navigation Overlay - Left Side */}
+        <NavigationOverlay />
+
         {/* Explore Tab - Top Right */}
         <div className="absolute top-0 right-0 z-10">
           <motion.button
@@ -263,7 +270,7 @@ export default function Waitlist() {
         {/* Content Container */}
         <div className="w-full flex flex-col items-center">
           {/* Header Section */}
-          <div className="w-full max-w-7xl mx-auto px-16 pt-32 pb-16 flex flex-col items-center text-center">
+          <div className="w-full max-w-7xl mx-auto px-16 pt-16 pb-8 flex flex-col items-center text-center">
             {/* Header */}
             <h2
               style={{
@@ -293,9 +300,9 @@ export default function Waitlist() {
             </p>
           </div>
 
-          {/* Explore Component - To be added */}
+          {/* Explore Component */}
           <div className="w-full py-8">
-            {/* Placeholder for Explore component */}
+            <ExploreSection />
           </div>
         </div>
       </section>
