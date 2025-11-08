@@ -1,6 +1,9 @@
 /* Design System - Typography */
 
 :root {
+  /* Responsive Sizer - Scales all measurements proportionally */
+  --sizer: 1;
+
   /* Base font size - 16px is browser default */
   --font-size-base: 1rem; /* 16px */
 
@@ -57,6 +60,37 @@
   --border-radius: 0.5rem; /* 8px */
 }
 
+/* Responsive Breakpoints */
+@media screen and (max-width: 768px) {
+  :root {
+    --sizer: 0.55;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1023px) {
+  :root {
+    --sizer: 1;
+  }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1215px) {
+  :root {
+    --sizer: 1.125;
+  }
+}
+
+@media screen and (min-width: 1216px) and (max-width: 1407px) {
+  :root {
+    --sizer: 1.25;
+  }
+}
+
+@media screen and (min-width: 1408px) {
+  :root {
+    --sizer: 1.5;
+  }
+}
+
 /* Utility Classes */
 .text-hero {
   font-size: var(--font-size-4xl);
@@ -73,4 +107,244 @@
 .text-nav {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
+}
+
+/* Hero Section Padding - Responsive */
+.hero-section-padding {
+  padding-top: 7.5dvh; /* Mobile default - dynamic viewport */
+  padding-left: 1.5rem; /* Less padding on mobile */
+  padding-right: 1.5rem;
+}
+
+@media screen and (min-width: 769px) and (max-width: 1023px) {
+  .hero-section-padding {
+    padding-top: 9vh;
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1215px) {
+  .hero-section-padding {
+    padding-top: 8vh;
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media screen and (min-width: 1216px) and (max-width: 1407px) {
+  .hero-section-padding {
+    padding-top: 9vh;
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media screen and (min-width: 1408px) {
+  .hero-section-padding {
+    padding-top: 9vh;
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+/* Hero Title - Responsive */
+.hero-title-wessley {
+  font-size: calc(var(--font-size-4xl) * 0.6885);
+}
+
+@media screen and (max-width: 768px) {
+  .hero-title-wessley {
+    font-size: calc(var(--font-size-4xl) * 0.58);
+  }
+}
+
+/* Hero Subtitle - Responsive */
+.hero-title-automotive {
+  font-size: calc(var(--font-size-4xl) * 0.5508);
+}
+
+@media screen and (max-width: 768px) {
+  .hero-title-automotive {
+    font-size: calc(var(--font-size-4xl) * 0.48);
+  }
+}
+
+/* Hero Title Spacing - Responsive */
+.hero-title-spacing {
+  margin-bottom: var(--font-size-xxs);
+}
+
+@media screen and (max-width: 768px) {
+  .hero-title-spacing {
+    margin-bottom: calc(var(--sizer) * 0.3rem);
+  }
+}
+
+/* Hero Description - Responsive */
+.hero-description {
+  text-align: left;
+  margin-top: calc(var(--sizer) * 0.05rem);
+  margin-left: calc(var(--sizer) * 1.5rem);
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+@media screen and (max-width: 768px) {
+  .hero-description {
+    text-align: right;
+    margin-top: calc(var(--sizer) * 1.2rem);
+    margin-left: 0;
+    margin-right: 0;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Hero Content Layout - Responsive */
+.hero-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3xl);
+  margin-left: calc(var(--sizer) * 0.1rem);
+  margin-top: calc(var(--sizer) * 0.05rem);
+}
+
+@media screen and (max-width: 768px) {
+  .hero-content-wrapper {
+    flex-direction: column;
+    gap: calc(var(--sizer) * 1rem);
+    margin-left: 0;
+    margin-top: 0;
+  }
+}
+
+/* Section 2 - Virtual Garage */
+.section2-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media screen and (max-width: 768px) {
+  .section2-wrapper {
+    justify-content: flex-start;
+  }
+}
+
+.section2-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .section2-container {
+    flex-direction: column-reverse;
+    padding-top: var(--spacing-lg);
+    gap: var(--spacing-md);
+    height: auto;
+  }
+}
+
+.section2-car-illustration {
+  position: absolute;
+  top: var(--spacing-3xl);
+  right: 23%;
+  z-index: 10;
+  transform: scale(0.8);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-car-illustration {
+    position: relative;
+    top: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin-top: var(--spacing-lg);
+    transform: scale(0.65);
+  }
+}
+
+.section2-content-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  padding-left: var(--spacing-3xl);
+  padding-right: var(--spacing-3xl);
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  padding-top: calc(var(--spacing-lg) + 25vh);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-content-wrapper {
+    padding: var(--spacing-lg);
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}
+
+.section2-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  flex-shrink: 0;
+  max-width: calc(var(--sizer) * 22.5rem);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-text-container {
+    max-width: 100%;
+    text-align: left;
+  }
+}
+
+.section2-header {
+  font-size: calc(var(--font-size-4xl) * 0.85);
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-dm-sans);
+  color: #EBFFEA;
+  line-height: var(--line-height-tight);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-header {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+.section2-description {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-dm-sans);
+  color: #EBFFEA;
+  line-height: var(--line-height-normal);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-description {
+    font-size: var(--font-size-xs);
+    line-height: 0.85;
+  }
+}
+
+.section2-chat-input {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  padding-left: var(--spacing-3xl);
+  padding-right: var(--spacing-3xl);
+  padding-bottom: var(--spacing-3xl);
+}
+
+@media screen and (max-width: 768px) {
+  .section2-chat-input {
+    padding: var(--spacing-lg);
+    margin-top: auto;
+  }
 }

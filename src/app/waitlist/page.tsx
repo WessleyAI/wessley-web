@@ -100,42 +100,31 @@ export default function Waitlist() {
 
         {/* Hero content */}
         <div
-          className="relative w-full"
+          className="relative w-full hero-section-padding"
           style={{
-            paddingLeft: 'var(--spacing-3xl)',
-            paddingRight: 'var(--spacing-3xl)',
-            paddingTop: 'calc(15vh - 4.5%)',
             zIndex: 3
           }}
         >
           {/* Title row - Wessley + Automotive Intelligence with description */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 'var(--spacing-3xl)',
-              marginLeft: '-2%'
-            }}
-          >
+          <div className="hero-content-wrapper">
             {/* Left side - Wessley and Automotive Intelligence stacked */}
             <div>
               <h2
+                className="hero-title-wessley hero-title-spacing"
                 style={{
-                  fontSize: 'calc(var(--font-size-4xl) * 0.81)',
                   lineHeight: 'var(--line-height-tight)',
                   fontWeight: 'var(--font-weight-semibold)',
                   fontFamily: 'var(--font-dm-sans)',
                   color: '#8BE196',
                   whiteSpace: 'nowrap',
-                  letterSpacing: 'var(--letter-spacing-tight)',
-                  marginBottom: 'var(--font-size-xxs)'
+                  letterSpacing: 'var(--letter-spacing-tight)'
                 }}
               >
                 Wessley
               </h2>
               <h1
+                className="hero-title-automotive"
                 style={{
-                  fontSize: 'calc(var(--font-size-4xl) * 0.648)',
                   lineHeight: 'var(--line-height-tight)',
                   fontWeight: 'var(--font-weight-medium)',
                   fontFamily: 'var(--font-dm-sans)',
@@ -150,16 +139,13 @@ export default function Waitlist() {
 
             {/* Right side - Description text */}
             <p
+              className="hero-description"
               style={{
-                fontSize: 'calc(var(--font-size-md) * 0.9)',
-                lineHeight: '1.5',
+                fontSize: 'calc(var(--font-size-md) * 0.8415)',
                 fontWeight: 'var(--font-weight-regular)',
                 fontFamily: 'var(--font-dm-sans)',
                 color: '#ffffff',
-                textAlign: 'left',
-                maxWidth: '33.15rem',
-                marginTop: '1%',
-                marginLeft: '15%'
+                maxWidth: '33.15rem'
               }}
             >
               Wessley understands every circuit,
@@ -177,45 +163,43 @@ export default function Waitlist() {
         className="relative w-full h-screen flex flex-col justify-between bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(/sections/background-2.svg)` }}
       >
-        {/* Car Illustration - Top Right (not pushed down) */}
-        <div className="absolute top-24 z-10" style={{ right: '23%' }}>
-          <img
-            src="/second/car-illus.svg"
-            alt="Car Illustration"
-            className="w-full h-auto"
-            style={{ maxWidth: '700px' }}
-          />
-        </div>
+        <div className="section2-container">
+          {/* Car Illustration - Top Right (not pushed down) */}
+          <div className="section2-car-illustration">
+            <motion.div
+              animate={{
+                y: [0, -15, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <img
+                src="/second/car-illus.svg"
+                alt="Car Illustration"
+                className="w-full h-auto"
+                style={{ maxWidth: '700px' }}
+              />
+            </motion.div>
+          </div>
 
-        {/* Text Content - Pushed down */}
-        <div className="relative z-10 w-full px-16 flex-1 flex items-start" style={{ paddingTop: 'calc(24px + 25vh)' }}>
-          <div className="flex flex-col gap-6 shrink-0" style={{ maxWidth: '360px' }}>
-            <h2
-              style={{
-                fontSize: '3.25rem',
-                fontWeight: 'var(--font-weight-regular)',
-                fontFamily: 'var(--font-dm-sans)',
-                color: '#EBFFEA',
-                lineHeight: 1.2
-              }}
-            >
-              A virtual garage, AI-Assisted.
-            </h2>
-            <p
-              style={{
-                fontSize: '0.9375rem',
-                fontWeight: 'var(--font-weight-regular)',
-                fontFamily: 'var(--font-dm-sans)',
-                color: '#EBFFEA',
-                lineHeight: 1.5
-              }}
-            >
-              Wessley maps your car&apos;s electrical<br />
-              system — in 3D.<br />
-              See how every wire, relay, and<br />
-              connection works together, and let AI<br />
-              guide your repairs.
-            </p>
+          {/* Text Content - Pushed down */}
+          <div className="section2-content-wrapper">
+            <div className="section2-text-container">
+              <h2 className="section2-header">
+                A virtual<br />
+                garage, AI-Assisted.
+              </h2>
+              <p className="section2-description">
+                Wessley maps your car&apos;s electrical<br />
+                system — in 3D.<br />
+                See how every wire, relay, and<br />
+                connection works together, and let AI<br />
+                guide your repairs.
+              </p>
+            </div>
           </div>
         </div>
 
