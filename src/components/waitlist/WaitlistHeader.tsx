@@ -1,18 +1,35 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
 export function WaitlistHeader() {
   const realButtonRef = useRef<HTMLAnchorElement>(null)
   const buttonTextRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
+  const [isVisible, setIsVisible] = useState(true)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!realButtonRef.current || !buttonTextRef.current) return
+      if (!realButtonRef.current || !buttonTextRef.current || !headerRef.current) return
 
       const scrollY = window.scrollY
       const maxScroll = 300
+
+      // Check if we're at the footer
+      const footer = document.querySelector('footer')
+      if (footer) {
+        const footerTop = footer.getBoundingClientRect().top
+        const windowHeight = window.innerHeight
+
+        // Hide header when footer enters viewport
+        if (footerTop <= windowHeight) {
+          setIsVisible(false)
+        } else {
+          setIsVisible(true)
+        }
+      }
 
       // Get sizer value from CSS
       const sizer = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sizer')) || 1
@@ -58,13 +75,17 @@ export function WaitlistHeader() {
 
   return (
     <header
+      ref={headerRef}
       className="fixed top-0 left-0 right-0 z-50 flex items-center pl-4"
       style={{
         height: '42px',
         color: '#D7D7D7',
         backgroundColor: 'transparent',
         mixBlendMode: 'exclusion',
-        transition: 'color 0.3s ease, mix-blend-mode 0.3s ease'
+        transition: 'color 0.3s ease, mix-blend-mode 0.3s ease, opacity 0.3s ease, transform 0.3s ease',
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+        pointerEvents: isVisible ? 'auto' : 'none',
       }}
     >
       {/* Logo and Brand */}
@@ -93,17 +114,29 @@ export function WaitlistHeader() {
         >
           CONTACT
         </Link>
-        <Link
-          href="/signin"
-          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity hidden md:block"
+        <div
+          className="relative hidden md:block"
+          onMouseEnter={() => setShowComingSoon(true)}
+          onMouseLeave={() => setShowComingSoon(false)}
         >
-          SIGN IN
-        </Link>
+          <Link
+            href="/signin"
+            className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+            onClick={(e) => e.preventDefault()}
+          >
+            {showComingSoon ? 'COMING SOON!!' : 'SIGN IN'}
+          </Link>
+        </div>
 
         {/* Animated Insider Button */}
         <a
           ref={realButtonRef}
           href="#"
+          onClick={(e) => {
+            e.preventDefault()
+            const waitlistSection = document.getElementById('waitlist-section')
+            waitlistSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
           className="flex items-end"
           style={{
             backgroundColor: '#8BE196',
@@ -117,7 +150,8 @@ export function WaitlistHeader() {
             transition: 'all 0.3s ease',
             flexShrink: 0,
             minHeight: 'calc(var(--sizer) * 11.25rem)',
-            maxWidth: 'calc(var(--sizer) * 9.1875rem)'
+            maxWidth: 'calc(var(--sizer) * 9.1875rem)',
+            cursor: 'pointer',
           }}
         >
           <div
