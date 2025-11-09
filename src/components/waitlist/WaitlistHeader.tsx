@@ -17,9 +17,11 @@ export function WaitlistHeader() {
       const scrollY = window.scrollY
       const maxScroll = 300
 
-      // Check if we're at the footer
+      // Check if we're at the footer (only on desktop)
+      const isMobile = window.innerWidth < 768
       const footer = document.querySelector('footer')
-      if (footer) {
+
+      if (footer && !isMobile) {
         const footerTop = footer.getBoundingClientRect().top
         const windowHeight = window.innerHeight
 
@@ -29,6 +31,9 @@ export function WaitlistHeader() {
         } else {
           setIsVisible(true)
         }
+      } else if (isMobile) {
+        // Always show navbar on mobile
+        setIsVisible(true)
       }
 
       // Get sizer value from CSS
@@ -76,7 +81,7 @@ export function WaitlistHeader() {
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center pl-4"
+      className="fixed top-0 left-0 right-0 z-[70] flex items-center pl-4"
       style={{
         height: '42px',
         color: '#D7D7D7',

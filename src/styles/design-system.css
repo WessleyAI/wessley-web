@@ -143,7 +143,7 @@ h2 {
 
 h3 {
   font-family: var(--font-dm-sans);
-  font-size: calc(var(--sizer) * 3.25rem);
+  font-size: clamp(1.75rem, calc(var(--sizer) * 3.25rem), 4rem);
   font-weight: var(--font-weight-regular);
   line-height: 1.2;
   color: var(--color-text-light);
@@ -161,7 +161,7 @@ h4 {
 
 p {
   font-family: var(--font-dm-sans);
-  font-size: calc(var(--font-size-md) * 0.8415);
+  font-size: clamp(0.875rem, calc(var(--font-size-md) * 0.8415), 1.25rem);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-normal);
   color: var(--color-text-light);
@@ -339,7 +339,7 @@ p {
   .section2-car-illustration {
     top: calc(var(--spacing-3xl) * 2);
     right: 18%;
-    transform: scale(1.35);
+    transform: scale(1.15);
   }
 }
 
@@ -347,7 +347,7 @@ p {
   .section2-car-illustration {
     top: calc(var(--spacing-3xl) * 2.2);
     right: 16%;
-    transform: scale(1.5);
+    transform: scale(1.25);
   }
 }
 
@@ -355,7 +355,7 @@ p {
   .section2-car-illustration {
     top: calc(var(--spacing-3xl) * 2.5);
     right: 15%;
-    transform: scale(1.7);
+    transform: scale(1.35);
   }
 }
 
@@ -368,7 +368,7 @@ p {
   flex: 1;
   display: flex;
   align-items: flex-start;
-  padding-top: calc(var(--spacing-lg) + 25vh);
+  padding-top: calc(var(--spacing-lg) + 15vh);
 }
 
 @media screen and (max-width: 768px) {
@@ -432,7 +432,7 @@ p {
 
 @media screen and (max-width: 768px) {
   .section3-radial-overlay {
-    top: 30%;
+    top: 10%;
   }
 }
 

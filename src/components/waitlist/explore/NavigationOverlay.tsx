@@ -10,7 +10,7 @@ export function NavigationOverlay() {
       <div
         className="section3-radial-overlay"
         style={{
-          background: 'radial-gradient(circle at 20% 30%, rgba(235, 255, 233, 1) 0%, rgba(235, 255, 233, 1) 39%, rgba(235, 255, 233, 0.1) 54%, rgba(235, 255, 233, 0) 78%)',
+          background: 'radial-gradient(circle at 20% 45%, rgba(235, 255, 233, 1) 0%, rgba(235, 255, 233, 1) 39%, rgba(235, 255, 233, 0.1) 54%, rgba(235, 255, 233, 0) 78%)',
           filter: 'blur(60px)',
         }}
       />
@@ -29,19 +29,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(1)',
-              opacity: 0.4,
-              width: 'calc(var(--sizer) * 1rem)',
-              height: 'calc(var(--sizer) * 1rem)',
+              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
-              fontSize: 'calc(var(--sizer) * 0.75rem)',
               fontWeight: 500,
               color: '#C4C4C4',
-              opacity: 0.4,
             }}
           >
             Feed
@@ -60,19 +55,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(1)',
-              opacity: 1.0,
-              width: 'calc(var(--sizer) * 1rem)',
-              height: 'calc(var(--sizer) * 1rem)',
+              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
-              fontSize: 'calc(var(--sizer) * 0.75rem)',
               fontWeight: 500,
               color: '#C4C4C4',
-              opacity: 1.0,
             }}
           >
             Explore
@@ -91,19 +81,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(1)',
-              opacity: 0.4,
-              width: 'calc(var(--sizer) * 1rem)',
-              height: 'calc(var(--sizer) * 1rem)',
+              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
-              fontSize: 'calc(var(--sizer) * 0.75rem)',
               fontWeight: 500,
               color: '#C4C4C4',
-              opacity: 0.4,
             }}
           >
             Marketplace

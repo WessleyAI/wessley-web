@@ -410,7 +410,7 @@ export default function Waitlist() {
             }}
           >
             MARKETPLACE
-            <svg className="w-3 h-3 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
               <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
               <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
@@ -538,7 +538,7 @@ export default function Waitlist() {
         </div>
 
         {/* Main Content */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-16 pb-12 flex flex-col gap-8">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-16 pb-12 flex flex-col md:flex-row gap-8 md:items-center md:justify-between">
           {/* Text Content */}
           <div className="max-w-md">
             <h3 style={{ marginBottom: 'var(--spacing-xl)', color: '#463B47' }}>
@@ -555,16 +555,16 @@ export default function Waitlist() {
           </div>
 
           {/* Email Input */}
-          <div className="max-w-xl w-full">
+          <div className="max-w-xl w-full md:w-auto md:flex-1">
             <form onSubmit={handleSubmit}>
               <div
                 style={{
                   backgroundColor: '#161616',
                   borderRadius: 'var(--border-radius)',
-                  padding: 'calc(var(--sizer) * 0.375rem)',
+                  padding: 'clamp(0.375rem, calc(var(--sizer) * 0.375rem), 0.5rem)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 'calc(var(--sizer) * 0.5rem)',
+                  gap: 'clamp(0.375rem, calc(var(--sizer) * 0.5rem), 0.625rem)',
                 }}
               >
                 <input
@@ -575,17 +575,17 @@ export default function Waitlist() {
                   disabled={isSubmitting}
                   style={{
                     fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.75rem)',
+                    fontSize: 'clamp(0.875rem, calc(var(--sizer) * 0.75rem), 1rem)',
                     fontWeight: 400,
                     color: '#FFFFFF',
                     backgroundColor: 'transparent',
                     border: 'none',
                     outline: 'none',
                     flex: 1,
-                    paddingLeft: 'calc(var(--sizer) * 1.25rem)',
-                    paddingRight: 'calc(var(--sizer) * 1rem)',
-                    paddingTop: 'calc(var(--sizer) * 0.75rem)',
-                    paddingBottom: 'calc(var(--sizer) * 0.75rem)',
+                    paddingLeft: 'clamp(0.75rem, calc(var(--sizer) * 1.25rem), 1.5rem)',
+                    paddingRight: 'clamp(0.5rem, calc(var(--sizer) * 1rem), 1.25rem)',
+                    paddingTop: 'clamp(0.5rem, calc(var(--sizer) * 0.75rem), 1rem)',
+                    paddingBottom: 'clamp(0.5rem, calc(var(--sizer) * 0.75rem), 1rem)',
                   }}
                   className="placeholder-white/40"
                 />
@@ -597,12 +597,12 @@ export default function Waitlist() {
                     backgroundColor: '#EBFFE9',
                     color: '#161616',
                     fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.75rem)',
+                    fontSize: 'clamp(0.875rem, calc(var(--sizer) * 0.75rem), 1rem)',
                     fontWeight: 600,
-                    paddingLeft: 'calc(var(--sizer) * 2rem)',
-                    paddingRight: 'calc(var(--sizer) * 2rem)',
-                    paddingTop: 'calc(var(--sizer) * 0.875rem)',
-                    paddingBottom: 'calc(var(--sizer) * 0.875rem)',
+                    paddingLeft: 'clamp(1rem, calc(var(--sizer) * 2rem), 2.5rem)',
+                    paddingRight: 'clamp(1rem, calc(var(--sizer) * 2rem), 2.5rem)',
+                    paddingTop: 'clamp(0.625rem, calc(var(--sizer) * 0.875rem), 1.125rem)',
+                    paddingBottom: 'clamp(0.625rem, calc(var(--sizer) * 0.875rem), 1.125rem)',
                     whiteSpace: 'nowrap',
                     border: 'none',
                     cursor: isSubmitting ? 'not-allowed' : 'pointer',

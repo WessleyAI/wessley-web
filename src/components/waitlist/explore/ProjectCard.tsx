@@ -38,44 +38,47 @@ export function ProjectCard({
 
   return (
     <motion.div
-      className="group relative bg-white rounded-2xl overflow-hidden cursor-pointer h-full"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      whileHover={{ y: -6 }}
-      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+      className="group relative bg-white rounded-2xl overflow-hidden h-full"
       style={{
-        boxShadow: isHovered
-          ? '0 20px 40px rgba(0, 0, 0, 0.12)'
-          : '0 4px 12px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)',
       }}
     >
       {/* Image Container with Overlay Content */}
       <div className="relative w-full h-full bg-gradient-to-br from-gray-100 to-gray-200">
         {/* Background Image */}
-        <motion.div
-          animate={{ scale: isHovered ? 1.05 : 1 }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full h-full absolute inset-0"
-        >
+        <div className="w-full h-full absolute inset-0">
           <ImageWithFallback
             src={image}
             alt={title}
             className="w-full h-full object-cover"
           />
-        </motion.div>
+        </div>
 
         {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
 
         {/* Top Section - Tags & Progress */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between gap-2">
+        <div
+          className="absolute top-0 left-0 right-0 flex items-start justify-between"
+          style={{
+            padding: 'calc(var(--sizer) * 1rem)',
+            gap: 'calc(var(--sizer) * 0.5rem)',
+          }}
+        >
           {/* Tags */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap" style={{ gap: 'calc(var(--sizer) * 0.375rem)' }}>
             {tags.slice(0, 2).map((tag, index) => (
               <Badge
                 key={index}
-                className="bg-white/95 backdrop-blur-sm text-[#463B47] border-0 px-2.5 py-1 shadow-lg text-xs"
+                className="bg-white/95 backdrop-blur-sm text-[#463B47] border-0 shadow-lg"
+                style={{
+                  paddingLeft: 'calc(var(--sizer) * 0.625rem)',
+                  paddingRight: 'calc(var(--sizer) * 0.625rem)',
+                  paddingTop: 'calc(var(--sizer) * 0.25rem)',
+                  paddingBottom: 'calc(var(--sizer) * 0.25rem)',
+                  fontSize: 'calc(var(--sizer) * 0.75rem)',
+                }}
               >
                 {tag}
               </Badge>
@@ -83,38 +86,65 @@ export function ProjectCard({
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#8BE196]/95 backdrop-blur-sm rounded-full shadow-lg shrink-0">
-            <TrendingUp className="w-3.5 h-3.5 text-[#463B47]" />
-            <span className="text-xs text-[#463B47]">{progress}%</span>
+          <div
+            className="flex items-center bg-[#8BE196]/95 backdrop-blur-sm rounded-full shadow-lg shrink-0"
+            style={{
+              gap: 'calc(var(--sizer) * 0.375rem)',
+              paddingLeft: 'calc(var(--sizer) * 0.625rem)',
+              paddingRight: 'calc(var(--sizer) * 0.625rem)',
+              paddingTop: 'calc(var(--sizer) * 0.25rem)',
+              paddingBottom: 'calc(var(--sizer) * 0.25rem)',
+            }}
+          >
+            <TrendingUp style={{ width: 'calc(var(--sizer) * 0.875rem)', height: 'calc(var(--sizer) * 0.875rem)' }} className="text-[#463B47]" />
+            <span className="text-[#463B47]" style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}>{progress}%</span>
           </div>
         </div>
 
         {/* Bottom Section - Title & User Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3">
+        <div
+          className="absolute bottom-0 left-0 right-0"
+          style={{
+            padding: 'calc(var(--sizer) * 1rem)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'calc(var(--sizer) * 0.75rem)',
+          }}
+        >
           {/* Title */}
-          <motion.h3
-            animate={{ y: isHovered ? -4 : 0 }}
-            transition={{ duration: 0.3 }}
-            className="text-white drop-shadow-lg text-base leading-tight"
+          <div
+            className="text-white drop-shadow-lg leading-tight font-semibold"
+            style={{ fontSize: 'clamp(0.875rem, calc(var(--sizer) * 1rem), 1.125rem)' }}
           >
             {title}
-          </motion.h3>
+          </div>
 
           {/* User Info Row */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between" style={{ gap: 'calc(var(--sizer) * 0.5rem)' }}>
             {/* User */}
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <Avatar className="w-8 h-8 ring-2 ring-white/30 shrink-0">
+            <div className="flex items-center min-w-0 flex-1" style={{ gap: 'calc(var(--sizer) * 0.5rem)' }}>
+              <Avatar
+                className="ring-2 ring-white/30 shrink-0"
+                style={{ width: 'calc(var(--sizer) * 2rem)', height: 'calc(var(--sizer) * 2rem)' }}
+              >
                 <AvatarImage src={userAvatar} />
-                <AvatarFallback className="bg-[#D4A574] text-white text-xs">
+                <AvatarFallback
+                  className="bg-[#D4A574] text-white"
+                  style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}
+                >
                   {userName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="text-white text-xs truncate">{userName}</p>
-                <div className="flex items-center gap-1 text-white/80">
-                  <MapPin className="w-2.5 h-2.5 shrink-0" />
-                  <span className="text-xs truncate">{location}</span>
+                <p
+                  className="!text-white truncate font-semibold"
+                  style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}
+                >
+                  {userName}
+                </p>
+                <div className="flex items-center text-white/80" style={{ gap: 'calc(var(--sizer) * 0.25rem)' }}>
+                  <MapPin style={{ width: 'calc(var(--sizer) * 0.625rem)', height: 'calc(var(--sizer) * 0.625rem)' }} className="shrink-0" />
+                  <span className="truncate" style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}>{location}</span>
                 </div>
               </div>
             </div>
@@ -127,17 +157,24 @@ export function ProjectCard({
                 e.stopPropagation()
                 setIsFollowing(!isFollowing)
               }}
-              className={`shrink-0 h-7 px-3 text-xs gap-1 ${
+              className={`shrink-0 ${
                 isFollowing
                   ? 'bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm'
                   : 'bg-white text-[#463B47] hover:bg-white/90'
               }`}
+              style={{
+                height: 'calc(var(--sizer) * 1.75rem)',
+                paddingLeft: 'calc(var(--sizer) * 0.75rem)',
+                paddingRight: 'calc(var(--sizer) * 0.75rem)',
+                fontSize: 'calc(var(--sizer) * 0.75rem)',
+                gap: 'calc(var(--sizer) * 0.25rem)',
+              }}
             >
               {isFollowing ? (
                 <>Following</>
               ) : (
                 <>
-                  <UserPlus className="w-3 h-3" />
+                  <UserPlus style={{ width: 'calc(var(--sizer) * 0.75rem)', height: 'calc(var(--sizer) * 0.75rem)' }} />
                   Follow
                 </>
               )}
@@ -145,42 +182,18 @@ export function ProjectCard({
           </div>
 
           {/* Stats Row */}
-          <div className="flex items-center gap-3 text-white/90">
-            <div className="flex items-center gap-1">
-              <Heart className="w-3.5 h-3.5" fill="white" />
-              <span className="text-xs">{likes}</span>
+          <div className="flex items-center text-white/90" style={{ gap: 'calc(var(--sizer) * 0.75rem)' }}>
+            <div className="flex items-center" style={{ gap: 'calc(var(--sizer) * 0.25rem)' }}>
+              <Heart style={{ width: 'calc(var(--sizer) * 0.875rem)', height: 'calc(var(--sizer) * 0.875rem)' }} fill="white" />
+              <span style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}>{likes}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span className="text-xs">{comments}</span>
+            <div className="flex items-center" style={{ gap: 'calc(var(--sizer) * 0.25rem)' }}>
+              <MessageCircle style={{ width: 'calc(var(--sizer) * 0.875rem)', height: 'calc(var(--sizer) * 0.875rem)' }} />
+              <span style={{ fontSize: 'calc(var(--sizer) * 0.75rem)' }}>{comments}</span>
             </div>
           </div>
         </div>
 
-        {/* Hover Overlay - View Project CTA */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-          className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center"
-        >
-          <motion.button
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{
-              scale: isHovered ? 1 : 0.9,
-              opacity: isHovered ? 1 : 0,
-            }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-            className="bg-white text-[#463B47] rounded-full shadow-2xl hover:shadow-xl transition-shadow"
-            style={{
-              width: 'calc(var(--sizer) * 8rem)',
-              height: 'calc(var(--sizer) * 3rem)',
-              fontSize: 'calc(var(--sizer) * 1rem)',
-            }}
-          >
-            View Project
-          </motion.button>
-        </motion.div>
       </div>
     </motion.div>
   )

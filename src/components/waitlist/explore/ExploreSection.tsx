@@ -296,18 +296,31 @@ export function ExploreSection() {
 
   return (
     <div
-      className="py-4 space-y-4"
+      className="space-y-4"
+      style={{ paddingTop: 'calc(var(--sizer) * 1rem)', paddingBottom: 'calc(var(--sizer) * 1rem)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Top Row - Scrolls Left */}
       <div
         ref={topRowRef}
-        className="flex gap-4 overflow-x-hidden px-6"
-        style={{ scrollBehavior: 'auto' }}
+        className="flex overflow-x-hidden"
+        style={{
+          gap: 'calc(var(--sizer) * 1rem)',
+          paddingLeft: 'calc(var(--sizer) * 1.5rem)',
+          paddingRight: 'calc(var(--sizer) * 1.5rem)',
+          scrollBehavior: 'auto',
+        }}
       >
         {extendedProjectsRow1.map((project, index) => (
-          <div key={`top-${index}`} className="flex-shrink-0 w-[320px] h-[380px]">
+          <div
+            key={`top-${index}`}
+            className="flex-shrink-0"
+            style={{
+              width: 'calc(var(--sizer) * 20rem)',
+              height: 'calc(var(--sizer) * 23.75rem)',
+            }}
+          >
             <ProjectCard {...project} />
           </div>
         ))}
@@ -316,13 +329,22 @@ export function ExploreSection() {
       {/* Bottom Row - Scrolls Right */}
       <div
         ref={bottomRowRef}
-        className="flex gap-4 overflow-x-hidden px-6"
-        style={{ scrollBehavior: 'auto' }}
+        className="flex overflow-x-hidden"
+        style={{
+          gap: 'calc(var(--sizer) * 1rem)',
+          paddingLeft: 'calc(var(--sizer) * 1.5rem)',
+          paddingRight: 'calc(var(--sizer) * 1.5rem)',
+          scrollBehavior: 'auto',
+        }}
       >
         {extendedProjectsRow2.map((project, index) => (
           <div
             key={`bottom-${index}`}
-            className="flex-shrink-0 w-[320px] h-[380px]"
+            className="flex-shrink-0"
+            style={{
+              width: 'calc(var(--sizer) * 20rem)',
+              height: 'calc(var(--sizer) * 23.75rem)',
+            }}
           >
             <ProjectCard {...project} />
           </div>

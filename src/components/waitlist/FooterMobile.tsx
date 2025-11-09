@@ -79,7 +79,7 @@ export function FooterMobile() {
         </p>
       </div>
 
-      {/* Start Now Button */}
+      {/* Become an Insider Button */}
       <div style={{ marginBottom: '2.5rem' }}>
         <motion.button
           onClick={() => {
@@ -104,7 +104,7 @@ export function FooterMobile() {
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.2 }}
         >
-          Start Now
+          Become an Insider
         </motion.button>
       </div>
 
