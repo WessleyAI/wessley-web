@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Poppins, Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
+import "@/styles/design-system.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { ThemeProvider } from "next-themes";
 import { GlobalState } from "@/components/utility/global-state";
@@ -17,6 +18,12 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-inter",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -36,7 +43,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Keania+One&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${poppins.variable} ${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body className={`${poppins.variable} ${inter.variable} ${dmSans.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SearchProvider>
             <GlobalState>

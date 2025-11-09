@@ -53,6 +53,7 @@
   --color-gray-dark: #515151;
   --color-gray-light: #F0F0F0;
   --color-accent-green: #8BE196;
+  --color-accent-green-light: #EBFFE9;
   --color-accent-dark: #2A272F;
   --color-text-light: #463B47;
 
@@ -107,6 +108,63 @@
 .text-nav {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
+}
+
+/* Heading Styles */
+h1 {
+  font-family: var(--font-dm-sans);
+  font-size: calc(var(--font-size-4xl) * 0.6885);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-light);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@media screen and (max-width: 768px) {
+  h1 {
+    font-size: calc(var(--font-size-4xl) * 0.58);
+  }
+}
+
+h2 {
+  font-family: var(--font-dm-sans);
+  font-size: calc(var(--font-size-4xl) * 0.5508);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-light);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@media screen and (max-width: 768px) {
+  h2 {
+    font-size: calc(var(--font-size-4xl) * 0.48);
+  }
+}
+
+h3 {
+  font-family: var(--font-dm-sans);
+  font-size: 3.25rem;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.2;
+  color: var(--color-text-light);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+h4 {
+  font-family: var(--font-dm-sans);
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  color: var(--color-text-light);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+p {
+  font-family: var(--font-dm-sans);
+  font-size: calc(var(--font-size-md) * 0.8415);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-light);
 }
 
 /* Hero Section Padding - Responsive */
@@ -338,32 +396,11 @@
 }
 
 .section2-header {
-  font-size: calc(var(--font-size-4xl) * 0.85);
-  font-weight: var(--font-weight-regular);
-  font-family: var(--font-dm-sans);
   color: #EBFFEA;
-  line-height: var(--line-height-tight);
-}
-
-@media screen and (max-width: 768px) {
-  .section2-header {
-    font-size: var(--font-size-2xl);
-  }
 }
 
 .section2-description {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-regular);
-  font-family: var(--font-dm-sans);
   color: #EBFFEA;
-  line-height: var(--line-height-normal);
-}
-
-@media screen and (max-width: 768px) {
-  .section2-description {
-    font-size: var(--font-size-xs);
-    line-height: 0.85;
-  }
 }
 
 .section2-chat-input {

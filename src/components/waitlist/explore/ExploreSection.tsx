@@ -7,7 +7,7 @@ import { ProjectCard } from './ProjectCard'
 const projects = [
   {
     id: 1,
-    image: 'https://images.unsplash.com/photo-1703875497348-bdf7aaf7c35a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwY2FyJTIwcmVzdG9yYXRpb258ZW58MXx8fHwxNzYyMDc1OTQ1fDA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/land-cruiser-fj40.jpg',
     title: '1978 Toyota Land Cruiser',
     userName: 'Jacob R.',
     location: 'Portland, OR',
@@ -19,7 +19,7 @@ const projects = [
   },
   {
     id: 2,
-    image: 'https://images.unsplash.com/photo-1570707981341-1d1d85c51614?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwY2FyJTIwZW5naW5lfGVufDF8fHx8MTc2MjA3NzI0Mnww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/mustang-1967.jpg',
     title: '1967 Ford Mustang GT',
     userName: 'Marcus T.',
     location: 'Detroit, MI',
@@ -31,7 +31,7 @@ const projects = [
   },
   {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1633621122959-cc47b41cb70e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwY2FyJTIwcmVzdG9yYXRpb258ZW58MXx8fHwxNzYyMDc3MjQyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/bel-air-1955.jpg',
     title: '1955 Chevrolet Bel Air',
     userName: 'Sarah K.',
     location: 'Austin, TX',
@@ -43,7 +43,7 @@ const projects = [
   },
   {
     id: 4,
-    image: 'https://images.unsplash.com/photo-1494905998402-395d579af36f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwcG9yc2NoZXxlbnwxfHx8fDE3NjIwNzcyNDN8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/porsche-911-1973.jpg',
     title: '1973 Porsche 911 Carrera',
     userName: 'Alex R.',
     location: 'Los Angeles, CA',
@@ -55,7 +55,7 @@ const projects = [
   },
   {
     id: 5,
-    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwdHJ1Y2t8ZW58MXx8fHwxNzYyMDc3MjQzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/ford-f100.jpg',
     title: '1972 Ford F-100 Custom',
     userName: 'Chris W.',
     location: 'Nashville, TN',
@@ -67,7 +67,7 @@ const projects = [
   },
   {
     id: 6,
-    image: 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwbWluaSUyMGNvb3BlcnxlbnwxfHx8fDE3NjIwNzcyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/mini-cooper-1965.jpg',
     title: '1965 Mini Cooper S',
     userName: 'Emma V.',
     location: 'Seattle, WA',
@@ -79,7 +79,7 @@ const projects = [
   },
   {
     id: 7,
-    image: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwamVlcHxlbnwxfHx8fDE3NjIwNzcyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/land-rover-defender.jpg',
     title: '1983 Land Rover Defender',
     userName: 'David L.',
     location: 'Denver, CO',
@@ -91,7 +91,7 @@ const projects = [
   },
   {
     id: 8,
-    image: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwZmVycmFyaXxlbnwxfHx8fDE3NjIwNzcyNDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/ferrari-365.jpg',
     title: '1969 Ferrari 365 GTB/4',
     userName: 'Ryan H.',
     location: 'Miami, FL',
@@ -103,7 +103,7 @@ const projects = [
   },
   {
     id: 9,
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljJTIwY2FyfGVufDF8fHx8MTc2MjA3NzI0NXww&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/challenger-1970.jpg',
     title: '1970 Dodge Challenger R/T',
     userName: 'Tom B.',
     location: 'Phoenix, AZ',
@@ -115,7 +115,7 @@ const projects = [
   },
   {
     id: 10,
-    image: 'https://images.unsplash.com/photo-1542362567-b07e54358753?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwdm9sa3N3YWdlbnxlbnwxfHx8fDE3NjIwNzcyNDZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    image: '/cars/vw-beetle.jpg',
     title: '1969 VW Beetle Convertible',
     userName: 'Lisa M.',
     location: 'San Diego, CA',
@@ -127,8 +127,133 @@ const projects = [
   },
 ]
 
+// Second row projects - different cars and users
+const projectsRow2 = [
+  {
+    id: 11,
+    image: '/cars/challenger-1970.jpg',
+    title: '1970 Dodge Challenger R/T',
+    userName: 'Mike D.',
+    location: 'Chicago, IL',
+    progress: 53,
+    followers: 1890,
+    likes: 1345,
+    comments: 198,
+    tags: ['Paint', 'Interior'],
+  },
+  {
+    id: 12,
+    image: '/cars/vw-beetle.jpg',
+    title: '1969 VW Beetle Convertible',
+    userName: 'Hannah B.',
+    location: 'Portland, OR',
+    progress: 67,
+    followers: 2456,
+    likes: 1987,
+    comments: 301,
+    tags: ['Electrical', 'Bodywork'],
+  },
+  {
+    id: 13,
+    image: '/cars/mini-cooper-1965.jpg',
+    title: '1965 Mini Cooper S',
+    userName: 'Oliver P.',
+    location: 'Boston, MA',
+    progress: 41,
+    followers: 1678,
+    likes: 1234,
+    comments: 167,
+    tags: ['Engine', 'Suspension'],
+  },
+  {
+    id: 14,
+    image: '/cars/land-rover-defender.jpg',
+    title: '1983 Land Rover Defender',
+    userName: 'Sophia M.',
+    location: 'Denver, CO',
+    progress: 79,
+    followers: 3421,
+    likes: 2876,
+    comments: 445,
+    tags: ['Off-Road', 'Full Rebuild'],
+  },
+  {
+    id: 15,
+    image: '/cars/ferrari-365.jpg',
+    title: '1969 Ferrari 365 GTB/4',
+    userName: 'James W.',
+    location: 'Miami, FL',
+    progress: 91,
+    followers: 9234,
+    likes: 7123,
+    comments: 1456,
+    tags: ['Performance', 'Engine'],
+  },
+  {
+    id: 16,
+    image: '/cars/camaro-1969.jpg',
+    title: '1969 Chevrolet Camaro SS',
+    userName: 'Ethan S.',
+    location: 'Seattle, WA',
+    progress: 58,
+    followers: 2109,
+    likes: 1654,
+    comments: 234,
+    tags: ['Restoration', 'Engine'],
+  },
+  {
+    id: 17,
+    image: '/cars/barracuda-1970.jpg',
+    title: '1970 Plymouth Barracuda',
+    userName: 'Ava L.',
+    location: 'Atlanta, GA',
+    progress: 36,
+    followers: 1543,
+    likes: 987,
+    comments: 145,
+    tags: ['Bodywork', 'Paint'],
+  },
+  {
+    id: 18,
+    image: '/cars/corvette-1963.jpg',
+    title: '1963 Corvette Stingray C2',
+    userName: 'Noah G.',
+    location: 'Houston, TX',
+    progress: 72,
+    followers: 2987,
+    likes: 2345,
+    comments: 389,
+    tags: ['Chrome', 'Interior'],
+  },
+  {
+    id: 19,
+    image: '/cars/thunderbird-1957.jpg',
+    title: '1957 Ford Thunderbird',
+    userName: 'Isabella R.',
+    location: 'San Francisco, CA',
+    progress: 85,
+    followers: 4567,
+    likes: 3456,
+    comments: 567,
+    tags: ['Classic', 'Convertible'],
+  },
+  {
+    id: 20,
+    image: '/cars/ford-deuce-1932.jpg',
+    title: '1932 Ford Deuce Coupe',
+    userName: 'Liam T.',
+    location: 'Dallas, TX',
+    progress: 48,
+    followers: 1345,
+    likes: 876,
+    comments: 123,
+    tags: ['Hot Rod', 'Custom'],
+  },
+]
+
 // Duplicate projects for continuous scrolling
-const extendedProjects = [...projects, ...projects, ...projects]
+const extendedProjectsRow1 = [...projects, ...projects, ...projects]
+const extendedProjectsRow2 = [...projectsRow2, ...projectsRow2, ...projectsRow2]
 
 export function ExploreSection() {
   const topRowRef = useRef<HTMLDivElement>(null)
@@ -181,7 +306,7 @@ export function ExploreSection() {
         className="flex gap-4 overflow-x-hidden px-6"
         style={{ scrollBehavior: 'auto' }}
       >
-        {extendedProjects.map((project, index) => (
+        {extendedProjectsRow1.map((project, index) => (
           <div key={`top-${index}`} className="flex-shrink-0 w-[320px] h-[380px]">
             <ProjectCard {...project} />
           </div>
@@ -194,7 +319,7 @@ export function ExploreSection() {
         className="flex gap-4 overflow-x-hidden px-6"
         style={{ scrollBehavior: 'auto' }}
       >
-        {extendedProjects.map((project, index) => (
+        {extendedProjectsRow2.map((project, index) => (
           <div
             key={`bottom-${index}`}
             className="flex-shrink-0 w-[320px] h-[380px]"

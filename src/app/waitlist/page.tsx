@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { WaitlistHeader } from '@/components/waitlist/WaitlistHeader'
@@ -10,6 +10,7 @@ import { ExploreSection } from '@/components/waitlist/explore/ExploreSection'
 import { NavigationOverlay } from '@/components/waitlist/explore/NavigationOverlay'
 
 export default function Waitlist() {
+  const [marketplaceTab, setMarketplaceTab] = useState<'buy' | 'sell'>('buy')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Animation for floating car illustration
@@ -120,41 +121,29 @@ export default function Waitlist() {
           <div className="hero-content-wrapper">
             {/* Left side - Wessley and Automotive Intelligence stacked */}
             <div>
-              <h2
-                className="hero-title-wessley hero-title-spacing"
+              <h1
+                className="hero-title-spacing"
                 style={{
-                  lineHeight: 'var(--line-height-tight)',
-                  fontWeight: 'var(--font-weight-semibold)',
-                  fontFamily: 'var(--font-dm-sans)',
                   color: '#8BE196',
                   whiteSpace: 'nowrap',
-                  letterSpacing: 'var(--letter-spacing-tight)'
                 }}
               >
                 Wessley
-              </h2>
-              <h1
-                className="hero-title-automotive"
+              </h1>
+              <h2
                 style={{
-                  lineHeight: 'var(--line-height-tight)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  fontFamily: 'var(--font-dm-sans)',
                   color: '#ffffff',
-                  letterSpacing: 'var(--letter-spacing-tight)',
                   whiteSpace: 'nowrap'
                 }}
               >
                 Automotive Intelligence
-              </h1>
+              </h2>
             </div>
 
             {/* Right side - Description text */}
             <p
               className="hero-description"
               style={{
-                fontSize: 'calc(var(--font-size-md) * 0.8415)',
-                fontWeight: 'var(--font-weight-regular)',
-                fontFamily: 'var(--font-dm-sans)',
                 color: '#ffffff',
                 maxWidth: '33.15rem'
               }}
@@ -189,17 +178,18 @@ export default function Waitlist() {
           {/* Text Content - Pushed down */}
           <div className="section2-content-wrapper">
             <div className="section2-text-container">
-              <h2 className="section2-header">
+              <h3 className="section2-header">
                 A virtual<br />
-                garage, AI-Assisted.
-              </h2>
-              <p className="section2-description">
+                garage,<br />
+                AI-Assisted.
+              </h3>
+              <h4 className="section2-description">
                 Wessley maps your car&apos;s electrical<br />
                 system — in 3D.<br />
                 See how every wire, relay, and<br />
                 connection works together, and let AI<br />
                 guide your repairs.
-              </p>
+              </h4>
             </div>
           </div>
         </div>
@@ -299,32 +289,15 @@ export default function Waitlist() {
           {/* Header Section */}
           <div className="w-full max-w-7xl mx-auto px-16 pt-16 pb-8 flex flex-col items-center text-center">
             {/* Header */}
-            <h2
-              style={{
-                fontSize: '3.25rem',
-                fontWeight: 'var(--font-weight-regular)',
-                fontFamily: 'var(--font-dm-sans)',
-                color: 'var(--color-text-light)',
-                lineHeight: 1.2,
-                marginBottom: 'var(--spacing-lg)'
-              }}
-            >
+            <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>
               Builders. Dreamers. Engineers.
-            </h2>
+            </h3>
 
             {/* Subheader */}
-            <p
-              style={{
-                fontSize: '0.9375rem',
-                fontWeight: 'var(--font-weight-regular)',
-                fontFamily: 'var(--font-dm-sans)',
-                color: 'var(--color-text-light)',
-                lineHeight: 1.5
-              }}
-            >
+            <h4>
               Meet the people shaping the future of restoration.<br />
               Wessley unites human creativity with automotive intelligence.
-            </p>
+            </h4>
           </div>
 
           {/* Explore Component */}
@@ -334,13 +307,102 @@ export default function Waitlist() {
         </div>
       </section>
 
-      {/* Section 4 */}
+      {/* Section 4 - Marketplace */}
       <section
         className="relative w-full h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(/sections/background-4.svg)` }}
       >
-        <div className="relative z-10">
-          {/* Content for section 4 - to be added later */}
+        {/* Marketplace Header - Top Right */}
+        <div className="absolute top-0 right-0 z-10">
+          <motion.div
+            className="flex items-center gap-3 px-6 py-4"
+            style={{
+              borderBottomLeftRadius: 'var(--border-radius)',
+              fontFamily: 'var(--font-dm-sans)',
+              fontSize: 'var(--font-size-md)',
+              fontWeight: 'var(--font-weight-medium)',
+              backgroundColor: '#EBFFE9',
+              color: '#463B47',
+            }}
+          >
+            Marketplace
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
+        </div>
+
+        {/* Main Content */}
+        <div className="relative z-10 w-full h-full flex flex-col justify-between px-16 py-16">
+          {/* Buy/Sell Tabs - Top Left */}
+          <div className="flex gap-0">
+            <motion.button
+              onClick={() => setMarketplaceTab('buy')}
+              style={{
+                borderTopLeftRadius: 'var(--border-radius)',
+                borderBottomLeftRadius: 'var(--border-radius)',
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: 'calc(var(--sizer) * 0.75rem)',
+                fontWeight: 'var(--font-weight-medium)',
+                backgroundColor: marketplaceTab === 'buy' ? '#463B47' : '#D9D9D9',
+                color: '#C4C4C4',
+                opacity: marketplaceTab === 'buy' ? 1 : 0.8,
+                paddingLeft: 'calc(var(--sizer) * 1.5rem)',
+                paddingRight: 'calc(var(--sizer) * 1.5rem)',
+                paddingTop: 'calc(var(--sizer) * 0.875rem)',
+                paddingBottom: 'calc(var(--sizer) * 0.875rem)',
+                width: 'calc(var(--sizer) * 8rem)',
+                height: 'calc(var(--sizer) * 3rem)',
+              }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              Buy Parts
+            </motion.button>
+            <motion.button
+              onClick={() => setMarketplaceTab('sell')}
+              style={{
+                borderTopRightRadius: 'var(--border-radius)',
+                borderBottomRightRadius: 'var(--border-radius)',
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: 'calc(var(--sizer) * 0.75rem)',
+                fontWeight: 'var(--font-weight-medium)',
+                backgroundColor: marketplaceTab === 'sell' ? '#463B47' : '#D9D9D9',
+                color: '#C4C4C4',
+                opacity: marketplaceTab === 'sell' ? 1 : 0.8,
+                paddingLeft: 'calc(var(--sizer) * 1.5rem)',
+                paddingRight: 'calc(var(--sizer) * 1.5rem)',
+                paddingTop: 'calc(var(--sizer) * 0.875rem)',
+                paddingBottom: 'calc(var(--sizer) * 0.875rem)',
+                width: 'calc(var(--sizer) * 8rem)',
+                height: 'calc(var(--sizer) * 3rem)',
+              }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              Sell Parts
+            </motion.button>
+          </div>
+
+          {/* Right-aligned content - Bottom Right */}
+          <div className="ml-auto max-w-2xl text-right self-end">
+            <h3 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-accent-green-light)' }}>
+              Less Searching.
+              <br />
+              More Building.
+            </h3>
+            <h4 style={{ color: 'var(--color-accent-green-light)' }}>
+              Wessley bridges the trade between restorers,
+              <br />
+              spare parts, junkyard finds, stores and after-
+              <br />
+              market inventory verified and matched by AI.
+              <br />
+              You focus on the build — it finds what fits.
+            </h4>
+          </div>
         </div>
       </section>
 

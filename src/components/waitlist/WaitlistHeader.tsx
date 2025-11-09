@@ -14,21 +14,30 @@ export function WaitlistHeader() {
       const scrollY = window.scrollY
       const maxScroll = 300
 
+      // Get sizer value from CSS
+      const sizer = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sizer')) || 1
+
       // Calculate progress (0 to 1)
       const progress = Math.min(scrollY / maxScroll, 1)
 
-      // Animate font size from 30px to 12px
-      const fontSize = 30 - (18 * progress)
+      // Animate font size from 30px to 12px (scaled by sizer for start only)
+      const startFontSize = 30 * sizer
+      const endFontSize = 12 // Keep end size fixed at 12px for readability
+      const fontSize = startFontSize - ((startFontSize - endFontSize) * progress)
       buttonTextRef.current.style.fontSize = `${fontSize}px`
 
-      // Animate padding from 90px/12px to 0
-      const paddingTop = 90 - (90 * progress) // 90px -> 0px
-      const paddingBottom = 12 - (12 * progress) // 12px -> 0px
+      // Animate padding from 90px/12px to 0 (scaled by sizer for start only)
+      const startPaddingTop = 90 * sizer
+      const startPaddingBottom = 12 * sizer
+      const paddingTop = startPaddingTop - (startPaddingTop * progress)
+      const paddingBottom = startPaddingBottom - (startPaddingBottom * progress)
       realButtonRef.current.style.paddingTop = `${paddingTop}px`
       realButtonRef.current.style.paddingBottom = `${paddingBottom}px`
 
-      // Animate button height to match navbar (42px total at end)
-      const minHeight = 180 - (180 * progress) + (42 * progress) // 180px -> 42px
+      // Animate button height to match navbar (42px total at end, fixed)
+      const startHeight = 180 * sizer
+      const endHeight = 42 // Keep navbar height fixed
+      const minHeight = startHeight - (startHeight * progress) + (endHeight * progress)
       realButtonRef.current.style.minHeight = `${minHeight}px`
 
       // Change to uppercase when scrolled
@@ -39,7 +48,12 @@ export function WaitlistHeader() {
     }
 
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleScroll) // Re-calculate on resize
+    handleScroll() // Initial call
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
   }, [])
 
   return (
@@ -54,34 +68,34 @@ export function WaitlistHeader() {
       }}
     >
       {/* Logo and Brand */}
-      <Link href="/" className="flex items-center gap-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+      <Link href="/" className="flex items-start gap-3 md:gap-3 gap-1.5" style={{ fontFamily: 'var(--font-dm-sans)' }}>
         <img
           src="/header/logo.svg"
           alt="Wessley Logo"
           className="w-7 h-7"
         />
-        <span className="text-[8px] font-medium tracking-wider">WESSLEY</span>
-        <div className="h-6 w-px bg-white/30" />
-        <span className="text-[8px] font-light tracking-wider max-w-[50%]">AUTOMOTIVE INTELLIGENCE</span>
+        <span className="text-[8px] md:text-[12px] font-medium tracking-wider">WESSLEY</span>
+        <div className="h-6 w-px bg-white opacity-30" />
+        <span className="text-[8px] md:text-[12px] font-light tracking-wider max-w-[50%] leading-tight">AUTOMOTIVE INTELLIGENCE</span>
       </Link>
 
       {/* Navigation Links and Button */}
-      <div className="flex items-center gap-8 ml-auto" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+      <div className="flex items-center gap-8 md:gap-8 gap-2 ml-auto" style={{ fontFamily: 'var(--font-dm-sans)' }}>
         <Link
           href="/about"
-          className="text-[10px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
         >
           ABOUT
         </Link>
         <Link
           href="/contact"
-          className="text-[10px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
         >
           CONTACT
         </Link>
         <Link
           href="/signin"
-          className="text-[10px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity hidden md:block"
         >
           SIGN IN
         </Link>
@@ -94,22 +108,22 @@ export function WaitlistHeader() {
           style={{
             backgroundColor: '#8BE196',
             color: '#000',
-            paddingLeft: '18px',
-            paddingRight: '18px',
-            paddingTop: '90px',
-            paddingBottom: '12px',
-            borderBottomLeftRadius: '8px',
+            paddingLeft: 'calc(var(--sizer) * 1.125rem)',
+            paddingRight: 'calc(var(--sizer) * 1.125rem)',
+            paddingTop: 'calc(var(--sizer) * 5.625rem)',
+            paddingBottom: 'calc(var(--sizer) * 0.75rem)',
+            borderBottomLeftRadius: 'var(--border-radius)',
             textDecoration: 'none',
             transition: 'all 0.3s ease',
             flexShrink: 0,
-            minHeight: '180px',
-            maxWidth: '147px'
+            minHeight: 'calc(var(--sizer) * 11.25rem)',
+            maxWidth: 'calc(var(--sizer) * 9.1875rem)'
           }}
         >
           <div
             ref={buttonTextRef}
             style={{
-              fontSize: '30px',
+              fontSize: 'calc(var(--sizer) * 1.875rem)',
               fontWeight: 500,
               textTransform: 'capitalize',
               transition: 'font-size 0.1s ease',
