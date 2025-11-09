@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { WaitlistHeader } from '@/components/waitlist/WaitlistHeader'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { TwitterIcon } from '@/components/ui/twitter-icon'
@@ -10,6 +11,16 @@ import { NavigationOverlay } from '@/components/waitlist/explore/NavigationOverl
 
 export default function Waitlist() {
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Animation for floating car illustration
+  const floatAnimation = {
+    y: [-15, 15, -15],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
 
   useEffect(() => {
     // Lenis smooth scroll setup
@@ -171,16 +182,7 @@ export default function Waitlist() {
               alt="Car Illustration"
               className="w-full h-auto"
               style={{ maxWidth: '700px' }}
-              initial={{ y: 0 }}
-              animate={{
-                y: [0, -15, 0]
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                repeatType: "loop"
-              }}
+              animate={floatAnimation}
             />
           </div>
 
@@ -210,10 +212,46 @@ export default function Waitlist() {
             whileHover={{ backgroundColor: "#d8ffe5" }}
             transition={{ duration: 0.2 }}
           >
+            {/* Plus Icon - Left */}
+            <motion.button
+              className="p-2 flex-shrink-0"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 4V16M4 10H16" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </motion.button>
+
             <input
               placeholder="Ask anything"
-              className="flex-1 bg-transparent border-none text-black placeholder-gray-600 focus:ring-0 focus:border-none font-medium focus:outline-none text-base px-4"
+              className="flex-1 bg-transparent border-none text-black placeholder-gray-600 focus:ring-0 focus:border-none font-medium focus:outline-none text-base px-2"
             />
+
+            {/* Microphone Icon */}
+            <motion.button
+              className="p-2 flex-shrink-0"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14Z" fill="#000000"/>
+                <path d="M17 11C17 14.31 14.31 17 11 17H11C7.69 17 5 14.31 5 11" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M12 17V22" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M9 22H15" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </motion.button>
+
+            {/* Send Arrow Icon - Right */}
+            <motion.button
+              className="p-2 flex-shrink-0"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </motion.button>
           </motion.div>
         </div>
       </section>
@@ -243,10 +281,16 @@ export default function Waitlist() {
             transition={{ duration: 0.2 }}
           >
             Explore
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2"/>
-              <circle cx="10" cy="10" r="3" fill="currentColor"/>
-            </svg>
+            <Image
+              src="/third/explore.svg"
+              alt="Explore"
+              width={20}
+              height={20}
+              style={{
+                filter: 'invert(1)',
+                opacity: 1.0,
+              }}
+            />
           </motion.button>
         </div>
 

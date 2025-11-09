@@ -171,7 +171,12 @@ export function ProjectCard({
               opacity: isHovered ? 1 : 0,
             }}
             transition={{ duration: 0.3, delay: 0.05 }}
-            className="px-6 py-2.5 bg-white text-[#463B47] rounded-full shadow-2xl hover:shadow-xl transition-shadow text-sm"
+            className="bg-white text-[#463B47] rounded-full shadow-2xl hover:shadow-xl transition-shadow"
+            style={{
+              width: 'calc(var(--sizer) * 8rem)',
+              height: 'calc(var(--sizer) * 3rem)',
+              fontSize: 'calc(var(--sizer) * 1rem)',
+            }}
           >
             View Project
           </motion.button>
