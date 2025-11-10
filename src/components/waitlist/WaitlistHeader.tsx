@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 export function WaitlistHeader() {
   const realButtonRef = useRef<HTMLAnchorElement>(null)
@@ -48,16 +49,16 @@ export function WaitlistHeader() {
       const fontSize = startFontSize - ((startFontSize - endFontSize) * progress)
       buttonTextRef.current.style.fontSize = `${fontSize}px`
 
-      // Animate padding from 90px/12px to 0 (scaled by sizer for start only)
-      const startPaddingTop = 90 * sizer
+      // Animate padding from 54px/12px to 0 (scaled by sizer for start only) - 40% smaller
+      const startPaddingTop = 54 * sizer
       const startPaddingBottom = 12 * sizer
       const paddingTop = startPaddingTop - (startPaddingTop * progress)
       const paddingBottom = startPaddingBottom - (startPaddingBottom * progress)
       realButtonRef.current.style.paddingTop = `${paddingTop}px`
       realButtonRef.current.style.paddingBottom = `${paddingBottom}px`
 
-      // Animate button height to match navbar (42px total at end, fixed)
-      const startHeight = 180 * sizer
+      // Animate button height to match navbar (42px total at end, fixed) - 40% smaller start
+      const startHeight = 108 * sizer
       const endHeight = 42 // Keep navbar height fixed
       const minHeight = startHeight - (startHeight * progress) + (endHeight * progress)
       realButtonRef.current.style.minHeight = `${minHeight}px`
@@ -107,30 +108,69 @@ export function WaitlistHeader() {
 
       {/* Navigation Links and Button */}
       <div className="flex items-center gap-8 md:gap-8 gap-2 ml-auto" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-        <Link
-          href="/about"
-          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+        <motion.div
+          whileHover={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+          style={{
+            border: '1px solid transparent',
+            borderRadius: '4px',
+            padding: '4px 8px',
+          }}
+          transition={{ duration: 0.2 }}
         >
-          ABOUT
-        </Link>
-        <Link
-          href="/contact"
-          className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
+          <Link
+            href="/about"
+            className="text-[8px] md:text-[12px] font-medium tracking-wider"
+          >
+            ABOUT
+          </Link>
+        </motion.div>
+        <motion.div
+          whileHover={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          }}
+          style={{
+            border: '1px solid transparent',
+            borderRadius: '4px',
+            padding: '4px 8px',
+          }}
+          transition={{ duration: 0.2 }}
         >
-          CONTACT
-        </Link>
+          <Link
+            href="/contact"
+            className="text-[8px] md:text-[12px] font-medium tracking-wider"
+          >
+            CONTACT
+          </Link>
+        </motion.div>
         <div
           className="relative hidden md:block"
           onMouseEnter={() => setShowComingSoon(true)}
           onMouseLeave={() => setShowComingSoon(false)}
         >
-          <Link
-            href="/signin"
-            className="text-[8px] md:text-[12px] font-medium tracking-wider hover:opacity-70 transition-opacity"
-            onClick={(e) => e.preventDefault()}
+          <motion.div
+            whileHover={{
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}
+            style={{
+              border: '1px solid transparent',
+              borderRadius: '4px',
+              padding: '4px 8px',
+            }}
+            transition={{ duration: 0.2 }}
           >
-            {showComingSoon ? 'COMING SOON!!' : 'SIGN IN'}
-          </Link>
+            <Link
+              href="/signin"
+              className="text-[8px] md:text-[12px] font-medium tracking-wider"
+              onClick={(e) => e.preventDefault()}
+            >
+              {showComingSoon ? 'COMING SOON!!' : 'SIGN IN'}
+            </Link>
+          </motion.div>
         </div>
 
         {/* Animated Insider Button */}
@@ -148,15 +188,16 @@ export function WaitlistHeader() {
             color: '#000',
             paddingLeft: 'calc(var(--sizer) * 1.125rem)',
             paddingRight: 'calc(var(--sizer) * 1.125rem)',
-            paddingTop: 'calc(var(--sizer) * 5.625rem)',
+            paddingTop: 'calc(var(--sizer) * 3.375rem)',
             paddingBottom: 'calc(var(--sizer) * 0.75rem)',
             borderBottomLeftRadius: 'var(--border-radius)',
             textDecoration: 'none',
             transition: 'all 0.3s ease',
             flexShrink: 0,
-            minHeight: 'calc(var(--sizer) * 11.25rem)',
-            maxWidth: 'calc(var(--sizer) * 9.1875rem)',
+            minHeight: 'calc(var(--sizer) * 6.75rem)',
+            maxWidth: 'calc(var(--sizer) * 5.5125rem)',
             cursor: 'pointer',
+            mixBlendMode: 'normal',
           }}
         >
           <div
@@ -168,12 +209,12 @@ export function WaitlistHeader() {
               transition: 'font-size 0.1s ease',
               whiteSpace: 'normal',
               textAlign: 'left',
-              lineHeight: '0.8',
+              lineHeight: '0.9',
               fontFamily: 'var(--font-dm-sans)',
               wordWrap: 'break-word'
             }}
           >
-            Become an Insider
+            Become an<br />Insider
           </div>
         </a>
       </div>

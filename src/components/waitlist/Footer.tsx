@@ -100,43 +100,82 @@ export function Footer() {
               </h5>
             <ul className="-space-y-1">
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  JOIN WAITLIST
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    JOIN WAITLIST
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  WATCH DEMO
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    WATCH DEMO
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  DOCUMENTATION
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    DOCUMENTATION
+                  </Link>
+                </motion.div>
               </li>
             </ul>
           </div>
@@ -157,56 +196,108 @@ export function Footer() {
             </h5>
             <ul className="-space-y-1">
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  ABOUT
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    ABOUT
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  CAREERS
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    CAREERS
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  PRESS
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    PRESS
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  PRIVACY
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    PRIVACY
+                  </Link>
+                </motion.div>
               </li>
             </ul>
           </div>
@@ -227,56 +318,108 @@ export function Footer() {
             </h5>
             <ul className="-space-y-1">
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  DISCORD
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    DISCORD
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  INSTAGRAM
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    INSTAGRAM
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  YOUTUBE
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    YOUTUBE
+                  </Link>
+                </motion.div>
               </li>
               <li>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  GITHUB
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    GITHUB
+                  </Link>
+                </motion.div>
               </li>
             </ul>
           </div>
@@ -297,43 +440,82 @@ export function Footer() {
             </h5>
             <ul style={{ marginTop: 0, marginBottom: 0 }}>
               <li style={{ marginTop: '-0.25rem' }}>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  KNOWLEDGE BASE
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    KNOWLEDGE BASE
+                  </Link>
+                </motion.div>
               </li>
               <li style={{ marginTop: '-0.25rem' }}>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  AI MARKETPLACE
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    AI MARKETPLACE
+                  </Link>
+                </motion.div>
               </li>
               <li style={{ marginTop: '-0.25rem' }}>
-                <Link
-                  href="#"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontSize: 'calc(var(--sizer) * 0.5rem)',
-                    color: '#C4C4C4',
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderColor: 'rgba(196, 196, 196, 0.3)',
                   }}
-                  className="hover:text-white transition-colors"
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  EXPLORE PROJECTS
-                </Link>
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#C4C4C4',
+                    }}
+                  >
+                    EXPLORE PROJECTS
+                  </Link>
+                </motion.div>
               </li>
             </ul>
           </div>

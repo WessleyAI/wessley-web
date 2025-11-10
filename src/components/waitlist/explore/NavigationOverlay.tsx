@@ -22,6 +22,10 @@ export function NavigationOverlay() {
           className="section3-nav-button section3-nav-feed"
           whileHover={{ x: 4 }}
           transition={{ duration: 0.2 }}
+          style={{
+            backgroundColor: '#8BE196',
+            opacity: 0.8
+          }}
         >
           <Image
             src="/third/feed.svg"
@@ -29,14 +33,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
+              filter: 'brightness(0) saturate(100%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontWeight: 500,
-              color: '#C4C4C4',
+              color: '#000',
             }}
           >
             Feed
@@ -48,6 +52,10 @@ export function NavigationOverlay() {
           className="section3-nav-button section3-nav-explore"
           whileHover={{ x: 4 }}
           transition={{ duration: 0.2 }}
+          style={{
+            backgroundColor: '#8BE196',
+            opacity: 1
+          }}
         >
           <Image
             src="/third/explore.svg"
@@ -55,14 +63,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
+              filter: 'brightness(0) saturate(100%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontWeight: 500,
-              color: '#C4C4C4',
+              color: '#000',
             }}
           >
             Explore
@@ -74,6 +82,10 @@ export function NavigationOverlay() {
           className="section3-nav-button section3-nav-marketplace"
           whileHover={{ x: 4 }}
           transition={{ duration: 0.2 }}
+          style={{
+            backgroundColor: '#8BE196',
+            opacity: 0.8
+          }}
         >
           <Image
             src="/third/marketplace.svg"
@@ -81,14 +93,14 @@ export function NavigationOverlay() {
             width={0}
             height={0}
             style={{
-              filter: 'invert(77%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(77%)',
+              filter: 'brightness(0) saturate(100%)',
             }}
           />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontWeight: 500,
-              color: '#C4C4C4',
+              color: '#000',
             }}
           >
             Marketplace
