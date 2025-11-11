@@ -121,6 +121,7 @@ export function WaitlistHeader() {
 
       {/* Navigation Links and Button */}
       <div className="flex items-center gap-8 md:gap-8 gap-2 ml-auto" style={{ fontFamily: 'var(--font-head)' }}>
+        {/* Hide on mobile - show only on md and up */}
         <motion.div
           whileHover={{
             backgroundColor: 'rgba(250, 250, 250, 0.95)', color: '#1a1a1a',
@@ -131,6 +132,7 @@ export function WaitlistHeader() {
             padding: '6px 12px',
           }}
           transition={{ duration: 0.2 }}
+          className="hidden md:block"
         >
           <Link
             href="/about"
@@ -149,6 +151,7 @@ export function WaitlistHeader() {
             padding: '6px 12px',
           }}
           transition={{ duration: 0.2 }}
+          className="hidden md:block"
         >
           <Link
             href="/contact"
@@ -158,56 +161,54 @@ export function WaitlistHeader() {
           </Link>
         </motion.div>
 
-        {/* Animated Insider Button - Isolated from parent blend mode */}
-        <div style={{ isolation: 'isolate' }}>
-          <motion.a
-            ref={realButtonRef}
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              const waitlistSection = document.getElementById('waitlist-section')
-              waitlistSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            }}
-            className="flex items-end"
+        {/* Animated Insider Button */}
+        <motion.a
+          ref={realButtonRef}
+          href="#"
+          onClick={(e) => {
+            e.preventDefault()
+            const waitlistSection = document.getElementById('waitlist-section')
+            waitlistSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+          className="flex items-end"
+          style={{
+            backgroundColor: '#8BE196',
+            color: '#000',
+            paddingLeft: 'calc(var(--sizer) * 1.5rem)',
+            paddingRight: 'calc(var(--sizer) * 1.5rem)',
+            paddingTop: 'calc(var(--sizer) * 3.375rem)',
+            paddingBottom: 'calc(var(--sizer) * 0.75rem)',
+            borderBottomLeftRadius: 'var(--border-radius)',
+            textDecoration: 'none',
+            flexShrink: 0,
+            minHeight: 'calc(var(--sizer) * 6.75rem)',
+            maxWidth: 'calc(var(--sizer) * 8rem)',
+            cursor: 'pointer',
+          }}
+          whileHover={{
+            backgroundColor: '#7dd085',
+            color: '#FFFFFF',
+            scale: 1.02,
+          }}
+          transition={{ duration: 0.2 }}
+        >
+          <div
+            ref={buttonTextRef}
             style={{
-              backgroundColor: '#8BE196',
-              color: '#000',
-              paddingLeft: 'calc(var(--sizer) * 1.5rem)',
-              paddingRight: 'calc(var(--sizer) * 1.5rem)',
-              paddingTop: 'calc(var(--sizer) * 3.375rem)',
-              paddingBottom: 'calc(var(--sizer) * 0.75rem)',
-              borderBottomLeftRadius: 'var(--border-radius)',
-              textDecoration: 'none',
-              flexShrink: 0,
-              minHeight: 'calc(var(--sizer) * 6.75rem)',
-              maxWidth: 'calc(var(--sizer) * 8rem)',
-              cursor: 'pointer',
+              fontSize: 'calc(var(--sizer) * 0.9375rem)',
+              fontWeight: 500,
+              textTransform: 'capitalize',
+              transition: 'font-size 0.1s ease',
+              whiteSpace: 'normal',
+              textAlign: 'left',
+              lineHeight: '0.9',
+              fontFamily: 'var(--font-head)',
+              wordWrap: 'break-word',
             }}
-            whileHover={{
-              backgroundColor: '#7dd085',
-              color: '#FFFFFF',
-              scale: 1.02,
-            }}
-            transition={{ duration: 0.2 }}
           >
-            <div
-              ref={buttonTextRef}
-              style={{
-                fontSize: 'calc(var(--sizer) * 0.9375rem)',
-                fontWeight: 500,
-                textTransform: 'capitalize',
-                transition: 'font-size 0.1s ease',
-                whiteSpace: 'normal',
-                textAlign: 'left',
-                lineHeight: '0.9',
-                fontFamily: 'var(--font-head)',
-                wordWrap: 'break-word'
-              }}
-            >
-              Become<br />An Insider
-            </div>
-          </motion.a>
-        </div>
+            Become<br />An Insider
+          </div>
+        </motion.a>
       </div>
     </header>
   )

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { toast } from 'sonner'
+import { Moon } from 'lucide-react'
 import { WaitlistHeader } from '@/components/waitlist/WaitlistHeader'
 import { TwitterIcon } from '@/components/ui/twitter-icon'
 import { ExploreSection } from '@/components/waitlist/explore/ExploreSection'
@@ -12,6 +14,7 @@ import { FooterMobile } from '@/components/waitlist/FooterMobile'
 import { PartsMasonryGrid } from '@/components/waitlist/marketplace/parts-masonry-grid'
 import { SellerProfileHeader } from '@/components/waitlist/marketplace/seller-profile-header'
 import { DashboardView } from '@/components/waitlist/marketplace/dashboard-view'
+import { Instagram, Twitter, Linkedin, Youtube, Github } from 'lucide-react'
 
 type UrgencyLevel = 'urgent' | 'soon' | 'optional'
 type Priority = 'high' | 'medium' | 'low'
@@ -60,6 +63,7 @@ export default function Waitlist() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [hasShownToast, setHasShownToast] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Animation for floating car illustration
@@ -108,6 +112,30 @@ export default function Waitlist() {
       }
     }
   }, [])
+
+  // Show toast notification after delay
+  useEffect(() => {
+    if (!hasShownToast) {
+      const timer = setTimeout(() => {
+        toast('🚀 Join the Waitlist', {
+          description: 'Be among the first to access Wessley\'s AI-powered automotive platform. 500+ builders already signed up!',
+          action: {
+            label: 'Join Now',
+            onClick: () => {
+              const waitlistSection = document.getElementById('waitlist-section')
+              if (waitlistSection) {
+                waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            },
+          },
+          duration: 10000,
+        })
+        setHasShownToast(true)
+      }, 8000) // Show after 8 seconds
+
+      return () => clearTimeout(timer)
+    }
+  }, [hasShownToast])
 
   // Marketplace state and handlers
   const [cartItems, setCartItems] = useState<Set<string>>(new Set())
@@ -314,11 +342,20 @@ export default function Waitlist() {
       if (response.ok) {
         setSubmitMessage('🎉 Welcome to the waitlist!')
         setEmail('')
+        toast.success('Successfully joined!', {
+          description: 'Check your email for confirmation. We\'ll be in touch soon!',
+        })
       } else {
         setSubmitMessage(data.error || 'Something went wrong. Please try again.')
+        toast.error('Oops!', {
+          description: data.error || 'Something went wrong. Please try again.',
+        })
       }
     } catch (error) {
       setSubmitMessage('Network error. Please try again.')
+      toast.error('Network error', {
+        description: 'Please check your connection and try again.',
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -367,6 +404,20 @@ export default function Waitlist() {
 
         {/* Floating Buttons - positioned within section 1 */}
         <>
+          {/* Theme toggle - bottom left (locked to dark mode) */}
+          <div className="absolute bottom-6 left-6" style={{ zIndex: 50 }}>
+            <motion.button
+              disabled
+              aria-label="Theme toggle (locked to dark mode)"
+              className="text-white bg-transparent border-none cursor-not-allowed relative w-8 h-8 opacity-50"
+              title="Dark mode locked"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Moon className="h-8 w-8" />
+            </motion.button>
+          </div>
+
           {/* Twitter/X button - bottom right */}
           <div className="absolute bottom-6 right-6" style={{ zIndex: 50 }}>
             <motion.button
@@ -419,11 +470,11 @@ export default function Waitlist() {
                 letterSpacing: '0em'
               }}
             >
-              Wessley understands every circuit, system, and connection in your car.
+              Wessley understands every circuit, system,
               <br />
-              It helps you diagnose faults, plan repairs,
+              and connection in your car. It helps you diagnose faults,
               <br />
-              and discover exactly what parts you need — instantly.
+              plan repairs, and discover exactly what parts you need — instantly.
             </p>
           </div>
         </div>
@@ -826,10 +877,50 @@ export default function Waitlist() {
         <div className="relative z-10 w-full max-w-7xl mx-auto px-16 pb-12 flex flex-col md:flex-row gap-8 md:items-center md:justify-between">
           {/* Text Content */}
           <div className="max-w-md">
-            <h2 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-white)', lineHeight: '1.2', letterSpacing: '-0.02em' }}>
-              Become<br />
-              An Insider
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'calc(var(--sizer) * 2rem)', marginBottom: 'var(--spacing-md)' }}>
+              <h2 style={{ color: 'var(--text-white)', lineHeight: '1.2', letterSpacing: '-0.02em', margin: 0 }}>
+                Become<br />
+                An Insider
+              </h2>
+
+              {/* Social Icons */}
+              <div style={{ display: 'flex', gap: 'calc(var(--sizer) * 0.75rem)', alignItems: 'center', marginLeft: '20%', marginBottom: '2%' }}>
+                <motion.a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub"
+                  whileHover={{ scale: 1.2, color: '#FFFFFF' }}
+                  transition={{ duration: 0.2 }}
+                  style={{ color: '#F5F5F5', cursor: 'pointer', display: 'flex' }}
+                >
+                  <Github size={32} />
+                </motion.a>
+                <motion.a
+                  href="https://huggingface.co"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="HuggingFace"
+                  whileHover={{ scale: 1.2, color: '#FFD21E' }}
+                  transition={{ duration: 0.2 }}
+                  style={{ color: '#F5F5F5', cursor: 'pointer', display: 'flex' }}
+                >
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3ZM9.5 10C10.33 10 11 10.67 11 11.5C11 12.33 10.33 13 9.5 13C8.67 13 8 12.33 8 11.5C8 10.67 8.67 10 9.5 10ZM14.5 10C15.33 10 16 10.67 16 11.5C16 12.33 15.33 13 14.5 13C13.67 13 13 12.33 13 11.5C13 10.67 13.67 10 14.5 10ZM12 17.5C9.67 17.5 7.69 16.04 6.88 14H17.12C16.31 16.04 14.33 17.5 12 17.5Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </motion.a>
+              </div>
+            </div>
+
             <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.35', letterSpacing: '0em', marginBottom: 'calc(var(--sizer) * 1rem)' }}>
               Join the world&apos;s first AI-powered automotive platform. Connect with builders, access intelligent diagnostics, and discover the parts you need — instantly.
             </p>
@@ -891,10 +982,10 @@ export default function Waitlist() {
                     backgroundColor: 'var(--ui-button-primary)',
                     color: 'var(--ui-button-primary-text)',
                     fontFamily: 'var(--font-head)',
-                    fontSize: 'clamp(0.875rem, calc(var(--sizer) * 0.875rem), 1.125rem)',
+                    fontSize: 'clamp(0.75rem, calc(var(--sizer) * 0.75rem), 0.875rem)',
                     fontWeight: 600,
-                    paddingLeft: 'clamp(1.5rem, calc(var(--sizer) * 2.5rem), 3rem)',
-                    paddingRight: 'clamp(1.5rem, calc(var(--sizer) * 2.5rem), 3rem)',
+                    paddingLeft: 'clamp(1rem, calc(var(--sizer) * 1.5rem), 1.75rem)',
+                    paddingRight: 'clamp(1rem, calc(var(--sizer) * 1.5rem), 1.75rem)',
                     paddingTop: 'clamp(0.75rem, calc(var(--sizer) * 1rem), 1.25rem)',
                     paddingBottom: 'clamp(0.75rem, calc(var(--sizer) * 1rem), 1.25rem)',
                     whiteSpace: 'nowrap',
@@ -910,7 +1001,7 @@ export default function Waitlist() {
                   whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   transition={{ duration: 0.2 }}
                 >
-                  {isSubmitting ? 'Joining...' : 'Get Early Access →'}
+                  {isSubmitting ? 'Joining...' : 'Join Now →'}
                 </motion.button>
               </div>
               <p
@@ -926,18 +1017,48 @@ export default function Waitlist() {
                 🚀 Join 500+ builders already on the waitlist
               </p>
               {submitMessage && (
-                <p
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
                   style={{
-                    fontFamily: 'var(--font-head)',
-                    fontSize: 'calc(var(--sizer) * 0.875rem)',
-                    color: submitMessage.includes('🎉') ? 'var(--status-success)' : 'var(--status-error)',
-                    marginTop: 'calc(var(--sizer) * 0.75rem)',
+                    marginTop: 'calc(var(--sizer) * 1rem)',
+                    padding: 'calc(var(--sizer) * 1rem)',
+                    borderRadius: 'var(--border-radius)',
+                    backgroundColor: submitMessage.includes('🎉')
+                      ? 'rgba(139, 225, 150, 0.1)'
+                      : 'rgba(255, 100, 100, 0.1)',
+                    border: submitMessage.includes('🎉')
+                      ? '1px solid rgba(139, 225, 150, 0.3)'
+                      : '1px solid rgba(255, 100, 100, 0.3)',
                     textAlign: 'center',
-                    fontWeight: 600,
                   }}
                 >
-                  {submitMessage}
-                </p>
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-head)',
+                      fontSize: 'calc(var(--sizer) * 1rem)',
+                      color: submitMessage.includes('🎉') ? 'var(--accent-green)' : '#ff6464',
+                      fontWeight: 600,
+                      margin: 0,
+                    }}
+                  >
+                    {submitMessage}
+                  </p>
+                  {submitMessage.includes('🎉') && (
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-head)',
+                        fontSize: 'calc(var(--sizer) * 0.75rem)',
+                        color: 'var(--text-white)',
+                        marginTop: 'calc(var(--sizer) * 0.5rem)',
+                        opacity: 0.8,
+                      }}
+                    >
+                      Check your email for confirmation. We'll be in touch soon!
+                    </p>
+                  )}
+                </motion.div>
               )}
             </form>
           </div>

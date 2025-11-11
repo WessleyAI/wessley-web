@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { GlobalState } from "@/components/utility/global-state";
 import { SearchProvider } from "@/components/search/search-provider";
 import { PageTransition } from "@/components/ui/page-transition";
+import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default function RootLayout({
               </div>
             </GlobalState>
           </SearchProvider>
+          <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>
