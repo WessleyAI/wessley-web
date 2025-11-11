@@ -298,7 +298,7 @@ export function ExploreSection() {
 
   return (
     <div
-      className="space-y-2"
+      className="w-full space-y-2"
       style={{ paddingTop: 'calc(var(--sizer) * 0.5rem)', paddingBottom: 'calc(var(--sizer) * 0.5rem)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
