@@ -611,7 +611,7 @@ export default function Waitlist() {
           <div className="w-full max-w-7xl mx-auto px-16 pt-8 pb-4 flex flex-col items-center text-center">
             {/* Header */}
             <h3 style={{ marginBottom: 'var(--spacing-md)', lineHeight: '1.2', letterSpacing: '-0.02em', color: 'var(--text-on-light)' }}>
-              Builders. Dreamers. Engineers.
+              An Automotive Social Network
             </h3>
 
             {/* Subheader */}
@@ -830,11 +830,20 @@ export default function Waitlist() {
               Become<br />
               An Insider
             </h2>
-            <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.35', letterSpacing: '0em' }}>
-              If you love restoring, tuning, or simply understanding machines — Wessley was built for you.
-              <br />
-              Join the waitlist early and help shape the world&apos;s first intelligent garage.
+            <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.35', letterSpacing: '0em', marginBottom: 'calc(var(--sizer) * 1rem)' }}>
+              Join the world&apos;s first AI-powered automotive platform. Connect with builders, access intelligent diagnostics, and discover the parts you need — instantly.
             </p>
+            <ul style={{ color: 'var(--text-white)', lineHeight: '1.6', letterSpacing: '0em', listStyle: 'none', padding: 0 }}>
+              <li style={{ marginBottom: 'calc(var(--sizer) * 0.5rem)', display: 'flex', alignItems: 'center', gap: 'calc(var(--sizer) * 0.5rem)' }}>
+                <span style={{ color: 'var(--accent-green)' }}>✓</span> Early access to AI garage tools
+              </li>
+              <li style={{ marginBottom: 'calc(var(--sizer) * 0.5rem)', display: 'flex', alignItems: 'center', gap: 'calc(var(--sizer) * 0.5rem)' }}>
+                <span style={{ color: 'var(--accent-green)' }}>✓</span> Exclusive community features
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: 'calc(var(--sizer) * 0.5rem)' }}>
+                <span style={{ color: 'var(--accent-green)' }}>✓</span> Founding member benefits
+              </li>
+            </ul>
           </div>
 
           {/* Email Input */}

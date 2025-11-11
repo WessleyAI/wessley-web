@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Instagram, Twitter, Linkedin, Youtube } from 'lucide-react'
+import { Instagram, Twitter, Linkedin, Youtube, Github } from 'lucide-react'
 
 export function FooterMobile() {
   return (
@@ -278,6 +278,38 @@ export function FooterMobile() {
             size={24}
             style={{ color: '#C4C4C4' }}
           />
+        </Link>
+        <Link
+          href="https://github.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:opacity-70 transition-opacity"
+          aria-label="GitHub"
+        >
+          <Github
+            size={24}
+            style={{ color: '#C4C4C4' }}
+          />
+        </Link>
+        <Link
+          href="https://huggingface.co"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:opacity-70 transition-opacity"
+          aria-label="HuggingFace"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3ZM9.5 10C10.33 10 11 10.67 11 11.5C11 12.33 10.33 13 9.5 13C8.67 13 8 12.33 8 11.5C8 10.67 8.67 10 9.5 10ZM14.5 10C15.33 10 16 10.67 16 11.5C16 12.33 15.33 13 14.5 13C13.67 13 13 12.33 13 11.5C13 10.67 13.67 10 14.5 10ZM12 17.5C9.67 17.5 7.69 16.04 6.88 14H17.12C16.31 16.04 14.33 17.5 12 17.5Z"
+              fill="#C4C4C4"
+            />
+          </svg>
         </Link>
       </div>
 

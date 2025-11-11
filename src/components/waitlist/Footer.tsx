@@ -415,6 +415,31 @@ export function Footer() {
                   </Link>
                 </motion.div>
               </li>
+              <li>
+                <motion.div
+                  whileHover={{
+                    backgroundColor: 'rgba(250, 250, 250, 0.95)', color: '#1a1a1a',
+                  }}
+                  style={{
+                    border: '1px solid transparent',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    display: 'inline-block',
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    href="#"
+                    style={{
+                      fontFamily: 'var(--font-head)',
+                      fontSize: 'calc(var(--sizer) * 0.5rem)',
+                      color: '#F5F5F5',
+                    }}
+                  >
+                    HUGGINGFACE
+                  </Link>
+                </motion.div>
+              </li>
             </ul>
           </div>
 
