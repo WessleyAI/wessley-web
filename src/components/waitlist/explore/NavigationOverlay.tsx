@@ -38,7 +38,7 @@ export function NavigationOverlay() {
           />
           <span
             style={{
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontWeight: 500,
               color: '#000',
             }}
@@ -68,7 +68,7 @@ export function NavigationOverlay() {
           />
           <span
             style={{
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontWeight: 500,
               color: '#000',
             }}
@@ -98,7 +98,7 @@ export function NavigationOverlay() {
           />
           <span
             style={{
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontWeight: 500,
               color: '#000',
             }}

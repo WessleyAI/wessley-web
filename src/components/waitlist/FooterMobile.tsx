@@ -13,7 +13,7 @@ export function FooterMobile() {
           <h2
             style={{
               color: '#C4C4C4',
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontSize: 'calc(var(--sizer) * 2.5rem)',
               fontWeight: 400,
               lineHeight: 0.9,
@@ -34,7 +34,7 @@ export function FooterMobile() {
           <h2
             style={{
               color: '#C4C4C4',
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontSize: 'calc(var(--sizer) * 2.5rem)',
               fontWeight: 400,
               lineHeight: 0.9,
@@ -48,7 +48,7 @@ export function FooterMobile() {
 
       {/* Logo Section */}
       <div className="flex flex-col gap-4" style={{ marginBottom: '2.5rem' }}>
-        <div className="flex items-start gap-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+        <div className="flex items-start gap-3" style={{ fontFamily: 'var(--font-head)' }}>
           <img
             src="/header/logo.svg"
             alt="Wessley Logo"
@@ -68,7 +68,7 @@ export function FooterMobile() {
         {/* Description */}
         <p
           style={{
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-head)',
             fontSize: 'calc(var(--sizer) * 0.75rem)',
             color: '#C4C4C4',
             lineHeight: 1.4,
@@ -90,7 +90,7 @@ export function FooterMobile() {
             width: '100%',
             background: 'linear-gradient(135deg, #8BE196 0%, #7dd085 100%)',
             borderRadius: 'var(--border-radius)',
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-head)',
             fontSize: 'calc(var(--sizer) * 1rem)',
             fontWeight: 600,
             color: '#463B47',
@@ -100,11 +100,15 @@ export function FooterMobile() {
             cursor: 'pointer',
             border: 'none',
           }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{
+            background: 'linear-gradient(135deg, #7dd085 0%, #6bc074 100%)',
+            color: '#FFFFFF',
+            scale: 1.02,
+          }}
           whileTap={{ scale: 0.98 }}
           transition={{ duration: 0.2 }}
         >
-          Become an Insider
+          Become<br />An Insider
         </motion.button>
       </div>
 
@@ -114,7 +118,7 @@ export function FooterMobile() {
         <div>
           <h5
             style={{
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontSize: 'calc(var(--sizer) * 0.55rem)',
               fontWeight: 500,
               color: '#C4C4C4',
@@ -130,7 +134,7 @@ export function FooterMobile() {
               <Link
                 href="#"
                 style={{
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-head)',
                   fontSize: 'calc(var(--sizer) * 0.55rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
@@ -144,7 +148,7 @@ export function FooterMobile() {
               <Link
                 href="#"
                 style={{
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-head)',
                   fontSize: 'calc(var(--sizer) * 0.55rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
@@ -161,7 +165,7 @@ export function FooterMobile() {
         <div>
           <h5
             style={{
-              fontFamily: 'var(--font-dm-sans)',
+              fontFamily: 'var(--font-head)',
               fontSize: 'calc(var(--sizer) * 0.55rem)',
               fontWeight: 500,
               color: '#C4C4C4',
@@ -177,7 +181,7 @@ export function FooterMobile() {
               <Link
                 href="#"
                 style={{
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-head)',
                   fontSize: 'calc(var(--sizer) * 0.55rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
@@ -191,7 +195,7 @@ export function FooterMobile() {
               <Link
                 href="#"
                 style={{
-                  fontFamily: 'var(--font-dm-sans)',
+                  fontFamily: 'var(--font-head)',
                   fontSize: 'calc(var(--sizer) * 0.55rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
@@ -281,7 +285,7 @@ export function FooterMobile() {
       <div className="text-center">
         <p
           style={{
-            fontFamily: 'var(--font-dm-sans)',
+            fontFamily: 'var(--font-head)',
             fontSize: 'calc(var(--sizer) * 0.5rem)',
             color: '#C4C4C4',
             opacity: 0.6,

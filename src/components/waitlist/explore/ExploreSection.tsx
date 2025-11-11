@@ -271,6 +271,8 @@ export function ExploreSection() {
 
     const scrollSpeed = 0.5 // Pixels per frame
 
+    let animationId: number
+
     const animate = () => {
       // Scroll top row to the left
       topScrollPosition += scrollSpeed
@@ -286,18 +288,18 @@ export function ExploreSection() {
       }
       bottomRow.scrollLeft = bottomScrollPosition
 
-      requestAnimationFrame(animate)
+      animationId = requestAnimationFrame(animate)
     }
 
-    const animationId = requestAnimationFrame(animate)
+    animationId = requestAnimationFrame(animate)
 
     return () => cancelAnimationFrame(animationId)
   }, [isPaused])
 
   return (
     <div
-      className="space-y-4"
-      style={{ paddingTop: 'calc(var(--sizer) * 1rem)', paddingBottom: 'calc(var(--sizer) * 1rem)' }}
+      className="space-y-2"
+      style={{ paddingTop: 'calc(var(--sizer) * 0.5rem)', paddingBottom: 'calc(var(--sizer) * 0.5rem)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -306,9 +308,9 @@ export function ExploreSection() {
         ref={topRowRef}
         className="flex overflow-x-hidden"
         style={{
-          gap: 'calc(var(--sizer) * 1rem)',
-          paddingLeft: 'calc(var(--sizer) * 1.5rem)',
-          paddingRight: 'calc(var(--sizer) * 1.5rem)',
+          gap: 'calc(var(--sizer) * 0.75rem)',
+          paddingLeft: 'calc(var(--sizer) * 1rem)',
+          paddingRight: 'calc(var(--sizer) * 1rem)',
           scrollBehavior: 'auto',
         }}
       >
@@ -317,8 +319,9 @@ export function ExploreSection() {
             key={`top-${index}`}
             className="flex-shrink-0"
             style={{
-              width: 'calc(var(--sizer) * 20rem)',
-              height: 'calc(var(--sizer) * 23.75rem)',
+              width: 'calc(var(--sizer) * 14rem)',
+              height: '35vh',
+              maxHeight: '35vh',
             }}
           >
             <ProjectCard {...project} />
@@ -331,9 +334,9 @@ export function ExploreSection() {
         ref={bottomRowRef}
         className="flex overflow-x-hidden"
         style={{
-          gap: 'calc(var(--sizer) * 1rem)',
-          paddingLeft: 'calc(var(--sizer) * 1.5rem)',
-          paddingRight: 'calc(var(--sizer) * 1.5rem)',
+          gap: 'calc(var(--sizer) * 0.75rem)',
+          paddingLeft: 'calc(var(--sizer) * 1rem)',
+          paddingRight: 'calc(var(--sizer) * 1rem)',
           scrollBehavior: 'auto',
         }}
       >
@@ -342,8 +345,9 @@ export function ExploreSection() {
             key={`bottom-${index}`}
             className="flex-shrink-0"
             style={{
-              width: 'calc(var(--sizer) * 20rem)',
-              height: 'calc(var(--sizer) * 23.75rem)',
+              width: 'calc(var(--sizer) * 14rem)',
+              height: '35vh',
+              maxHeight: '35vh',
             }}
           >
             <ProjectCard {...project} />

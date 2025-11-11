@@ -1,67 +1,228 @@
-/* Design System - Typography */
-
+/* ===========================
+   TOKENS — Minor Third (≈1.2)
+   Base: 16px (1rem)
+   =========================== */
 :root {
-  /* Responsive Sizer - Scales all measurements proportionally */
+  /* Font families loaded from Google Fonts CDN */
+  --font-head: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "DM Serif Display", "Times New Roman", ui-serif, Georgia, serif;
+
+  /* Global proportional scaler (mobile-first) */
   --sizer: 1;
 
-  /* Base font size - 16px is browser default */
-  --font-size-base: 1rem; /* 16px */
+  /* Font sizes — Minor Third progression with fluid scaling */
+  /* Down-2, Down-1, Base, Up+ (×1.2 each step) */
+  --fs-xxs: clamp(0.6rem, 0.5rem + 0.5vw, 0.8rem);      /* ~9.6px → ~12.8px */
+  --fs-xs:  clamp(0.75rem, 0.6rem + 0.6vw, 0.95rem);    /* ~12px → ~15.2px */
+  --fs-sm:  clamp(0.9rem, 0.8rem + 0.7vw, 1.1rem);      /* ~14.4px → ~17.6px */
+  --fs-md:  clamp(1.05rem, 0.9rem + 0.8vw, 1.35rem);    /* ~16.8px → ~21.6px */
+  --fs-lg:  clamp(1.2rem, 1rem + 1vw, 1.6rem);          /* ~19.2px → ~25.6px */
+  --fs-xl:  clamp(1.45rem, 1.2rem + 1.2vw, 1.95rem);    /* ~23.2px → ~31.2px */
+  --fs-2xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.35rem);    /* ~28px → ~37.6px */
+  --fs-3xl: clamp(2.1rem, 1.7rem + 1.8vw, 2.85rem);     /* ~33.6px → ~45.6px */
+  --fs-4xl: clamp(2.5rem, 2rem + 2.2vw, 3.4rem);        /* ~40px → ~54.4px */
+  --fs-5xl: clamp(3rem, 2.4rem + 2.6vw, 4.1rem);        /* ~48px → ~65.6px */
 
-  /* Typography Scale */
-  --font-size-xxs: 0.75rem;     /* 12px */
-  --font-size-xs: 1.02rem;      /* 16.32px (19.2px * 0.85) */
-  --font-size-sm: 1.19rem;      /* 19.04px (22.4px * 0.85) */
-  --font-size-md: 1.084rem;     /* 17.34px (20.4px * 0.85) */
-  --font-size-base: 1.36rem;    /* 21.76px (25.6px * 0.85) */
-  --font-size-lg: 1.53rem;      /* 24.48px (28.8px * 0.85) */
-  --font-size-xl: 2.04rem;      /* 32.64px (38.4px * 0.85) */
-  --font-size-2xl: 2.72rem;     /* 43.52px (51.2px * 0.85) */
-  --font-size-3xl: 3.4rem;      /* 54.4px (64px * 0.85) */
-  --font-size-4xl: 4.42rem;     /* 70.72px (83.2px * 0.85) */
-  --font-size-5xl: 5.44rem;     /* 87.04px (102.4px * 0.85) */
+  /* Line-height (unitless) */
+  --lh-tight:   1.2;   /* headings */
+  --lh-normal:  1.35;  /* paragraphs - tighter for modern feel */
+  --lh-relaxed: 1.7;   /* long-form */
 
-  /* Line Heights */
+  /* Tracking */
+  --trk-tight:  -0.015em;   /* slightly negative for larger headings */
+  --trk-normal:  0;
+  --trk-wide:    0.02em;
+
+  /* Weights */
+  --w-reg: 400;
+  --w-med: 500;
+  --w-sb:  600;
+  --w-b:   700;
+
+  /* Spacing — Minor Third progression with fluid scaling */
+  --sp-xxs: clamp(0.6rem, 0.5rem + 0.5vw, 0.8rem);      /* ~9.6px → ~12.8px */
+  --sp-xs:  clamp(0.75rem, 0.6rem + 0.6vw, 0.95rem);    /* ~12px → ~15.2px */
+  --sp-sm:  clamp(0.9rem, 0.8rem + 0.7vw, 1.1rem);      /* ~14.4px → ~17.6px */
+  --sp-md:  clamp(1.05rem, 0.9rem + 0.8vw, 1.35rem);    /* ~16.8px → ~21.6px */
+  --sp-lg:  clamp(1.2rem, 1rem + 1vw, 1.6rem);          /* ~19.2px → ~25.6px */
+  --sp-xl:  clamp(1.45rem, 1.2rem + 1.2vw, 1.95rem);    /* ~23.2px → ~31.2px */
+  --sp-2xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.35rem);    /* ~28px → ~37.6px */
+
+  /* === LEGACY ALIASES (backward compatibility) === */
+  --font-size-base: 1rem;
+  --font-size-xxs: 0.75rem;
+  --font-size-xs: 1.02rem;
+  --font-size-sm: 1.19rem;
+  --font-size-md: 1.084rem;
+  --font-size-lg: 1.53rem;
+  --font-size-xl: 2.04rem;
+  --font-size-2xl: 2.72rem;
+  --font-size-3xl: 3.4rem;
+  --font-size-4xl: 4.42rem;
+  --font-size-5xl: 5.44rem;
   --line-height-tight: 1.1;
   --line-height-snug: 1.25;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
-
-  /* Letter Spacing */
   --letter-spacing-tight: -0.05em;
   --letter-spacing-normal: 0;
   --letter-spacing-wide: 0.025em;
-
-  /* Font Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --spacing-xxs: 0.75rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
 
-  /* Spacing Scale (using em for relative sizing) */
-  --spacing-xxs: 0.75rem; /* 12px */
-  --spacing-xs: 0.5rem;   /* 8px */
-  --spacing-sm: 0.75rem;  /* 12px */
-  --spacing-md: 1rem;     /* 16px */
-  --spacing-lg: 1.5rem;   /* 24px */
-  --spacing-xl: 2rem;     /* 32px */
-  --spacing-2xl: 3rem;    /* 48px */
-  --spacing-3xl: 4rem;    /* 64px */
+  /* Theme Colors - Light Mode (Default) */
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-tertiary: #EBFFE9;
+  --bg-footer: #F8F8F8;
+  --bg-overlay: rgba(235, 255, 234, 0.95);
+  --bg-section-light-green: rgba(235, 255, 233, 0.7);
 
-  /* Colors */
+  /* Text Colors */
+  --text-primary: #161616;
+  --text-secondary: #463B47;
+  --text-tertiary: #5B4D5C;
+  --text-muted: #808080;
+  --text-white: #F5F5F5;
+  --text-on-accent: #161616;
+  --text-on-dark: #EBFFEA;
+  --text-on-light: #463B47;
+
+  /* Accent Colors */
+  --accent-green: #8BE196;
+  --accent-green-light: #EBFFE9;
+  --accent-green-hover: #9DF4A8;
+  --accent-green-dark: #7dd085;
+  --accent-dark: #463B47;
+  --accent-gray: #808080;
+  --accent-gray-hover: #666666;
+
+  /* UI Element Colors */
+  --ui-button-primary: #8BE196;
+  --ui-button-primary-hover: #9DF4A8;
+  --ui-button-primary-text: #161616;
+  --ui-input-bg: rgba(255, 255, 255, 0.95);
+  --ui-input-text: #161616;
+  --ui-nav-bg: #E8E8E8;
+  --ui-nav-hover: #D0D0D0;
+  --ui-tab-bg: #8BE196;
+  --ui-chat-bg: #EBFFEA;
+  --ui-chat-hover: #d8ffe5;
+
+  /* Status Colors */
+  --status-success: #8BE196;
+  --status-error: #ff6b6b;
+  --status-warning: #ffa726;
+  --status-info: #42a5f5;
+
+  /* Border & Divider */
+  --border-color: #D9D9D9;
+  --border-light: rgba(0, 0, 0, 0.1);
+  --divider: rgba(0, 0, 0, 0.05);
+
+  /* Legacy compatibility */
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-gray-dark: #515151;
+  --color-gray-dark: #808080;
   --color-gray-light: #F0F0F0;
   --color-accent-green: #8BE196;
   --color-accent-green-light: #EBFFE9;
-  --color-accent-dark: #2A272F;
+  --color-accent-dark: #463B47;
   --color-text-light: #463B47;
-
-  /* Border Radius */
-  --border-radius: 0.5rem; /* 8px */
+  --color-background: #EBFFE9;
+  --color-surface: #FFFFFF;
+  --color-primary: #161616;
+  --color-secondary: #463B47;
+  --color-accent: #8BE196;
+  --color-text-primary: #161616;
+  --color-text-secondary: #5B4D5C;
+  --color-text-muted: #C4C4C4;
+  --color-border: #D9D9D9;
 }
 
-/* Responsive Breakpoints */
+/* Dark Mode Theme */
+.dark {
+  /* Backgrounds */
+  --bg-primary: #161616;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2A272F;
+  --bg-footer: #1a1a1a;
+  --bg-overlay: rgba(26, 26, 26, 0.95);
+  --bg-section-light-green: transparent;
+
+  /* Text Colors */
+  --text-primary: #FFFFFF;
+  --text-secondary: #EBFFEA;
+  --text-tertiary: #C4C4C4;
+  --text-muted: #808080;
+  --text-white: #F5F5F5;
+  --text-on-accent: #000000;
+  --text-on-dark: #EBFFEA;
+  --text-on-light: #463B47;
+
+  /* Accent Colors */
+  --accent-green: #8BE196;
+  --accent-green-light: #EBFFEA;
+  --accent-green-hover: #9DF4A8;
+  --accent-green-dark: #7dd085;
+  --accent-dark: #463B47;
+  --accent-gray: #515151;
+  --accent-gray-hover: #3a3a3a;
+
+  /* UI Element Colors */
+  --ui-button-primary: #8BE196;
+  --ui-button-primary-hover: #9DF4A8;
+  --ui-button-primary-text: #000000;
+  --ui-input-bg: rgba(235, 255, 234, 0.95);
+  --ui-input-text: #463B47;
+  --ui-nav-bg: #5B4D5C;
+  --ui-nav-hover: #463B47;
+  --ui-tab-bg: #8BE196;
+  --ui-chat-bg: #EBFFEA;
+  --ui-chat-hover: #d8ffe5;
+
+  /* Status Colors */
+  --status-success: #8BE196;
+  --status-error: #ff6b6b;
+  --status-warning: #ffa726;
+  --status-info: #42a5f5;
+
+  /* Border & Divider */
+  --border-color: #333333;
+  --border-light: rgba(255, 255, 255, 0.05);
+  --divider: rgba(255, 255, 255, 0.05);
+
+  /* Legacy compatibility */
+  --color-gray-dark: #515151;
+  --color-gray-light: #2A272F;
+  --color-background: #2A272F;
+  --color-surface: #1a1a1a;
+  --color-text-muted: #C4C4C4;
+
+  /* Border Radius */
+  --border-radius: 0.5rem; /* 8px - keeping original for page compatibility */
+  --border-radius-sm: 0.5rem;
+  --border-radius-lg: 2rem;
+}
+
+/* Responsive growth — gentle (keeps Minor Third contrast intact) */
+@media (min-width: 768px)  { :root { --sizer: 1.0625; } } /* +6.25% (tablet)  */
+@media (min-width: 1024px) { :root { --sizer: 1.125;  } } /* +12.5% (desktop) */
+@media (min-width: 1400px) { :root { --sizer: 1.2;    } } /* +20%   (large)   */
+
+/* Responsive Breakpoints (legacy - for existing page classes) */
 @media screen and (max-width: 768px) {
   :root {
     --sizer: 0.55;
@@ -92,7 +253,64 @@
   }
 }
 
-/* Utility Classes */
+/* ===========================
+   SEMANTIC TYPOGRAPHY
+   =========================== */
+html { font-size: 16px; } /* keep rem accessible */
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  letter-spacing: var(--trk-normal);
+  font-weight: var(--w-reg);
+}
+
+/* Headings — serif gives premium/editorial contrast */
+h1, .h1 {
+  font-family: var(--font-head);
+  font-weight: var(--w-b);              /* DM Serif Display benefits from stronger weight on hero */
+  font-size: var(--fs-3xl);
+  line-height: 1.15;                    /* a hair more open than Grotesk */
+  letter-spacing: -0.01em;              /* serifs need less tight tracking */
+}
+h2, .h2 {
+  font-family: var(--font-head);
+  font-weight: var(--w-sb);
+  font-size: var(--fs-2xl);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+h3, .h3 {
+  font-family: var(--font-head);
+  font-weight: var(--w-sb);
+  font-size: var(--fs-xl);
+  line-height: 1.25;
+}
+h4, .h4 {
+  font-family: var(--font-head);
+  font-weight: var(--w-med);
+  font-size: var(--fs-lg);
+  line-height: 1.3;
+}
+
+/* Body & UI */
+p, .text   { font-size: var(--fs-sm); line-height: var(--lh-normal); }
+.small     { font-size: var(--fs-xs); line-height: 1.4; letter-spacing: var(--trk-wide); }
+.caption   { font-size: var(--fs-xxs); line-height: 1.35; letter-spacing: var(--trk-wide); }
+
+/* Numerics / telemetry */
+.num, .stat, .data {
+  font-family: var(--font-head);
+  font-weight: var(--w-sb);
+}
+
+/* Utility rhythm */
+.stack > * + * { margin-top: var(--sp-sm); }
+
+/* ===========================
+   LEGACY UTILITY CLASSES
+   (Preserved for page compatibility)
+   =========================== */
 .text-hero {
   font-size: var(--font-size-4xl);
   line-height: var(--line-height-tight);
@@ -110,62 +328,10 @@
   line-height: var(--line-height-normal);
 }
 
-/* Heading Styles */
-h1 {
-  font-family: var(--font-dm-sans);
-  font-size: calc(var(--font-size-4xl) * 0.6885);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
-  color: var(--color-text-light);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-@media screen and (max-width: 768px) {
-  h1 {
-    font-size: calc(var(--font-size-4xl) * 0.58);
-  }
-}
-
-h2 {
-  font-family: var(--font-dm-sans);
-  font-size: calc(var(--font-size-4xl) * 0.5508);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-tight);
-  color: var(--color-text-light);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-@media screen and (max-width: 768px) {
-  h2 {
-    font-size: calc(var(--font-size-4xl) * 0.48);
-  }
-}
-
-h3 {
-  font-family: var(--font-dm-sans);
-  font-size: clamp(1.75rem, calc(var(--sizer) * 3.25rem), 4rem);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.2;
-  color: var(--color-text-light);
-  letter-spacing: var(--letter-spacing-normal);
-}
-
-h4 {
-  font-family: var(--font-dm-sans);
-  font-size: calc(var(--sizer) * 0.9375rem);
-  font-weight: var(--font-weight-regular);
-  line-height: 1.5;
-  color: var(--color-text-light);
-  letter-spacing: var(--letter-spacing-normal);
-}
-
-p {
-  font-family: var(--font-dm-sans);
-  font-size: clamp(0.875rem, calc(var(--font-size-md) * 0.8415), 1.25rem);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-normal);
-  color: var(--color-text-light);
-}
+/* ===========================
+   PAGE-SPECIFIC STYLES
+   (Preserving existing waitlist page structure)
+   =========================== */
 
 /* Hero Section Padding - Responsive */
 .hero-section-padding {
@@ -396,11 +562,11 @@ p {
 }
 
 .section2-header {
-  color: #EBFFEA;
+  color: var(--text-on-dark);
 }
 
 .section2-description {
-  color: #EBFFEA;
+  color: var(--text-on-dark);
 }
 
 .section2-chat-input {
@@ -529,7 +695,7 @@ p {
 }
 
 .section3-nav-feed {
-  background-color: #5B4D5C;
+  background-color: var(--ui-nav-bg);
   padding-left: calc(var(--sizer) * 0.542rem);
   padding-right: calc(var(--sizer) * 1.084rem);
   padding-top: calc(var(--sizer) * 0.632rem);
@@ -538,11 +704,11 @@ p {
   height: calc(var(--sizer) * 2.17rem);
   border-top-left-radius: 0;
   border-top-right-radius: var(--border-radius);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .section3-nav-explore {
-  background-color: #463B47;
+  background-color: var(--ui-nav-hover);
   padding-left: calc(var(--sizer) * 0.542rem);
   padding-right: calc(var(--sizer) * 1.084rem);
   padding-top: calc(var(--sizer) * 0.903rem);
@@ -553,11 +719,11 @@ p {
   border-bottom-right-radius: var(--border-radius);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .section3-nav-marketplace {
-  background-color: #5B4D5C;
+  background-color: var(--ui-nav-bg);
   padding-left: calc(var(--sizer) * 0.542rem);
   padding-right: calc(var(--sizer) * 1.084rem);
   padding-top: calc(var(--sizer) * 0.632rem);

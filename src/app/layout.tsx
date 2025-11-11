@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Inter, DM_Sans } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import "@/styles/design-system.css";
 import { AppShell } from "@/components/layout/AppShell";
@@ -20,12 +20,6 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
-});
-
 export const metadata: Metadata = {
   title: "Wessley AI",
   description: "AI-assisted project-car companion",
@@ -41,10 +35,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Keania+One&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${poppins.variable} ${inter.variable} ${dmSans.variable} font-sans antialiased`} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body className={`${poppins.variable} ${inter.variable} antialiased`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" disableTransitionOnChange>
           <SearchProvider>
             <GlobalState>
               {/* Full screen SVG grid background */}
