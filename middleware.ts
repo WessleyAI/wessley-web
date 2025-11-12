@@ -4,17 +4,17 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Allow API routes and auth callbacks
+  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/callback')) {
+    return NextResponse.next()
+  }
+
   // Allow access only to /waitlist
   if (pathname === '/waitlist') {
     return NextResponse.next()
   }
 
-  // Redirect root to /waitlist
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL('/waitlist', request.url))
-  }
-
-  // Redirect all other pages to /waitlist
+  // Redirect everything else (including /) to /waitlist
   return NextResponse.redirect(new URL('/waitlist', request.url))
 }
 
