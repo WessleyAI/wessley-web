@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { TopNav } from './TopNav'
 import { FloatingButtons } from './FloatingButtons'
 
@@ -9,13 +10,19 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, onDashboardOpen }: AppShellProps) {
+  const pathname = usePathname()
+  const hiddenNavRoutes = ['/chat', '/setup', '/waitlist']
+  const shouldHideNav = hiddenNavRoutes.includes(pathname) ||
+                        pathname.startsWith('/g/') ||
+                        pathname.startsWith('/c/')
+
   return (
     <div className="min-h-screen bg-transparent font-sans antialiased">
-      <TopNav onDashboardOpen={onDashboardOpen} />
-      <main className="container mx-auto px-4 sm:px-6">
+      {!shouldHideNav && <TopNav onDashboardOpen={onDashboardOpen} />}
+      <main className={shouldHideNav ? "h-screen" : "container mx-auto px-4 sm:px-6"}>
         {children}
       </main>
-      <FloatingButtons />
+      {!shouldHideNav && <FloatingButtons />}
     </div>
   )
 }

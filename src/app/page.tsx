@@ -2,51 +2,15 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { TwitterIcon } from '@/components/ui/twitter-icon'
+import { Dashboard } from '@/components/dashboard/Dashboard'
+import { useAuth } from '@/lib/hooks/use-auth'
 
 export default function Home() {
-  const [email, setEmail] = useState('')
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-
-    setIsLoading(true)
-    
-    try {
-      // Submit to our API route which handles Beehiiv integration
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email
-        })
-      })
-
-      const result = await response.json()
-
-      if (response.ok) {
-        setIsSubmitted(true)
-        setEmail('')
-        console.log('Successfully subscribed:', result)
-      } else {
-        console.error('Failed to subscribe:', result.error)
-        // You might want to show an error message to the user here
-      }
-    } catch (error) {
-      console.error('Error submitting to waitlist:', error)
-      // You might want to show an error message to the user here
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false)
+  const { signInWithGoogle } = useAuth()
 
   // Animation variants
   const containerVariants = {
@@ -81,43 +45,6 @@ export default function Home() {
     }
   }
 
-  const pulseAnimation = {
-    scale: [1, 1.05, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-
-  if (isSubmitted) {
-    return (
-      <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
-        <motion.div 
-          className="text-center space-y-4 sm:space-y-6 max-w-md mx-auto"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <motion.div
-            animate={pulseAnimation}
-            className="text-4xl sm:text-6xl mb-2 sm:mb-4"
-          >
-            🎉
-          </motion.div>
-          <h2 className="keania-one-regular tracking-wide text-2xl sm:text-3xl" style={{color: '#22E974'}}>
-            YOU'RE IN!
-          </h2>
-          <p className="font-sans text-black dark:text-white font-semibold text-base sm:text-lg">
-            Thanks for joining the waitlist — we'll let you know the moment Wessley is ready to power up your project car journey.
-          </p>
-          <p className="font-sans text-black/70 dark:text-white/70 text-sm">
-            Stay tuned for early access and exclusive behind-the-hood updates. ⚡🚗
-          </p>
-        </motion.div>
-      </div>
-    )
-  }
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] flex items-center px-4 sm:px-0">
@@ -152,57 +79,18 @@ export default function Home() {
               className="font-sans text-black dark:text-white max-w-lg font-semibold text-lg sm:text-xl lg:text-2xl" 
               variants={itemVariants}
             >
-              A virtual garage where Wessley, your personal vehicle guru, guides you.
+              Your project car electrician, companion — and your new car project dashboard.
             </motion.p>
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
-                <motion.div 
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileFocus={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 h-10 sm:h-12"
-                    disabled={isLoading}
-                  />
-                </motion.div>
-                <motion.div
-                  whileHover={{ 
-                    scale: 1.05,
-                    backgroundColor: '#2AF57C',
-                    borderRadius: '8px',
-                    color: '#000000'
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ borderRadius: '8px' }}
-                >
-                  <Button 
-                    type="submit"
-                    size="lg" 
-                    className="bg-primary text-black hover:bg-transparent hover:text-black px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-inter font-black w-full sm:w-auto h-10 sm:h-12 text-sm sm:text-base"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Joining...' : 'Join Waitlist →'}
-                  </Button>
-                </motion.div>
-              </div>
-              <motion.p 
-                className="text-xs text-black/60 dark:text-white/60"
-                variants={itemVariants}
-              >
-                We respect your privacy. Unsubscribe at any time.
-              </motion.p>
-            </form>
+            <Button 
+              size="lg" 
+              className="bg-primary text-black hover:bg-primary/90 px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-inter font-black text-sm sm:text-base"
+              onClick={signInWithGoogle}
+            >
+              Start Building →
+            </Button>
           </motion.div>
         </div>
 
@@ -294,6 +182,11 @@ export default function Home() {
           </motion.button>
         </div>
       </>
+      
+      <Dashboard 
+        isOpen={isDashboardOpen} 
+        onClose={() => setIsDashboardOpen(false)} 
+      />
     </div>
   )
 }
