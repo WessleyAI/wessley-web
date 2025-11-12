@@ -22,8 +22,60 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Wessley AI",
-  description: "AI-assisted project-car companion",
+  title: {
+    default: "Wessley | Automotive Intelligence",
+    template: "%s | Wessley"
+  },
+  description: "The world's first AI-powered automotive platform. Wessley understands every circuit, system, and connection in your car — helping you diagnose faults, plan repairs, and discover exactly what parts you need instantly.",
+  keywords: [
+    "automotive AI",
+    "car repair",
+    "vehicle diagnostics",
+    "auto parts marketplace",
+    "car restoration",
+    "automotive intelligence",
+    "3D electrical system",
+    "3D visualization",
+    "3D car diagnostics",
+    "automotive wiring diagram",
+    "AI vehicle assistant",
+    "electric vehicle diagnostics",
+    "interactive car diagrams",
+    "automotive virtual garage",
+    "car parts finder",
+    "AI-powered repair guidance"
+  ],
+  authors: [{ name: "Wessley AI" }],
+  creator: "Wessley AI",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://wessley.ai",
+    siteName: "Wessley",
+    title: "Wessley | Automotive Intelligence",
+    description: "The world's first AI-powered automotive platform. Diagnose, repair, and restore with precision.",
+    images: [
+      {
+        url: "/header/logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "Wessley - Automotive Intelligence",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wessley | Automotive Intelligence",
+    description: "The world's first AI-powered automotive platform. Diagnose, repair, and restore with precision.",
+    images: ["/header/logo.svg"],
+    creator: "@wessley_ai",
+  },
+  icons: {
+    icon: "/header/logo.svg",
+    shortcut: "/header/logo.svg",
+    apple: "/header/logo.svg",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

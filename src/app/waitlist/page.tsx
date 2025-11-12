@@ -906,7 +906,7 @@ export default function Waitlist() {
               {/* Social Icons */}
               <div style={{ display: 'flex', gap: 'calc(var(--sizer) * 0.75rem)', alignItems: 'center', marginLeft: '20%', marginBottom: '2%' }}>
                 <motion.a
-                  href="https://github.com"
+                  href="https://github.com/wessleyai"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub"
@@ -917,7 +917,7 @@ export default function Waitlist() {
                   <Github size={32} />
                 </motion.a>
                 <motion.a
-                  href="https://huggingface.co"
+                  href="https://huggingface.co/wessleyai"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="HuggingFace"

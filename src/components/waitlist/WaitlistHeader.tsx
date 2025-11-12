@@ -135,7 +135,9 @@ export function WaitlistHeader() {
           className="hidden md:block"
         >
           <Link
-            href="/about"
+            href="https://github.com/wessleyai"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[8px] md:text-[12px] font-medium tracking-wider"
           >
             ABOUT
@@ -154,7 +156,9 @@ export function WaitlistHeader() {
           className="hidden md:block"
         >
           <Link
-            href="/contact"
+            href="https://linkedin.com/in/saharbarak"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[8px] md:text-[12px] font-medium tracking-wider"
           >
             CONTACT
