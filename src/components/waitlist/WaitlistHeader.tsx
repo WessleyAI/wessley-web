@@ -42,8 +42,8 @@ export function WaitlistHeader() {
       // Calculate progress (0 to 1)
       const progress = Math.min(scrollY / maxScroll, 1)
 
-      // Animate font size from 15px to 12px (50% smaller, scaled by sizer for start only)
-      const startFontSize = 15 * sizer
+      // Animate font size from 24px to 12px (scaled by sizer for start only)
+      const startFontSize = 24 * sizer
       const endFontSize = 12 // Keep end size fixed at 12px for readability
       const fontSize = startFontSize - ((startFontSize - endFontSize) * progress)
       buttonTextRef.current.style.fontSize = `${fontSize}px`
@@ -199,7 +199,6 @@ export function WaitlistHeader() {
           <div
             ref={buttonTextRef}
             style={{
-              fontSize: 'calc(var(--sizer) * 0.9375rem)',
               fontWeight: 500,
               textTransform: 'capitalize',
               transition: 'font-size 0.1s ease',
