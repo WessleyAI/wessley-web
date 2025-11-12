@@ -13,6 +13,10 @@ export interface Profile {
   profile_context?: string | null
   image_url?: string | null
   image_path?: string | null
+  subscription_tier?: string | null
+  subscription_status?: string | null
+  subscription_started_at?: string | null
+  subscription_expires_at?: string | null
   created_at?: string | null
   updated_at?: string | null
 }

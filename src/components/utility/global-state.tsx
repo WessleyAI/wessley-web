@@ -17,7 +17,6 @@ import {
   fetchOpenRouterModels
 } from "@/lib/models/fetch-models"
 import { createClient } from "@/lib/supabase/client"
-import { supabase as typedSupabase } from "@/lib/supabase/typed-client"
 import { Tables } from "@/supabase/types"
 import {
   ChatFile,
@@ -38,6 +37,10 @@ interface GlobalStateProps {
 }
 
 export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
+  console.log('🔴 GlobalState - Component mounted!')
+  if (typeof window !== 'undefined') {
+    console.log('🔴 GlobalState - Running on client side')
+  }
   const router = useRouter()
 
   // PROFILE STORE
@@ -129,27 +132,36 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [toolInUse, setToolInUse] = useState<string>("none")
 
   useEffect(() => {
+    console.log('🟢 GlobalState - useEffect running')
+    
     // Listen for auth state changes
-    const { data: { subscription } } = typedSupabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session)
+    console.log('🟡 Setting up auth state listener')
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🟠 GlobalState - Auth state changed:', event, session)
       
       if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && session)) {
         const profile = await fetchStartingData()
         
         if (profile) {
-          const hostedModelRes = await fetchHostedModels(profile)
-          if (!hostedModelRes) return
+          try {
+            const hostedModelRes = await fetchHostedModels(profile)
+            if (hostedModelRes) {
+              setEnvKeyMap(hostedModelRes.envKeyMap)
+              setAvailableHostedModels(hostedModelRes.hostedModels)
 
-          setEnvKeyMap(hostedModelRes.envKeyMap)
-          setAvailableHostedModels(hostedModelRes.hostedModels)
-
-          if (
-            profile["openrouter_api_key"] ||
-            hostedModelRes.envKeyMap["openrouter"]
-          ) {
-            const openRouterModels = await fetchOpenRouterModels()
-            if (!openRouterModels) return
-            setAvailableOpenRouterModels(openRouterModels)
+              if (
+                profile["openrouter_api_key"] ||
+                hostedModelRes.envKeyMap["openrouter"]
+              ) {
+                const openRouterModels = await fetchOpenRouterModels()
+                if (openRouterModels) {
+                  setAvailableOpenRouterModels(openRouterModels)
+                }
+              }
+            }
+          } catch (error) {
+            console.log("fetchHostedModels failed, continuing without hosted models:", error)
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -160,23 +172,30 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     })
 
     // Initial fetch
+    console.log('🔆 Starting initial data fetch')
     ;(async () => {
+      console.log('🔆 About to call fetchStartingData directly')
       const profile = await fetchStartingData()
 
       if (profile) {
-        const hostedModelRes = await fetchHostedModels(profile)
-        if (!hostedModelRes) return
+        try {
+          const hostedModelRes = await fetchHostedModels(profile)
+          if (hostedModelRes) {
+            setEnvKeyMap(hostedModelRes.envKeyMap)
+            setAvailableHostedModels(hostedModelRes.hostedModels)
 
-        setEnvKeyMap(hostedModelRes.envKeyMap)
-        setAvailableHostedModels(hostedModelRes.hostedModels)
-
-        if (
-          profile["openrouter_api_key"] ||
-          hostedModelRes.envKeyMap["openrouter"]
-        ) {
-          const openRouterModels = await fetchOpenRouterModels()
-          if (!openRouterModels) return
-          setAvailableOpenRouterModels(openRouterModels)
+            if (
+              profile["openrouter_api_key"] ||
+              hostedModelRes.envKeyMap["openrouter"]
+            ) {
+              const openRouterModels = await fetchOpenRouterModels()
+              if (openRouterModels) {
+                setAvailableOpenRouterModels(openRouterModels)
+              }
+            }
+          }
+        } catch (error) {
+          console.log("fetchHostedModels failed, continuing without hosted models:", error)
         }
       }
 
@@ -193,9 +212,12 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   }, [])
 
   const fetchStartingData = async () => {
-    const session = (await typedSupabase.auth.getSession()).data.session
-
-    console.log('GlobalState - Session:', session)
+    console.log('🟪 GlobalState - fetchStartingData called')
+    
+    try {
+      const supabase = createClient()
+      const session = (await supabase.auth.getSession()).data.session
+      console.log('🟪 GlobalState - Session:', session)
 
     if (session) {
       const user = session.user
@@ -211,13 +233,14 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         ])
 
         console.log('GlobalState - Fetched profile:', profile)
+        console.log('GlobalState - Fetched onboarding:', onboarding)
         console.log('GlobalState - Profile avatar_url:', profile?.avatar_url)
         console.log('GlobalState - Profile image_url:', profile?.image_url)
         console.log('GlobalState - User avatar_url:', user.user_metadata?.avatar_url)
 
         // If profile exists but doesn't have avatar, update it with Google avatar
         if (profile && !profile.avatar_url && user.user_metadata?.avatar_url) {
-          const { error: updateError } = await typedSupabase
+          const { error: updateError } = await supabase
             .from('profiles')
             .update({ 
               avatar_url: user.user_metadata.avatar_url,
@@ -231,11 +254,14 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
               avatar_url: user.user_metadata.avatar_url,
               full_name: user.user_metadata.full_name || profile.full_name
             }
+            console.log('GlobalState - Setting updated profile:', updatedProfile)
             setProfile(updatedProfile)
           } else {
+            console.log('GlobalState - Setting profile (update failed):', profile)
             setProfile(profile)
           }
         } else {
+          console.log('GlobalState - Setting profile (no update needed):', profile)
           setProfile(profile)
         }
         
@@ -252,10 +278,12 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       }
 
       const workspaces = await getWorkspacesByUserId(user.id)
+      console.log('GlobalState - Fetched workspaces:', workspaces)
       setWorkspaces(workspaces)
 
       // Load user's chats
       const userChats = await getChatsByUserId(user.id)
+      console.log('GlobalState - Fetched chats:', userChats)
       setChats(userChats)
 
       for (const workspace of workspaces) {
@@ -284,9 +312,17 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       }
 
       return profile
+    } else {
+      console.log('🟪 GlobalState - No session found')
+    }
+    } catch (error) {
+      console.error('🔴 GlobalState - Error in fetchStartingData:', error)
+      return null
     }
   }
 
+  console.log('🔵 GlobalState - About to render')
+  
   return (
     <ChatbotUIContext.Provider
       value={{
