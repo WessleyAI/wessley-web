@@ -93,11 +93,11 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
       drag
       dragListener={true}
       dragControls={undefined}
-      whileDrag={{ 
-        scale: 1.05, 
+      whileDrag={{
+        scale: 1.05,
         rotate: 3,
         zIndex: 50,
-        boxShadow: '0 0 40px rgba(181, 228, 211, 0.6)',
+        boxShadow: '0 0 40px rgba(139, 225, 150, 0.6)',
       }}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -122,51 +122,34 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
           }
         }}
       >
-        <Card className={`h-full w-full bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] border-[#564B5C] shadow-lg hover:border-[#B5E4D3]/50 hover:shadow-[0_0_20px_rgba(181,228,211,0.3)] transition-all overflow-hidden relative rounded-xl ${
-          isSelected ? 'ring-2 ring-[#B5E4D3] shadow-[0_0_20px_rgba(181,228,211,0.5)]' : ''
+        <Card className={`h-full w-full bg-[#1a1a1a] border-[#808080]/30 shadow-lg hover:border-[#8BE196]/50 hover:shadow-[0_0_20px_rgba(139,225,150,0.3)] transition-all overflow-hidden relative rounded-xl ${
+          isSelected ? 'ring-2 ring-[#8BE196] shadow-[0_0_20px_rgba(139,225,150,0.5)]' : ''
         } ${
-          isHighlighted ? 'ring-2 ring-[#9D7B52] shadow-[0_0_30px_rgba(157,123,82,0.6)] scale-[1.02] z-20' : ''
+          isHighlighted ? 'ring-2 ring-[#8BE196] shadow-[0_0_30px_rgba(139,225,150,0.6)] scale-[1.02] z-20' : ''
         } ${
           isDimmed ? 'opacity-30' : ''
         }`}>
-          {/* Subtle texture overlay */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOSIgbnVtT2N0YXZlcz0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNub2lzZSkiLz48L3N2Zz4=')]" />
-          
-          {/* Accent gradient glow */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#9D7B52]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#B5E4D3]/5 rounded-full blur-2xl" />
-          
-          {/* Part Image Background */}
-          {part.imageUrl && (
-            <div className="absolute inset-0 opacity-15">
-              <img
-                src={part.imageUrl}
-                alt={part.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-[#3D3541]/95 via-[#3D3541]/85 to-[#2E3135]/90" />
-            </div>
-          )}
           
           <div className={`p-2 h-full flex flex-col relative z-10 ${part.priority === 'high' ? 'p-2.5' : ''}`}>
             {/* Part Icon - Top Right */}
             <div className="absolute top-2 right-2 z-20">
-              <div className="bg-[#3D3541]/80 backdrop-blur-sm border border-[#564B5C]/50 rounded-lg p-1">
-                <PartIcon className={`${part.priority === 'high' ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-[#9D7B52]`} />
+              <div className="bg-[#161616]/80 backdrop-blur-sm border border-[#808080]/50 rounded-lg p-1">
+                <PartIcon className={`${part.priority === 'high' ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-[#8BE196]`} />
               </div>
             </div>
 
             {/* Header Section */}
             <div className="flex flex-col gap-1 mb-1.5 pr-9">
               {/* Urgency Badge */}
-              <Badge 
+              <Badge
                 variant="outline"
-                className={`w-fit border-0 flex items-center gap-1 opacity-90 ${
-                  part.priority === 'high' ? 'text-[9px] px-1.5 py-0.5' : 'text-[8px] px-1 py-0.5'
+                className={`w-fit border-0 flex items-center gap-1 opacity-90 font-['DM_Sans'] font-semibold ${
+                  part.priority === 'high' ? 'px-1.5 py-0.5' : 'px-1 py-0.5'
                 }`}
-                style={{ 
+                style={{
                   backgroundColor: `${urgencyConfig[part.urgency].color}20`,
                   color: urgencyConfig[part.urgency].color,
+                  fontSize: part.priority === 'high' ? 'clamp(0.5rem, 0.65vw, 0.5625rem)' : 'clamp(0.4375rem, 0.6vw, 0.5rem)'
                 }}
               >
                 <span>{urgencyConfig[part.urgency].dot}</span>
@@ -175,13 +158,19 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
 
               {/* Part Name */}
               <div className="flex items-start gap-1.5 flex-wrap">
-                <h3 className={`text-white break-words flex-1 min-w-0 ${part.priority === 'high' ? 'text-sm' : 'text-xs'}`}>
+                <h3
+                  className="text-white break-words flex-1 min-w-0 font-['DM_Sans'] font-semibold"
+                  style={{ fontSize: part.priority === 'high' ? 'clamp(0.75rem, 0.9vw, 0.875rem)' : 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}
+                >
                   {part.name}
                 </h3>
               </div>
 
               {/* Price Range */}
-              <p className={`text-[#C5B8CC] opacity-60 ${part.priority === 'high' ? 'text-[10px]' : 'text-[9px]'}`}>
+              <p
+                className="text-[#C4C4C4] opacity-60 font-['DM_Sans']"
+                style={{ fontSize: part.priority === 'high' ? 'clamp(0.5625rem, 0.7vw, 0.625rem)' : 'clamp(0.5rem, 0.65vw, 0.5625rem)' }}
+              >
                 {part.priceRange}
               </p>
             </div>
@@ -189,17 +178,26 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
             {/* Seller Section */}
             <div className={`flex items-start gap-1.5 mb-1.5 ${part.priority === 'high' && !part.restorationSupplies ? 'flex-1' : ''}`}>
               <Avatar className={`flex-shrink-0 ${part.priority === 'high' ? 'h-7 w-7' : 'h-6 w-6'}`}>
-                <AvatarFallback className={`bg-[#9D7B52] text-white ${part.priority === 'high' ? 'text-[10px]' : 'text-[9px]'}`}>
+                <AvatarFallback
+                  className="bg-[#8BE196] text-[#000000] font-semibold font-['DM_Sans']"
+                  style={{ fontSize: part.priority === 'high' ? 'clamp(0.5625rem, 0.7vw, 0.625rem)' : 'clamp(0.5rem, 0.65vw, 0.5625rem)' }}
+                >
                   {part.sellerInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className={`text-[#C5B8CC] opacity-85 break-words leading-tight ${part.priority === 'high' ? 'text-xs' : 'text-[10px]'}`}>
+                <p
+                  className="text-[#C4C4C4] opacity-85 break-words leading-tight font-['DM_Sans']"
+                  style={{ fontSize: part.priority === 'high' ? 'clamp(0.6875rem, 0.8vw, 0.75rem)' : 'clamp(0.5625rem, 0.7vw, 0.625rem)' }}
+                >
                   {part.sellerName}
                 </p>
-                <div className={`flex items-center gap-1 text-[#C5B8CC] opacity-70 flex-wrap mt-0.5 ${part.priority === 'high' ? 'text-[10px]' : 'text-[9px]'}`}>
+                <div
+                  className="flex items-center gap-1 text-[#C4C4C4] opacity-70 flex-wrap mt-0.5 font-['DM_Sans']"
+                  style={{ fontSize: part.priority === 'high' ? 'clamp(0.5625rem, 0.7vw, 0.625rem)' : 'clamp(0.5rem, 0.65vw, 0.5625rem)' }}
+                >
                   <span className="flex items-center gap-0.5 whitespace-nowrap">
-                    <Star className={`${part.priority === 'high' ? 'w-2.5 h-2.5' : 'w-2 h-2'} fill-[#9D7B52] text-[#9D7B52] flex-shrink-0`} />
+                    <Star className={`${part.priority === 'high' ? 'w-2.5 h-2.5' : 'w-2 h-2'} fill-[#8BE196] text-[#8BE196] flex-shrink-0`} />
                     {part.sellerRating}
                   </span>
                   <span>•</span>
@@ -214,10 +212,13 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
             {/* Restoration Supplies Section */}
             {part.restorationSupplies && part.restorationSupplies.length > 0 && (
               <div className={`mb-1.5 ${part.priority === 'high' ? 'flex-1' : ''}`}>
-                <div className="bg-[#2E3135]/60 backdrop-blur-sm border border-[#564B5C]/30 rounded-lg p-1.5">
+                <div className="bg-[#161616]/60 backdrop-blur-sm border border-[#808080]/30 rounded-lg p-1.5">
                   <div className="flex items-center gap-1 mb-1">
-                    <Package className={`${part.priority === 'high' ? 'w-3 h-3' : 'w-2.5 h-2.5'} text-[#B5E4D3] flex-shrink-0`} />
-                    <span className={`text-[#B5E4D3] ${part.priority === 'high' ? 'text-[9px]' : 'text-[8px]'}`}>
+                    <Package className={`${part.priority === 'high' ? 'w-3 h-3' : 'w-2.5 h-2.5'} text-[#8BE196] flex-shrink-0`} />
+                    <span
+                      className="text-[#8BE196] font-['DM_Sans']"
+                      style={{ fontSize: part.priority === 'high' ? 'clamp(0.5rem, 0.65vw, 0.5625rem)' : 'clamp(0.4375rem, 0.6vw, 0.5rem)' }}
+                    >
                       including restoration supplies:
                     </span>
                   </div>
@@ -231,16 +232,15 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
                             e.stopPropagation();
                             onToggleSupply(part.id, idx);
                           }}
-                          className={`px-1 py-0.5 rounded border flex items-center gap-0.5 transition-all cursor-pointer ${
-                            part.priority === 'high' ? 'text-[8px]' : 'text-[7px]'
-                          } ${
+                          className={`px-1 py-0.5 rounded border flex items-center gap-0.5 transition-all cursor-pointer font-['DM_Sans'] ${
                             isSelected
-                              ? 'bg-[#B5E4D3]/20 text-[#B5E4D3] border-[#B5E4D3]/40 hover:bg-[#B5E4D3]/30'
-                              : 'bg-[#3D3541]/80 text-[#C5B8CC]/50 border-[#564B5C]/40 hover:bg-[#3D3541]'
+                              ? 'bg-[#8BE196]/20 text-[#8BE196] border-[#8BE196]/40 hover:bg-[#8BE196]/30'
+                              : 'bg-[#161616]/80 text-[#C4C4C4]/50 border-[#808080]/40 hover:bg-[#161616]'
                           }`}
+                          style={{ fontSize: part.priority === 'high' ? 'clamp(0.4375rem, 0.6vw, 0.5rem)' : 'clamp(0.375rem, 0.55vw, 0.4375rem)' }}
                         >
                           <span className={isSelected ? '' : 'line-through'}>{supply.name}</span>
-                          <span className={isSelected ? 'text-[#B5E4D3]' : 'text-[#C5B8CC]/50'}>${supply.price}</span>
+                          <span className={isSelected ? 'text-[#8BE196]' : 'text-[#C4C4C4]/50'}>${supply.price}</span>
                         </button>
                       );
                     })}
@@ -250,11 +250,11 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
             )}
 
             {/* Action Section */}
-            <div className={`flex items-center justify-between gap-1.5 pt-1.5 border-t border-[#564B5C] mt-auto ${part.priority === 'high' ? 'pt-2' : ''}`}>
-              <div className={`flex-shrink-0 ${part.priority === 'high' ? 'text-base' : 'text-xs'}`}>
-                <span className="text-[#B5E4D3]">{part.topPrice}</span>
+            <div className={`flex items-center justify-between gap-1.5 pt-1.5 border-t border-[#808080]/30 mt-auto ${part.priority === 'high' ? 'pt-2' : ''}`}>
+              <div className="flex-shrink-0 font-['DM_Sans'] font-semibold" style={{ fontSize: part.priority === 'high' ? 'clamp(0.75rem, 0.9vw, 0.875rem)' : 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}>
+                <span className="text-[#8BE196]">{part.topPrice}</span>
                 {suppliesTotal > 0 && (
-                  <span className="text-[#C5B8CC] opacity-70 ml-1">
+                  <span className="text-[#C4C4C4] opacity-70 ml-1">
                     + ${suppliesTotal}
                   </span>
                 )}
@@ -266,7 +266,7 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className={`text-white bg-[#B5E4D3]/20 hover:text-[#B5E4D3] hover:bg-transparent p-0 flex-shrink-0 cursor-pointer ${
+                  className={`text-white bg-[#8BE196]/20 hover:text-[#8BE196] hover:bg-transparent p-0 flex-shrink-0 cursor-pointer ${
                     part.priority === 'high' 
                       ? 'h-6 w-6' 
                       : 'h-5 w-5'
@@ -281,11 +281,12 @@ function PartCard({ part, isSelected, onSelect, onCompare, urgencyConfig, getPar
                     e.stopPropagation();
                     onCompare(part.name);
                   }}
-                  className={`text-white bg-[#B5E4D3]/10 hover:text-[#B5E4D3] hover:bg-transparent whitespace-nowrap flex-shrink-0 cursor-pointer ${
-                    part.priority === 'high' 
-                      ? 'border-[#B5E4D3]/30 h-7 px-2.5 text-[10px]' 
-                      : 'h-5 px-1.5 text-[9px]'
+                  className={`text-white bg-[#8BE196]/10 hover:text-[#8BE196] hover:bg-transparent whitespace-nowrap flex-shrink-0 cursor-pointer font-['DM_Sans'] ${
+                    part.priority === 'high'
+                      ? 'border-[#8BE196]/30 h-7 px-2.5'
+                      : 'h-5 px-1.5'
                   }`}
+                  style={{ fontSize: part.priority === 'high' ? 'clamp(0.5rem, 0.65vw, 0.5625rem)' : 'clamp(0.4375rem, 0.6vw, 0.5rem)' }}
                 >
                   {part.priority === 'high' ? 'Compare' : `+${part.sellerCount - 1}`}
                   {part.priority === 'high' && <ArrowRight className="w-2.5 h-2.5 ml-0.5 flex-shrink-0" />}
@@ -320,9 +321,9 @@ export function PartsMasonryGrid({
   };
 
   const urgencyConfig = {
-    urgent: { color: '#EF4444', label: 'URGENT', dot: '🔴' },
-    soon: { color: '#F59E0B', label: 'SOON', dot: '🟡' },
-    optional: { color: '#6B7280', label: 'OPTIONAL', dot: '⚪' },
+    urgent: { color: '#ff6b6b', label: 'URGENT', dot: '🔴' },
+    soon: { color: '#ffa726', label: 'SOON', dot: '🟡' },
+    optional: { color: '#808080', label: 'OPTIONAL', dot: '⚪' },
   };
 
   const togglePartSelection = (partId: string) => {
@@ -431,12 +432,12 @@ export function PartsMasonryGrid({
   return (
     <div className="relative h-full flex flex-col overflow-visible">
       <ScrollArea className="flex-1 h-full" onScrollCapture={handleScroll}>
-        <div className="px-8 pb-8 pt-6">
-          <Reorder.Group 
-            axis="x" 
-            values={parts} 
+        <div className="px-2 md:px-8 pb-4 md:pb-8 pt-4 md:pt-6">
+          <Reorder.Group
+            axis="x"
+            values={parts}
             onReorder={onPartsChange}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-[120px] gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-[140px] md:auto-rows-[120px] gap-3 md:gap-6"
             style={{ overflow: 'visible' }}
           >
           {parts.map((part) => {
@@ -482,13 +483,13 @@ export function PartsMasonryGrid({
             transition={{ duration: 0.3 }}
             className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
           >
-            <div className="bg-[#3D3541]/95 backdrop-blur-sm border border-[#B5E4D3]/30 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
-              <span className="text-[10px] text-[#B5E4D3]">Scroll for more parts</span>
+            <div className="bg-[#161616]/95 backdrop-blur-sm border border-[#8BE196]/30 rounded-full px-3 py-1.5 shadow-lg flex items-center gap-2">
+              <span className="text-[#8BE196] font-['DM_Sans']" style={{ fontSize: 'clamp(0.5rem, 0.65vw, 0.5625rem)' }}>Scroll for more parts</span>
               <motion.div
                 animate={{ y: [0, 3, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <ChevronDown className="w-3 h-3 text-[#B5E4D3]" />
+                <ChevronDown className="w-3 h-3 text-[#8BE196]" />
               </motion.div>
             </div>
           </motion.div>

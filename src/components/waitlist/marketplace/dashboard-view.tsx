@@ -1,10 +1,7 @@
 import { motion } from 'framer-motion';
-import { Package, DollarSign, TrendingUp, Star, Car } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Package, DollarSign, Star, Car } from 'lucide-react';
 import { MarketDemandTable } from './market-demand-table';
 import { CarData } from './car-selector';
-import { Badge } from '@/components/ui/badge';
-import Masonry from 'react-responsive-masonry';
 
 interface DashboardViewProps {
   cars: CarData[];
@@ -19,8 +16,97 @@ export function DashboardView({ cars }: DashboardViewProps) {
 
   return (
     <div className="flex gap-6">
-      {/* Left Column: Stats + Market Demand */}
-      <div className="flex-1 space-y-6 max-w-2xl">
+      {/* Mobile Simplified View - Direct and Actionable */}
+      <div className="block md:hidden w-full">
+        <div className="bg-[#1a1a1a] border border-[#808080]/30 rounded-xl p-4">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-start gap-2">
+              <Package className="w-5 h-5 text-[#8BE196] flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-white mb-1" style={{ fontSize: 'clamp(0.875rem, 3.5vw, 1rem)' }}>
+                  Your marketplace is active
+                </h4>
+                <p className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)' }}>
+                  You have <span className="text-[#8BE196] font-medium">{totalPartsListed} parts listed</span> from {cars.length} {cars.length === 1 ? 'vehicle' : 'vehicles'}:
+                </p>
+              </div>
+            </div>
+
+            {/* Vehicle Listings */}
+            <div className="space-y-2">
+              {cars.map((car) => (
+                <div key={car.id} className="bg-[#161616] border border-[#808080]/20 rounded-lg p-2.5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-white font-medium" style={{ fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)' }}>
+                      {car.year} {car.make} {car.model}
+                    </span>
+                    {car.pendingRequests > 0 && (
+                      <span className="px-1.5 py-0.5 rounded bg-[#8BE196]/20 text-[#8BE196]" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>
+                        {car.pendingRequests} new {car.pendingRequests === 1 ? 'request' : 'requests'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.6875rem, 2.25vw, 0.75rem)' }}>
+                      <span className="text-[#8BE196] font-medium">{car.partsListed}</span> parts · <span className="text-[#8BE196] font-medium">{car.partsSold}</span> sold · <span className="text-[#8BE196] font-medium">${car.totalRevenue.toLocaleString()}</span> revenue
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-[#8BE196] fill-[#8BE196]" />
+                      <span className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>
+                        {car.rating.toFixed(1)} rating
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Stats Summary */}
+            <div className="bg-[#161616] border border-[#808080]/20 rounded-lg p-2.5">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="text-white font-semibold" style={{ fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}>{totalPartsSold}</div>
+                  <div className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>Sold</div>
+                </div>
+                <div>
+                  <div className="text-[#8BE196] font-semibold" style={{ fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}>${totalRevenue.toLocaleString()}</div>
+                  <div className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>Revenue</div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-center gap-0.5">
+                    <Star className="w-3 h-3 text-[#8BE196] fill-[#8BE196]" />
+                    <span className="text-white font-semibold" style={{ fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}>{averageRating.toFixed(2)}</span>
+                  </div>
+                  <div className="text-[#C4C4C4]" style={{ fontSize: 'clamp(0.625rem, 2vw, 0.6875rem)' }}>Rating</div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <motion.button
+              className="w-full bg-[#8BE196] hover:bg-[#9DF4A8] text-[#000000] font-semibold rounded-lg py-2.5 px-4 transition-colors"
+              style={{ fontSize: 'clamp(0.8125rem, 2.75vw, 0.9375rem)' }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Manage Your Listings
+            </motion.button>
+
+            {/* Pending requests notice */}
+            {cars.reduce((sum, car) => sum + car.pendingRequests, 0) > 0 && (
+              <p className="text-center text-[#8BE196]" style={{ fontSize: 'clamp(0.6875rem, 2.25vw, 0.8125rem)' }}>
+                {cars.reduce((sum, car) => sum + car.pendingRequests, 0)} pending {cars.reduce((sum, car) => sum + car.pendingRequests, 0) === 1 ? 'request' : 'requests'} waiting for your response
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Full View */}
+      <div className="hidden md:flex md:flex-1 md:gap-6">
+      {/* Stats + Market Demand */}
+      <div className="flex-1 space-y-6">
         {/* Consolidated Stats */}
         <div className="grid grid-cols-2 gap-3">
           {/* Total Vehicles */}
@@ -29,16 +115,16 @@ export function DashboardView({ cars }: DashboardViewProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] backdrop-blur border border-[#564B5C]/40 rounded-lg p-2.5 relative overflow-hidden"
+            className="bg-[#1a1a1a] border border-[#808080]/30 rounded-lg p-2.5 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-16 h-16 bg-[#9D7B52]/10 rounded-full -mr-8 -mt-8" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8BE196]/5 rounded-full -mr-8 -mt-8" />
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-1">
-                <Car className="w-3 h-3 text-[#9D7B52]" />
-                <span className="text-[9px] text-[#C5B8CC]/60 uppercase tracking-wider">Vehicles</span>
+                <Car className="w-3 h-3 text-[#8BE196]" />
+                <span className="text-[#C4C4C4]/60 uppercase tracking-wider font-['DM_Sans']" style={{ fontSize: 'clamp(0.625rem, 0.75vw, 0.6875rem)' }}>Vehicles</span>
               </div>
-              <div className="text-xl text-white mb-0.5">{cars.length}</div>
-              <div className="text-[9px] text-[#C5B8CC]/50">in inventory</div>
+              <div className="text-white mb-0.5 font-['DM_Sans'] font-semibold" style={{ fontSize: 'clamp(1.125rem, 1.5vw, 1.375rem)' }}>{cars.length}</div>
+              <div className="text-[#C4C4C4]/50 font-['DM_Sans']" style={{ fontSize: 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}>in inventory</div>
             </div>
           </motion.div>
 
@@ -48,16 +134,16 @@ export function DashboardView({ cars }: DashboardViewProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 }}
             whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] backdrop-blur border border-[#564B5C]/40 rounded-lg p-2.5 relative overflow-hidden"
+            className="bg-[#1a1a1a] border border-[#808080]/30 rounded-lg p-2.5 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-16 h-16 bg-[#564B5C]/10 rounded-full -mr-8 -mt-8" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8BE196]/5 rounded-full -mr-8 -mt-8" />
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-1">
-                <Package className="w-3 h-3 text-[#9D7B52]" />
-                <span className="text-[9px] text-[#C5B8CC]/60 uppercase tracking-wider">Parts Listed</span>
+                <Package className="w-3 h-3 text-[#8BE196]" />
+                <span className="text-[#C4C4C4]/60 uppercase tracking-wider font-['DM_Sans']" style={{ fontSize: 'clamp(0.625rem, 0.75vw, 0.6875rem)' }}>Parts Listed</span>
               </div>
-              <div className="text-xl text-white mb-0.5">{totalPartsListed}</div>
-              <div className="text-[9px] text-[#C5B8CC]/50">across all vehicles</div>
+              <div className="text-white mb-0.5 font-['DM_Sans'] font-semibold" style={{ fontSize: 'clamp(1.125rem, 1.5vw, 1.375rem)' }}>{totalPartsListed}</div>
+              <div className="text-[#C4C4C4]/50 font-['DM_Sans']" style={{ fontSize: 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}>across all vehicles</div>
             </div>
           </motion.div>
 
@@ -67,16 +153,16 @@ export function DashboardView({ cars }: DashboardViewProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
             whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] backdrop-blur border border-[#564B5C]/40 rounded-lg p-2.5 relative overflow-hidden"
+            className="bg-[#1a1a1a] border border-[#808080]/30 rounded-lg p-2.5 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-16 h-16 bg-[#9D7B52]/10 rounded-full -mr-8 -mt-8" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8BE196]/5 rounded-full -mr-8 -mt-8" />
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-1">
-                <DollarSign className="w-3 h-3 text-[#B5E4D3]" />
-                <span className="text-[9px] text-[#C5B8CC]/60 uppercase tracking-wider">Total Revenue</span>
+                <DollarSign className="w-3 h-3 text-[#8BE196]" />
+                <span className="text-[#C4C4C4]/60 uppercase tracking-wider font-['DM_Sans']" style={{ fontSize: 'clamp(0.625rem, 0.75vw, 0.6875rem)' }}>Total Revenue</span>
               </div>
-              <div className="text-xl text-[#B5E4D3] mb-0.5">${totalRevenue.toLocaleString()}</div>
-              <div className="text-[9px] text-[#C5B8CC]/50">lifetime earnings</div>
+              <div className="text-[#8BE196] mb-0.5 font-['DM_Sans'] font-semibold" style={{ fontSize: 'clamp(1.125rem, 1.5vw, 1.375rem)' }}>${totalRevenue.toLocaleString()}</div>
+              <div className="text-[#C4C4C4]/50 font-['DM_Sans']" style={{ fontSize: 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}>lifetime earnings</div>
             </div>
           </motion.div>
 
@@ -86,16 +172,16 @@ export function DashboardView({ cars }: DashboardViewProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.15 }}
             whileHover={{ y: -2 }}
-            className="bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] backdrop-blur border border-[#564B5C]/40 rounded-lg p-2.5 relative overflow-hidden"
+            className="bg-[#1a1a1a] border border-[#808080]/30 rounded-lg p-2.5 relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-16 h-16 bg-[#9D7B52]/10 rounded-full -mr-8 -mt-8" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8BE196]/5 rounded-full -mr-8 -mt-8" />
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-1">
-                <Star className="w-3 h-3 text-[#9D7B52] fill-[#9D7B52]" />
-                <span className="text-[9px] text-[#C5B8CC]/60 uppercase tracking-wider">Avg Rating</span>
+                <Star className="w-3 h-3 text-[#8BE196] fill-[#8BE196]" />
+                <span className="text-[#C4C4C4]/60 uppercase tracking-wider font-['DM_Sans']" style={{ fontSize: 'clamp(0.625rem, 0.75vw, 0.6875rem)' }}>Avg Rating</span>
               </div>
-              <div className="text-xl text-white mb-0.5">{averageRating}</div>
-              <div className="text-[9px] text-[#C5B8CC]/50">seller rating</div>
+              <div className="text-white mb-0.5 font-['DM_Sans'] font-semibold" style={{ fontSize: 'clamp(1.125rem, 1.5vw, 1.375rem)' }}>{averageRating.toFixed(2)}</div>
+              <div className="text-[#C4C4C4]/50 font-['DM_Sans']" style={{ fontSize: 'clamp(0.6875rem, 0.8vw, 0.75rem)' }}>seller rating</div>
             </div>
           </motion.div>
         </div>
@@ -107,113 +193,13 @@ export function DashboardView({ cars }: DashboardViewProps) {
           transition={{ duration: 0.3, delay: 0.2 }}
         >
           <div className="mb-3">
-            <h3 className="text-white text-sm mb-1">Market Demand Analysis</h3>
-            <p className="text-[11px] text-[#C5B8CC]/60">Consolidated demand insights across all inventory</p>
+            <h3 className="text-white mb-1 font-['DM_Sans'] font-semibold" style={{ fontSize: 'clamp(0.9375rem, 1.1vw, 1rem)' }}>Market Demand Analysis</h3>
+            <p className="text-[#C4C4C4]/60 font-['DM_Sans']" style={{ fontSize: 'clamp(0.75rem, 0.85vw, 0.8125rem)' }}>Consolidated demand insights across all inventory</p>
           </div>
           <MarketDemandTable />
         </motion.div>
       </div>
-
-      {/* Right Column: Vehicle Breakdown Masonry */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.25 }}
-        className="flex-1"
-      >
-        <div className="mb-3">
-          <h3 className="text-white text-sm mb-1">Vehicle Performance Breakdown</h3>
-          <p className="text-[11px] text-[#C5B8CC]/60">Individual stats per vehicle</p>
-        </div>
-
-        <Masonry columnsCount={2} gutter="12px">
-          {cars.map((car) => {
-            const partsListed = car.partsListed;
-            const partsSold = car.partsSold;
-            const revenue = car.totalRevenue;
-            const rating = car.rating;
-            const requests = car.pendingRequests;
-
-            return (
-              <Card
-                key={car.id}
-                className="bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] border-[#564B5C] shadow-lg hover:border-[#9D7B52]/50 transition-all"
-              >
-                <div className="p-3">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-md overflow-hidden border border-[#564B5C]/50">
-                      <img
-                        src={car.imageUrl}
-                        alt={`${car.make} ${car.model}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h4 className="text-white text-sm">
-                          {car.year} {car.make} {car.model}
-                        </h4>
-                        {requests > 0 && (
-                          <Badge variant="outline" className="bg-[#EF4444]/10 border-[#EF4444]/30 text-[#EF4444] text-[8px] px-1.5 py-0">
-                            {requests} requests
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-[9px] text-[#C5B8CC]/60">
-                        <span>VIN: {car.vin}</span>
-                        <span>•</span>
-                        <span>{car.mileage} mi</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-[#2B2730]/60 border border-[#564B5C]/30 rounded-md p-2">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <Package className="w-2.5 h-2.5 text-[#9D7B52]" />
-                          <span className="text-[8px] text-[#C5B8CC]/60 uppercase">Listed</span>
-                        </div>
-                        <div className="text-base text-white">{partsListed}</div>
-                        <div className="text-[8px] text-[#C5B8CC]/50">parts</div>
-                      </div>
-
-                      <div className="bg-[#2B2730]/60 border border-[#564B5C]/30 rounded-md p-2">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <TrendingUp className="w-2.5 h-2.5 text-[#B5E4D3]" />
-                          <span className="text-[8px] text-[#C5B8CC]/60 uppercase">Sold</span>
-                        </div>
-                        <div className="text-base text-[#B5E4D3]">{partsSold}</div>
-                        <div className="text-[8px] text-[#C5B8CC]/50">parts</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-[#2B2730]/60 border border-[#564B5C]/30 rounded-md p-2">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <DollarSign className="w-2.5 h-2.5 text-[#9D7B52]" />
-                          <span className="text-[8px] text-[#C5B8CC]/60 uppercase">Revenue</span>
-                        </div>
-                        <div className="text-base text-white">${revenue}</div>
-                        <div className="text-[8px] text-[#C5B8CC]/50">total</div>
-                      </div>
-
-                      <div className="bg-[#2B2730]/60 border border-[#564B5C]/30 rounded-md p-2">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <Star className="w-2.5 h-2.5 text-[#9D7B52] fill-[#9D7B52]" />
-                          <span className="text-[8px] text-[#C5B8CC]/60 uppercase">Rating</span>
-                        </div>
-                        <div className="text-base text-white">{rating}</div>
-                        <div className="text-[8px] text-[#C5B8CC]/50">avg</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-        </Masonry>
-      </motion.div>
+      </div>
     </div>
   );
 }

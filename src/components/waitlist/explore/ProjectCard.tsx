@@ -63,7 +63,7 @@ export function ProjectCard({
         <div
           className="absolute top-0 left-0 right-0 flex items-start justify-between"
           style={{
-            padding: 'calc(var(--sizer) * 0.5rem)',
+            padding: 'clamp(10px, 3vw, calc(var(--sizer) * 0.5rem))',
             gap: 'calc(var(--sizer) * 0.25rem)',
           }}
         >
@@ -74,11 +74,11 @@ export function ProjectCard({
                 key={index}
                 className="bg-white/95 backdrop-blur-sm text-[#463B47] border-0 shadow-md"
                 style={{
-                  paddingLeft: 'calc(var(--sizer) * 0.375rem)',
-                  paddingRight: 'calc(var(--sizer) * 0.375rem)',
-                  paddingTop: 'calc(var(--sizer) * 0.125rem)',
-                  paddingBottom: 'calc(var(--sizer) * 0.125rem)',
-                  fontSize: 'calc(var(--sizer) * 0.5rem)',
+                  paddingLeft: 'clamp(6px, 1.5vw, calc(var(--sizer) * 0.375rem))',
+                  paddingRight: 'clamp(6px, 1.5vw, calc(var(--sizer) * 0.375rem))',
+                  paddingTop: 'clamp(3px, 0.75vw, calc(var(--sizer) * 0.125rem))',
+                  paddingBottom: 'clamp(3px, 0.75vw, calc(var(--sizer) * 0.125rem))',
+                  fontSize: 'clamp(11px, 3vw, calc(var(--sizer) * 0.5rem))',
                   fontWeight: 500,
                 }}
               >
@@ -92,14 +92,14 @@ export function ProjectCard({
             className="flex items-center bg-[#8BE196]/95 backdrop-blur-sm rounded-full shadow-md shrink-0"
             style={{
               gap: 'calc(var(--sizer) * 0.25rem)',
-              paddingLeft: 'calc(var(--sizer) * 0.375rem)',
-              paddingRight: 'calc(var(--sizer) * 0.375rem)',
-              paddingTop: 'calc(var(--sizer) * 0.125rem)',
-              paddingBottom: 'calc(var(--sizer) * 0.125rem)',
+              paddingLeft: 'clamp(6px, 1.5vw, calc(var(--sizer) * 0.375rem))',
+              paddingRight: 'clamp(6px, 1.5vw, calc(var(--sizer) * 0.375rem))',
+              paddingTop: 'clamp(3px, 0.75vw, calc(var(--sizer) * 0.125rem))',
+              paddingBottom: 'clamp(3px, 0.75vw, calc(var(--sizer) * 0.125rem))',
             }}
           >
             <TrendingUp style={{ width: 'calc(var(--sizer) * 0.625rem)', height: 'calc(var(--sizer) * 0.625rem)' }} className="text-[#463B47]" />
-            <span className="text-[#463B47] font-semibold" style={{ fontSize: 'calc(var(--sizer) * 0.5rem)' }}>{progress}%</span>
+            <span className="text-[#463B47] font-semibold" style={{ fontSize: 'clamp(11px, 3vw, calc(var(--sizer) * 0.5rem))' }}>{progress}%</span>
           </div>
         </div>
 
@@ -107,7 +107,7 @@ export function ProjectCard({
         <div
           className="absolute bottom-0 left-0 right-0"
           style={{
-            padding: 'calc(var(--sizer) * 0.5rem)',
+            padding: 'clamp(10px, 3vw, calc(var(--sizer) * 0.5rem))',
             display: 'flex',
             flexDirection: 'column',
             gap: 'calc(var(--sizer) * 0.375rem)',
@@ -116,7 +116,7 @@ export function ProjectCard({
           {/* Title */}
           <div
             className="text-white drop-shadow-lg leading-tight font-semibold"
-            style={{ fontSize: 'clamp(0.625rem, calc(var(--sizer) * 0.7rem), 0.875rem)' }}
+            style={{ fontSize: 'clamp(0.875rem, calc(var(--sizer) * 0.7rem), 0.875rem)' }}
           >
             {title}
           </div>
@@ -124,15 +124,18 @@ export function ProjectCard({
           {/* User Info Row */}
           <div className="flex items-center justify-between" style={{ gap: 'calc(var(--sizer) * 0.375rem)' }}>
             {/* User */}
-            <div className="flex items-center min-w-0 flex-1" style={{ gap: 'calc(var(--sizer) * 0.375rem)' }}>
+            <div className="flex items-center min-w-0 flex-1" style={{ gap: 'clamp(8px, 2vw, calc(var(--sizer) * 0.375rem))' }}>
               <Avatar
-                className="ring-1 ring-white/30 shrink-0"
-                style={{ width: 'calc(var(--sizer) * 1.25rem)', height: 'calc(var(--sizer) * 1.25rem)' }}
+                className="ring-2 ring-white/50 shrink-0"
+                style={{
+                  width: 'clamp(28px, 6vw, calc(var(--sizer) * 1.25rem))',
+                  height: 'clamp(28px, 6vw, calc(var(--sizer) * 1.25rem))'
+                }}
               >
                 <AvatarImage src={userAvatar} />
                 <AvatarFallback
                   className="bg-[#D4A574] text-white"
-                  style={{ fontSize: 'calc(var(--sizer) * 0.5rem)' }}
+                  style={{ fontSize: 'clamp(12px, 3vw, calc(var(--sizer) * 0.5rem))' }}
                 >
                   {userName.charAt(0)}
                 </AvatarFallback>
@@ -140,13 +143,13 @@ export function ProjectCard({
               <div className="min-w-0 flex-1">
                 <p
                   className="!text-white truncate font-semibold"
-                  style={{ fontSize: 'calc(var(--sizer) * 0.5rem)' }}
+                  style={{ fontSize: 'clamp(12px, 3vw, calc(var(--sizer) * 0.5rem))' }}
                 >
                   {userName}
                 </p>
                 <div className="flex items-center text-white/80" style={{ gap: 'calc(var(--sizer) * 0.125rem)' }}>
                   <MapPin style={{ width: 'calc(var(--sizer) * 0.45rem)', height: 'calc(var(--sizer) * 0.45rem)' }} className="shrink-0" />
-                  <span className="truncate" style={{ fontSize: 'calc(var(--sizer) * 0.45rem)' }}>{location}</span>
+                  <span className="truncate" style={{ fontSize: 'clamp(10px, 2.5vw, calc(var(--sizer) * 0.45rem))' }}>{location}</span>
                 </div>
               </div>
             </div>
@@ -165,10 +168,10 @@ export function ProjectCard({
                   : 'bg-white text-[#463B47] hover:bg-white/90'
               }`}
               style={{
-                height: 'calc(var(--sizer) * 1.125rem)',
-                paddingLeft: 'calc(var(--sizer) * 0.5rem)',
-                paddingRight: 'calc(var(--sizer) * 0.5rem)',
-                fontSize: 'calc(var(--sizer) * 0.5rem)',
+                height: 'clamp(22px, 5vw, calc(var(--sizer) * 1.125rem))',
+                paddingLeft: 'clamp(8px, 2vw, calc(var(--sizer) * 0.5rem))',
+                paddingRight: 'clamp(8px, 2vw, calc(var(--sizer) * 0.5rem))',
+                fontSize: 'clamp(11px, 3vw, calc(var(--sizer) * 0.5rem))',
                 gap: 'calc(var(--sizer) * 0.125rem)',
                 fontWeight: 600,
               }}
@@ -188,11 +191,11 @@ export function ProjectCard({
           <div className="flex items-center text-white/90" style={{ gap: 'calc(var(--sizer) * 0.5rem)' }}>
             <div className="flex items-center" style={{ gap: 'calc(var(--sizer) * 0.125rem)' }}>
               <Heart style={{ width: 'calc(var(--sizer) * 0.625rem)', height: 'calc(var(--sizer) * 0.625rem)' }} fill="white" />
-              <span style={{ fontSize: 'calc(var(--sizer) * 0.5rem)' }}>{likes}</span>
+              <span style={{ fontSize: 'clamp(11px, 3vw, calc(var(--sizer) * 0.5rem))' }}>{likes}</span>
             </div>
             <div className="flex items-center" style={{ gap: 'calc(var(--sizer) * 0.125rem)' }}>
               <MessageCircle style={{ width: 'calc(var(--sizer) * 0.625rem)', height: 'calc(var(--sizer) * 0.625rem)' }} />
-              <span style={{ fontSize: 'calc(var(--sizer) * 0.5rem)' }}>{comments}</span>
+              <span style={{ fontSize: 'clamp(11px, 3vw, calc(var(--sizer) * 0.5rem))' }}>{comments}</span>
             </div>
           </div>
         </div>

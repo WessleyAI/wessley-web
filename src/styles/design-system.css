@@ -335,7 +335,7 @@ p, .text   { font-size: var(--fs-sm); line-height: var(--lh-normal); }
 
 /* Hero Section Padding - Responsive */
 .hero-section-padding {
-  padding-top: 7.5dvh; /* Mobile default - dynamic viewport */
+  padding-top: 4dvh; /* Mobile default - dynamic viewport */
   padding-left: 1.5rem; /* Less padding on mobile */
   padding-right: 1.5rem;
 }
@@ -412,16 +412,18 @@ p, .text   { font-size: var(--fs-sm); line-height: var(--lh-normal); }
   margin-left: calc(var(--sizer) * 1.5rem);
   line-height: 1.5;
   letter-spacing: normal;
+  max-width: 50rem;
 }
 
 @media screen and (max-width: 768px) {
   .hero-description {
-    text-align: right;
-    margin-top: calc(var(--sizer) * 1.2rem);
+    text-align: left;
+    margin-top: calc(var(--sizer) * 0.8rem);
     margin-left: 0;
     margin-right: 0;
     line-height: 0.95;
-    letter-spacing: -0.02em;
+    letter-spacing: 0em;
+    max-width: 100%;
   }
 }
 
@@ -439,7 +441,7 @@ p, .text   { font-size: var(--fs-sm); line-height: var(--lh-normal); }
     flex-direction: column;
     gap: calc(var(--sizer) * 1rem);
     margin-left: 0;
-    margin-top: 0;
+    margin-top: calc(var(--sizer) * 1rem);
   }
 }
 
@@ -639,12 +641,12 @@ p, .text   { font-size: var(--fs-sm); line-height: var(--lh-normal); }
   }
 
   .section3-nav-button span {
-    font-size: calc(var(--sizer) * 0.6075rem);
+    font-size: clamp(0.5rem, 1.5vw, 0.75rem);
   }
 
   .section3-nav-button img {
-    width: calc(var(--sizer) * 0.504rem);
-    height: calc(var(--sizer) * 0.504rem);
+    width: clamp(0.4rem, 1.2vw, 0.6rem);
+    height: clamp(0.4rem, 1.2vw, 0.6rem);
   }
 }
 

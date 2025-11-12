@@ -40,8 +40,8 @@ export function FooterMobile() {
               lineHeight: 0.9,
             }}
           >
-            Human<br />
-            Creativity
+            Precise<br />
+            Knowledge
           </h2>
         </div>
       </div>
@@ -69,13 +69,13 @@ export function FooterMobile() {
         <p
           style={{
             fontFamily: 'var(--font-head)',
-            fontSize: 'calc(var(--sizer) * 0.75rem)',
+            fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
             color: '#C4C4C4',
             lineHeight: 1.4,
             opacity: 0.8,
           }}
         >
-          Wessley is a new way to create. We're bridging the gap between AI capabilities and human creativity, to continue the tradition of craft in artistic expression. We call it Artistic Intelligence.
+          Wessley bridges human craftsmanship and artificial intelligence — helping restorers and enthusiasts understand, restore, and preserve vehicles with precision. We call it Automotive Intelligence.
         </p>
       </div>
 
@@ -91,7 +91,7 @@ export function FooterMobile() {
             background: 'linear-gradient(135deg, #8BE196 0%, #7dd085 100%)',
             borderRadius: 'var(--border-radius)',
             fontFamily: 'var(--font-head)',
-            fontSize: 'calc(var(--sizer) * 1rem)',
+            fontSize: 'clamp(1rem, 3vw, 1.25rem)',
             fontWeight: 600,
             color: '#463B47',
             paddingTop: 'calc(var(--sizer) * 1rem)',
@@ -119,11 +119,11 @@ export function FooterMobile() {
           <h5
             style={{
               fontFamily: 'var(--font-head)',
-              fontSize: 'calc(var(--sizer) * 0.55rem)',
+              fontSize: 'clamp(1rem, 3vw, 1.25rem)',
               fontWeight: 500,
               color: '#C4C4C4',
               marginBottom: 'calc(var(--sizer) * 0.75rem)',
-              opacity: 0.6,
+              opacity: 0.8,
               textTransform: 'uppercase',
             }}
           >
@@ -135,7 +135,7 @@ export function FooterMobile() {
                 href="#"
                 style={{
                   fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.55rem)',
+                  fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
                 }}
@@ -149,7 +149,7 @@ export function FooterMobile() {
                 href="#"
                 style={{
                   fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.55rem)',
+                  fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
                 }}
@@ -166,11 +166,11 @@ export function FooterMobile() {
           <h5
             style={{
               fontFamily: 'var(--font-head)',
-              fontSize: 'calc(var(--sizer) * 0.55rem)',
+              fontSize: 'clamp(1rem, 3vw, 1.25rem)',
               fontWeight: 500,
               color: '#C4C4C4',
               marginBottom: 'calc(var(--sizer) * 0.75rem)',
-              opacity: 0.6,
+              opacity: 0.8,
               textTransform: 'uppercase',
             }}
           >
@@ -182,7 +182,7 @@ export function FooterMobile() {
                 href="#"
                 style={{
                   fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.55rem)',
+                  fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
                 }}
@@ -196,7 +196,7 @@ export function FooterMobile() {
                 href="#"
                 style={{
                   fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.55rem)',
+                  fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
                   color: '#C4C4C4',
                   textTransform: 'uppercase',
                 }}
@@ -318,7 +318,7 @@ export function FooterMobile() {
         <p
           style={{
             fontFamily: 'var(--font-head)',
-            fontSize: 'calc(var(--sizer) * 0.5rem)',
+            fontSize: 'clamp(0.625rem, 2vw, 0.875rem)',
             color: '#C4C4C4',
             opacity: 0.6,
             textTransform: 'uppercase',

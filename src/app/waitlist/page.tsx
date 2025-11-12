@@ -11,7 +11,7 @@ import { ExploreSection } from '@/components/waitlist/explore/ExploreSection'
 import { NavigationOverlay } from '@/components/waitlist/explore/NavigationOverlay'
 import { Footer } from '@/components/waitlist/Footer'
 import { FooterMobile } from '@/components/waitlist/FooterMobile'
-import { PartsMasonryGrid } from '@/components/waitlist/marketplace/parts-masonry-grid'
+import { BuySection } from '@/components/waitlist/marketplace/buy-section'
 import { SellerProfileHeader } from '@/components/waitlist/marketplace/seller-profile-header'
 import { DashboardView } from '@/components/waitlist/marketplace/dashboard-view'
 import { Instagram, Twitter, Linkedin, Youtube, Github } from 'lucide-react'
@@ -40,6 +40,15 @@ interface Part {
   sellerCount: number
   imageUrl?: string
   restorationSupplies?: RestorationSupply[]
+  // Enhanced precision fields
+  partNumber?: string
+  compatibility?: string
+  specifications?: string
+  diagnosis?: string
+  installDifficulty?: 'Easy' | 'Medium' | 'Hard'
+  installTime?: string
+  condition?: string
+  warranty?: string
 }
 
 interface CarData {
@@ -59,12 +68,14 @@ interface CarData {
 }
 
 export default function Waitlist() {
-  const [marketplaceTab, setMarketplaceTab] = useState<'buy' | 'sell'>('buy')
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
   const [hasShownToast, setHasShownToast] = useState(false)
+  const [marketplaceTab, setMarketplaceTab] = useState<'buy' | 'sell'>('buy')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const section2Ref = useRef<HTMLElement>(null)
+  const section4Ref = useRef<HTMLElement>(null)
 
   // Animation for floating car illustration
   const floatAnimation = {
@@ -113,28 +124,37 @@ export default function Waitlist() {
     }
   }, [])
 
-  // Show toast notification after delay
+  // Show toast notification when entering section 2
   useEffect(() => {
-    if (!hasShownToast) {
-      const timer = setTimeout(() => {
-        toast('🚀 Join the Waitlist', {
-          description: 'Be among the first to access Wessley\'s AI-powered automotive platform. 500+ builders already signed up!',
-          action: {
-            label: 'Join Now',
-            onClick: () => {
-              const waitlistSection = document.getElementById('waitlist-section')
-              if (waitlistSection) {
-                waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
-              }
-            },
-          },
-          duration: 10000,
-        })
-        setHasShownToast(true)
-      }, 8000) // Show after 8 seconds
+    if (!section2Ref.current || hasShownToast) return
 
-      return () => clearTimeout(timer)
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasShownToast) {
+            toast('🚀 Join the Waitlist', {
+              description: 'Be among the first to access Wessley\'s AI-powered automotive platform. 500+ builders already signed up!',
+              action: {
+                label: 'Join Now',
+                onClick: () => {
+                  const waitlistSection = document.getElementById('waitlist-section')
+                  if (waitlistSection) {
+                    waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
+                },
+              },
+              duration: 10000,
+            })
+            setHasShownToast(true)
+          }
+        })
+      },
+      { threshold: 0.3 } // Trigger when 30% of section 2 is visible
+    )
+
+    observer.observe(section2Ref.current)
+
+    return () => observer.disconnect()
   }, [hasShownToast])
 
   // Marketplace state and handlers
@@ -155,6 +175,14 @@ export default function Waitlist() {
       sellerDistance: '2.3 mi',
       sellerCount: 8,
       imageUrl: 'https://images.unsplash.com/photo-1654166827605-974dd2e9bb1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbHRlcm5hdG9yJTIwYXV0b21vdGl2ZXxlbnwxfHx8fDE3NjIxOTU1NTh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'BOSCH 0-123-520-017',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L V6',
+      specifications: '90A 12V • 6-Groove Pulley',
+      diagnosis: 'AI detected: Voltage drops to 12.8V at idle, dimming headlights',
+      installDifficulty: 'Medium',
+      installTime: '1.5-2 hours',
+      condition: 'New (OE Quality)',
+      warranty: '2 Year / 24,000 mi',
       restorationSupplies: [
         { name: 'Brushes Kit', price: 18, selected: true },
         { name: 'Voltage Regulator', price: 35, selected: true },
@@ -176,6 +204,14 @@ export default function Waitlist() {
       sellerDistance: '5.1 mi',
       sellerCount: 5,
       imageUrl: 'https://images.unsplash.com/photo-1654611842276-ffe361f5d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZWxheSUyMGZ1c2UlMjBhdXRvbW90aXZlfGVufDF8fHx8MTc2MjE5NTU1OXww&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'HYUNDAI 95220-3B000',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L • Also 1998-2003 models',
+      specifications: '12V 30A • 4-Pin ISO Micro Relay',
+      diagnosis: 'AI detected: Engine cranks but no start, no fuel pump sound when key turns',
+      installDifficulty: 'Easy',
+      installTime: '15-30 minutes',
+      condition: 'New (OEM)',
+      warranty: '1 Year / 12,000 mi',
       restorationSupplies: [
         { name: 'Socket Connector', price: 8, selected: true },
         { name: 'Contact Cleaner', price: 12, selected: true },
@@ -197,6 +233,14 @@ export default function Waitlist() {
       sellerDistance: '1.8 mi',
       sellerCount: 12,
       imageUrl: 'https://images.unsplash.com/photo-1760804462141-442810513d4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjByYWRpYXRvciUyMGVuZ2luZXxlbnwxfHx8fDE3NjIxOTUzNDd8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'DENSO 221-9211',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L • Direct OE replacement',
+      specifications: '2-Row Aluminum Core • 13.5" H x 21" W • Plastic Tanks',
+      diagnosis: 'AI detected: Coolant temp reaching 220°F, visible leak at lower tank seam',
+      installDifficulty: 'Hard',
+      installTime: '3-4 hours',
+      condition: 'New (Aftermarket)',
+      warranty: '1 Year / 12,000 mi',
       restorationSupplies: [
         { name: 'Coolant (1 Gal)', price: 22, selected: true },
         { name: 'Hose Set', price: 45, selected: true },
@@ -220,6 +264,14 @@ export default function Waitlist() {
       sellerDistance: '8.2 mi',
       sellerCount: 15,
       imageUrl: 'https://images.unsplash.com/photo-1750019487267-47568f388dfa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmFrZSUyMHBhZCUyMGRpc2N8ZW58MXx8fHwxNzYyMTk1NTU5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'AKEBONO ACT537',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L Front Axle',
+      specifications: 'Ceramic Compound • Low Dust • 10mm Thickness',
+      diagnosis: 'AI detected: Pad thickness at 4mm, squeaking on braking, replace soon',
+      installDifficulty: 'Easy',
+      installTime: '45 minutes - 1 hour',
+      condition: 'New (Premium)',
+      warranty: '3 Years / 36,000 mi',
     },
     {
       id: '5',
@@ -235,6 +287,14 @@ export default function Waitlist() {
       sellerDistance: '3.4 mi',
       sellerCount: 20,
       imageUrl: 'https://images.unsplash.com/photo-1643151663724-ab51858d5fe1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvaWwlMjBmaWx0ZXIlMjBhdXRvbW90aXZlfGVufDF8fHx8MTc2MjE5NTU1OXww&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'MANN W920/21',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L V6 • Universal fit',
+      specifications: 'Spin-on Type • 3/4-16 Thread • Anti-drainback Valve',
+      diagnosis: 'AI detected: 3,800 mi since last change, schedule soon for optimal protection',
+      installDifficulty: 'Easy',
+      installTime: '15-20 minutes',
+      condition: 'New (OEM-spec)',
+      warranty: '90 Days',
     },
     {
       id: '6',
@@ -250,52 +310,60 @@ export default function Waitlist() {
       sellerDistance: '4.7 mi',
       sellerCount: 18,
       imageUrl: 'https://images.unsplash.com/photo-1759832217256-244b5bc54882?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcGFyayUyMHBsdWclMjBlbmdpbmV8ZW58MXx8fHwxNzYyMTk1NTYwfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      partNumber: 'NGK ILFR6B (Set of 6)',
+      compatibility: 'Fits 2000 Hyundai Galloper 3.0L V6 • Heat range 6',
+      specifications: 'Iridium IX • Laser-welded tip • 0.044" Gap',
+      diagnosis: 'AI detected: 42,000 mi on plugs, slight misfire on cylinder 3, replacement recommended',
+      installDifficulty: 'Medium',
+      installTime: '1-1.5 hours',
+      condition: 'New (Premium)',
+      warranty: '25,000 mi',
     },
   ])
 
   const [carsData] = useState<CarData[]>([
     {
       id: '1',
-      name: '1973 Porsche 911 Carrera RS',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Porsche_911_Carrera_RS_2.7_1973_%2815521126459%29.jpg/800px-Porsche_911_Carrera_RS_2.7_1973_%2815521126459%29.jpg',
-      make: 'Porsche',
-      model: '911 Carrera RS',
-      year: 1973,
-      vin: 'WP0ZZZ91ZTS458712',
-      mileage: '45,200 mi',
+      name: '2000 Hyundai Galloper',
+      imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800',
+      make: 'Hyundai',
+      model: 'Galloper',
+      year: 2000,
+      vin: 'KMHJN81WPYU034521',
+      mileage: '145,200 mi',
       partsListed: 28,
       partsSold: 18,
-      totalRevenue: 12450,
+      totalRevenue: 3450,
       rating: 4.9,
       pendingRequests: 3,
     },
     {
       id: '2',
-      name: '1965 Mini Cooper S',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Austin_Mini_Cooper_S_1964.jpg/800px-Austin_Mini_Cooper_S_1964.jpg',
-      make: 'Mini',
-      model: 'Cooper S',
-      year: 1965,
-      vin: 'XM2SA9X0000123456',
-      mileage: '82,000 mi',
+      name: '2008 Honda Accord LX',
+      imageUrl: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800',
+      make: 'Honda',
+      model: 'Accord LX',
+      year: 2008,
+      vin: '1HGCP26758A084321',
+      mileage: '178,000 mi',
       partsListed: 42,
       partsSold: 35,
-      totalRevenue: 8920,
+      totalRevenue: 4920,
       rating: 4.7,
       pendingRequests: 5,
     },
     {
       id: '3',
-      name: '1971 Mercedes-Benz 280SL',
-      imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw1fHxjbGFzc2ljJTIwY2FyfGVufDF8fHx8MTc2MjE5NTU2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-      make: 'Mercedes-Benz',
-      model: '280SL',
-      year: 1971,
-      vin: 'WDB11304212345678',
-      mileage: '58,500 mi',
+      name: '2005 Toyota Camry LE',
+      imageUrl: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800',
+      make: 'Toyota',
+      model: 'Camry LE',
+      year: 2005,
+      vin: '4T1BE32K25U598437',
+      mileage: '215,500 mi',
       partsListed: 35,
       partsSold: 22,
-      totalRevenue: 15680,
+      totalRevenue: 5680,
       rating: 5.0,
       pendingRequests: 2,
     },
@@ -366,7 +434,7 @@ export default function Waitlist() {
       <WaitlistHeader />
 
       {/* Section 1 - Hero with Video */}
-      <section className="relative w-full h-screen flex items-start overflow-hidden">
+      <section className="relative w-full min-h-screen flex items-start overflow-hidden">
         {/* Full screen video background */}
         <video
           autoPlay
@@ -465,9 +533,6 @@ export default function Waitlist() {
               className="hero-description"
               style={{
                 color: 'var(--text-white)',
-                maxWidth: '33.15rem',
-                lineHeight: '1.5',
-                letterSpacing: '0em'
               }}
             >
               Wessley understands every circuit, system,
@@ -482,7 +547,8 @@ export default function Waitlist() {
 
       {/* Section 2 - Virtual Garage */}
       <section
-        className="relative w-full h-screen flex flex-col justify-between bg-cover bg-center bg-no-repeat"
+        ref={section2Ref}
+        className="relative w-full min-h-screen flex flex-col justify-between bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(/sections/background-2.svg)` }}
       >
         {/* 3D AI Assistance Tab - Top Right */}
@@ -492,21 +558,21 @@ export default function Waitlist() {
             style={{
               borderBottomLeftRadius: 'var(--border-radius)',
               fontFamily: 'var(--font-head)',
-              fontSize: 'clamp(8px, 2vw, 12px)',
+              fontSize: 'clamp(10px, 2.5vw, 12px)',
               fontWeight: 600,
               backgroundColor: 'var(--accent-green-light)',
               color: 'var(--text-on-light)',
-              width: 'clamp(80px, 20vw, calc(var(--sizer) * 7.1rem))',
-              height: '42px',
-              paddingLeft: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
-              paddingRight: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
+              width: 'clamp(100px, 25vw, calc(var(--sizer) * 7.1rem))',
+              height: 'clamp(38px, 8vw, 42px)',
+              paddingLeft: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
+              paddingRight: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
               paddingTop: 0,
               paddingBottom: 0,
               textTransform: 'uppercase',
             }}
           >
             3D ASSIST
-            <svg className="w-3 h-3 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
               <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
               <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
@@ -547,16 +613,19 @@ export default function Waitlist() {
         {/* Bottom - Chat Input (full width) */}
         <div className="relative z-10 w-full px-16 pb-16">
           <motion.div
-            className="flex items-center gap-3 p-5 max-w-5xl mx-auto"
-            style={{ backgroundColor: 'var(--ui-chat-bg)', borderRadius: 'var(--border-radius)' }}
+            className="flex items-center gap-4 max-w-5xl mx-auto p-4 md:py-8 md:px-8 md:pr-10"
+            style={{
+              backgroundColor: 'var(--ui-chat-bg)',
+              borderRadius: 'var(--border-radius)'
+            }}
             whileHover={{ backgroundColor: "var(--ui-chat-hover)" }}
             transition={{ duration: 0.2 }}
           >
             {/* Plus Icon - Left */}
             <motion.button
-              className="p-2 flex-shrink-0"
+              className="shrink-0"
               style={{ color: '#1a1a1a' }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.2 }}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -566,14 +635,15 @@ export default function Waitlist() {
 
             <input
               placeholder="Ask anything"
-              className="flex-1 bg-transparent border-none text-black placeholder-gray-600 focus:ring-0 focus:border-none font-medium focus:outline-none text-base px-2"
+              className="flex-1 bg-transparent border-none text-black placeholder-gray-600 focus:ring-0 focus:border-none font-medium focus:outline-none text-base"
+              style={{ padding: 0, margin: 0 }}
             />
 
             {/* Microphone Icon */}
             <motion.button
-              className="p-2 flex-shrink-0"
+              className="shrink-0"
               style={{ color: '#1a1a1a' }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.2 }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -586,9 +656,9 @@ export default function Waitlist() {
 
             {/* Send Arrow Icon - Right */}
             <motion.button
-              className="p-2 flex-shrink-0"
+              className="shrink-0"
               style={{ color: '#1a1a1a' }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.2 }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -604,7 +674,7 @@ export default function Waitlist() {
         className="relative w-full flex flex-col items-center justify-start bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{
           backgroundImage: `url(/sections/background-3.svg)`,
-          height: '100svh'
+          minHeight: '100svh'
         }}
       >
         {/* Light mode overlay */}
@@ -626,14 +696,14 @@ export default function Waitlist() {
             style={{
               borderBottomLeftRadius: 'var(--border-radius)',
               fontFamily: 'var(--font-head)',
-              fontSize: 'clamp(8px, 2vw, 12px)',
+              fontSize: 'clamp(10px, 2.5vw, 12px)',
               fontWeight: 600,
               backgroundColor: 'var(--accent-gray)',
               color: 'var(--text-white)',
-              width: 'clamp(80px, 20vw, calc(var(--sizer) * 7.1rem))',
-              height: '42px',
-              paddingLeft: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
-              paddingRight: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
+              width: 'clamp(100px, 25vw, calc(var(--sizer) * 7.1rem))',
+              height: 'clamp(38px, 8vw, 42px)',
+              paddingLeft: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
+              paddingRight: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
               paddingTop: 0,
               paddingBottom: 0,
               textTransform: 'uppercase',
@@ -647,7 +717,7 @@ export default function Waitlist() {
               alt="Explore"
               width={16}
               height={16}
-              className="w-3 h-3 md:w-4 md:h-4"
+              className="w-4 h-4 md:w-4 md:h-4"
               style={{
                 filter: 'invert(1)',
                 opacity: 1.0,
@@ -681,8 +751,9 @@ export default function Waitlist() {
 
       {/* Section 4 - Marketplace */}
       <section
-        className="relative w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(/sections/background-4.svg)`, minHeight: '165svh' }}
+        ref={section4Ref}
+        className="relative w-full min-h-screen flex items-start justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(/sections/background-4.svg)` }}
       >
         {/* Marketplace Header - Top Right */}
         <div className="absolute top-0 right-0 z-[80]">
@@ -691,14 +762,14 @@ export default function Waitlist() {
             style={{
               borderBottomLeftRadius: 'var(--border-radius)',
               fontFamily: 'var(--font-head)',
-              fontSize: 'clamp(8px, 2vw, 12px)',
+              fontSize: 'clamp(10px, 2.5vw, 12px)',
               fontWeight: 600,
               backgroundColor: 'var(--accent-green-light)',
               color: 'var(--text-on-light)',
-              width: 'clamp(100px, 25vw, calc(var(--sizer) * 7.1rem))',
-              height: '42px',
-              paddingLeft: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
-              paddingRight: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
+              width: 'clamp(120px, 30vw, calc(var(--sizer) * 7.1rem))',
+              height: 'clamp(38px, 8vw, 42px)',
+              paddingLeft: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
+              paddingRight: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
               paddingTop: 0,
               paddingBottom: 0,
               textTransform: 'uppercase',
@@ -714,102 +785,51 @@ export default function Waitlist() {
         </div>
 
         {/* Main Content */}
-        <div className="relative z-10 w-full h-full flex flex-col px-16 py-16">
-          {/* Top Section */}
-          <div className="flex justify-between items-start">
-            {/* Buy/Sell Tabs - Top Left */}
-            <div className="flex gap-0">
-              <motion.button
-                onClick={() => setMarketplaceTab('buy')}
-                style={{
-                  borderTopLeftRadius: 'var(--border-radius)',
-                  borderBottomLeftRadius: 'var(--border-radius)',
-                  fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.75rem)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  backgroundColor: 'var(--ui-button-primary)',
-                  color: 'var(--ui-button-primary-text)',
-                  opacity: marketplaceTab === 'buy' ? 1 : 0.8,
-                  paddingLeft: 'calc(var(--sizer) * 0.542rem)',
-                  paddingRight: 'calc(var(--sizer) * 1.084rem)',
-                  paddingTop: 'calc(var(--sizer) * 0.903rem)',
-                  paddingBottom: 'calc(var(--sizer) * 0.903rem)',
-                  width: 'calc(var(--sizer) * 7.23rem)',
-                  height: 'calc(var(--sizer) * 2.89rem)',
-                }}
-                whileHover={{ opacity: 1, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                animate={{
-                  opacity: marketplaceTab === 'buy' ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              >
-                Buy Parts
-              </motion.button>
-              <motion.button
-                onClick={() => setMarketplaceTab('sell')}
-                style={{
-                  borderTopRightRadius: 'var(--border-radius)',
-                  borderBottomRightRadius: 'var(--border-radius)',
-                  fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.75rem)',
-                  fontWeight: 'var(--font-weight-medium)',
-                  backgroundColor: 'var(--ui-button-primary)',
-                  color: 'var(--ui-button-primary-text)',
-                  opacity: marketplaceTab === 'sell' ? 1 : 0.8,
-                  paddingLeft: 'calc(var(--sizer) * 0.542rem)',
-                  paddingRight: 'calc(var(--sizer) * 1.084rem)',
-                  paddingTop: 'calc(var(--sizer) * 0.903rem)',
-                  paddingBottom: 'calc(var(--sizer) * 0.903rem)',
-                  width: 'calc(var(--sizer) * 7.23rem)',
-                  height: 'calc(var(--sizer) * 2.89rem)',
-                }}
-                whileHover={{ opacity: 1, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                animate={{
-                  opacity: marketplaceTab === 'sell' ? 1 : 0.8,
-                }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              >
-                Sell Parts
-              </motion.button>
-            </div>
-
-            {/* Text content - Top Left */}
-            <div className="max-w-2xl text-left">
-              <h3 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-accent-green-light)', lineHeight: '1.2', letterSpacing: '-0.02em' }}>
-                Less Searching.
-                <br />
-                More Building.
-              </h3>
-              <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.35', letterSpacing: '0em' }}>
-                Wessley bridges the trade between restorers,
-                <br />
-                spare parts, junkyard finds, stores and after-
-                <br />
-                market inventory verified and matched by AI.
-                <br />
-                You focus on the build — it finds what fits.
-              </p>
-            </div>
+        <div className="relative z-10 w-full flex flex-col px-16 py-32 gap-24">
+          {/* Intro Section */}
+          <div className="max-w-3xl mx-auto text-center">
+            <h3 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-accent-green-light)', lineHeight: '1.2', letterSpacing: '-0.02em' }}>
+              Less Searching.
+              <br />
+              More Building.
+            </h3>
+            <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.35', letterSpacing: '0em' }}>
+              Wessley bridges the trade between restorers, spare parts, junkyard finds, stores and after-market inventory verified and matched by AI. You focus on the build — it finds what fits.
+            </p>
           </div>
 
-          {/* Marketplace Content - HIDDEN FOR DESIGN SYSTEM WORK */}
-          {/* <div className="flex-1 min-h-0 mt-6">
-            {marketplaceTab === 'buy' && (
-              <div className="h-full w-full">
-                <PartsMasonryGrid
-                  parts={buyParts}
-                  onPartsChange={setBuyParts}
-                  onCompare={handleCompareOffers}
-                  selectedItems={cartItems}
-                  onToggleItem={handleToggleCart}
-                  hoveredDiagnosis={hoveredDiagnosis}
-                />
+          {/* Two Column Layout */}
+          <div className="w-full flex flex-col gap-24">
+            {/* Buy Parts Section - Top (Left Aligned) */}
+            <div className="flex flex-col gap-8 items-start">
+              <div className="w-full text-left">
+                <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-accent-green-light)', fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
+                  Buy Parts
+                </h4>
+                <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.5' }}>
+                  Find exactly what you need for your restoration. Our AI-powered marketplace connects you with verified sellers, junkyards, and parts stores.
+                </p>
               </div>
-            )}
-            {marketplaceTab === 'sell' && (
-              <div className="h-full w-full flex flex-col gap-4">
+              <BuySection
+                parts={buyParts}
+                onPartsChange={setBuyParts}
+                cars={carsData}
+                selectedItems={cartItems}
+                onToggleItem={handleToggleCart}
+              />
+            </div>
+
+            {/* Sell Parts Section - Bottom (Right Aligned) */}
+            <div className="flex flex-col gap-8 items-end">
+              <div className="w-full text-right">
+                <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-accent-green-light)', fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
+                  Sell Parts
+                </h4>
+                <p style={{ color: 'var(--color-accent-green-light)', lineHeight: '1.5' }}>
+                  Turn your spare parts into profit. List your inventory and let AI match it with builders who need exactly what you have.
+                </p>
+              </div>
+              <div className="w-full flex flex-col gap-4">
                 <SellerProfileHeader
                   name="Sahar Barak"
                   totalRequests={carsData.reduce((sum, car) => sum + car.pendingRequests, 0)}
@@ -818,13 +838,13 @@ export default function Waitlist() {
                 />
                 <DashboardView cars={carsData} />
               </div>
-            )}
-          </div> */}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Section 5 - Waitlist Signup with Footer Background */}
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full overflow-x-hidden">
         {/* Video Background */}
         <video
           autoPlay
@@ -852,21 +872,21 @@ export default function Waitlist() {
             style={{
               borderBottomLeftRadius: 'var(--border-radius)',
               fontFamily: 'var(--font-head)',
-              fontSize: 'clamp(8px, 2vw, 12px)',
+              fontSize: 'clamp(10px, 2.5vw, 12px)',
               fontWeight: 600,
               backgroundColor: 'var(--accent-green-light)',
               color: 'var(--text-on-light)',
-              width: 'clamp(80px, 20vw, calc(var(--sizer) * 7.1rem))',
-              height: '42px',
-              paddingLeft: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
-              paddingRight: 'clamp(8px, 2vw, calc(var(--sizer) * 1.125rem))',
+              width: 'clamp(100px, 25vw, calc(var(--sizer) * 7.1rem))',
+              height: 'clamp(38px, 8vw, 42px)',
+              paddingLeft: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
+              paddingRight: 'clamp(10px, 2.5vw, calc(var(--sizer) * 1.125rem))',
               paddingTop: 0,
               paddingBottom: 0,
               textTransform: 'uppercase',
             }}
           >
             WAITLIST
-            <svg className="w-3 h-3 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 md:w-4 md:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M6 7H4C3.46957 7 2.96086 7.21071 2.58579 7.58579C2.21071 7.96086 2 8.46957 2 9V19C2 19.5304 2.21071 20.0391 2.58579 20.4142C2.96086 20.7893 3.46957 21 4 21H20C20.5304 21 21.0391 20.7893 21.4142 20.4142C21.7893 20.0391 22 19.5304 22 19V9C22 8.46957 21.7893 7.96086 21.4142 7.58579C21.0391 7.21071 20.5304 7 20 7H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -938,15 +958,14 @@ export default function Waitlist() {
           </div>
 
           {/* Email Input */}
-          <div className="max-w-xl w-full md:w-auto md:flex-1">
+          <div className="w-full md:w-auto md:flex-1">
             <form onSubmit={handleSubmit}>
               <div
+                className="flex flex-col md:flex-row items-stretch md:items-center"
                 style={{
                   backgroundColor: 'var(--ui-input-bg)',
                   borderRadius: 'var(--border-radius)',
                   padding: 'clamp(0.5rem, calc(var(--sizer) * 0.5rem), 0.625rem)',
-                  display: 'flex',
-                  alignItems: 'center',
                   gap: 'clamp(0.5rem, calc(var(--sizer) * 0.625rem), 0.75rem)',
                   boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(139, 225, 150, 0.3)',
                 }}
@@ -958,6 +977,7 @@ export default function Waitlist() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  className="placeholder-gray-600 w-full md:flex-1"
                   style={{
                     fontFamily: 'var(--font-head)',
                     fontSize: 'clamp(0.875rem, calc(var(--sizer) * 0.875rem), 1.125rem)',
@@ -966,17 +986,16 @@ export default function Waitlist() {
                     backgroundColor: 'transparent',
                     border: 'none',
                     outline: 'none',
-                    flex: 1,
                     paddingLeft: 'clamp(1rem, calc(var(--sizer) * 1.5rem), 1.75rem)',
                     paddingRight: 'clamp(0.75rem, calc(var(--sizer) * 1rem), 1.25rem)',
                     paddingTop: 'clamp(0.75rem, calc(var(--sizer) * 1rem), 1.25rem)',
                     paddingBottom: 'clamp(0.75rem, calc(var(--sizer) * 1rem), 1.25rem)',
                   }}
-                  className="placeholder-gray-600"
                 />
                 <motion.button
                   type="submit"
                   disabled={isSubmitting}
+                  className="w-full md:w-auto"
                   style={{
                     borderRadius: 'calc(var(--border-radius) * 0.75)',
                     backgroundColor: 'var(--ui-button-primary)',
@@ -1007,7 +1026,7 @@ export default function Waitlist() {
               <p
                 style={{
                   fontFamily: 'var(--font-head)',
-                  fontSize: 'calc(var(--sizer) * 0.625rem)',
+                  fontSize: 'clamp(0.75rem, 2.5vw, 1rem)',
                   color: 'var(--text-on-dark)',
                   marginTop: 'calc(var(--sizer) * 0.75rem)',
                   textAlign: 'center',

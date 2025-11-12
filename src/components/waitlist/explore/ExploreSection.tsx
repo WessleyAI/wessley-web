@@ -258,10 +258,21 @@ const extendedProjectsRow2 = [...projectsRow2, ...projectsRow2, ...projectsRow2]
 export function ExploreSection() {
   const topRowRef = useRef<HTMLDivElement>(null)
   const bottomRowRef = useRef<HTMLDivElement>(null)
-  const [isPaused, setIsPaused] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    if (!topRowRef.current || !bottomRowRef.current || isPaused) return
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    if (!topRowRef.current || !bottomRowRef.current) return
 
     const topRow = topRowRef.current
     const bottomRow = bottomRowRef.current
@@ -294,14 +305,12 @@ export function ExploreSection() {
     animationId = requestAnimationFrame(animate)
 
     return () => cancelAnimationFrame(animationId)
-  }, [isPaused])
+  }, [])
 
   return (
     <div
       className="w-full space-y-2"
       style={{ paddingTop: 'calc(var(--sizer) * 0.5rem)', paddingBottom: 'calc(var(--sizer) * 0.5rem)' }}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       {/* Top Row - Scrolls Left */}
       <div
@@ -319,9 +328,10 @@ export function ExploreSection() {
             key={`top-${index}`}
             className="flex-shrink-0"
             style={{
-              width: 'calc(var(--sizer) * 14rem)',
+              width: isMobile ? '35vh' : 'calc(var(--sizer) * 14rem)',
               height: '35vh',
               maxHeight: '35vh',
+              aspectRatio: isMobile ? '1 / 1' : 'auto',
             }}
           >
             <ProjectCard {...project} />
@@ -345,9 +355,10 @@ export function ExploreSection() {
             key={`bottom-${index}`}
             className="flex-shrink-0"
             style={{
-              width: 'calc(var(--sizer) * 14rem)',
+              width: isMobile ? '35vh' : 'calc(var(--sizer) * 14rem)',
               height: '35vh',
               maxHeight: '35vh',
+              aspectRatio: isMobile ? '1 / 1' : 'auto',
             }}
           >
             <ProjectCard {...project} />
