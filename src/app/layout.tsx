@@ -8,6 +8,7 @@ import { GlobalState } from "@/components/utility/global-state";
 import { SearchProvider } from "@/components/search/search-provider";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Toaster } from "@/components/ui/sonner";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -122,6 +123,7 @@ export default function RootLayout({
           </SearchProvider>
           <Toaster position="bottom-right" />
         </ThemeProvider>
+        <GoogleAnalytics gaId="G-95HGMDBT28" />
       </body>
     </html>
   );

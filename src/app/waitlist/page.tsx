@@ -434,7 +434,7 @@ export default function Waitlist() {
       <WaitlistHeader />
 
       {/* Section 1 - Hero with Video */}
-      <section className="relative w-full min-h-screen flex items-start overflow-hidden">
+      <section className="relative w-full flex items-start overflow-hidden" style={{ minHeight: '100svh' }}>
         {/* Full screen video background */}
         <video
           autoPlay
