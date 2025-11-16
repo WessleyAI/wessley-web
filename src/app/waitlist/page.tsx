@@ -462,7 +462,7 @@ export default function Waitlist() {
           className="absolute left-0 right-0 bg-cover bg-center bg-no-repeat"
           style={{
             top: 0,
-            height: 'calc((15vh + var(--spacing-3xl) * 3 - 2vh) * 0.83)',
+            height: 'calc((15svh + var(--spacing-3xl) * 3 - 2svh) * 0.83)',
             zIndex: 2,
             backgroundImage: `url(/sections/background-2.svg)`,
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
