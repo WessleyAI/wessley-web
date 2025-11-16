@@ -382,7 +382,7 @@ export default function Waitlist() {
   }
 
   const handleCompareOffers = () => {
-    console.log('Compare offers clicked')
+    // Compare offers functionality
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
