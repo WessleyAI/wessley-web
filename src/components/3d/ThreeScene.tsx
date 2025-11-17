@@ -11,6 +11,7 @@ import { loadNDJSON, getPositionedNodes, buildSceneGraphFromNDJSON, type NDJSONN
 import { ComponentMeshes } from './ComponentMeshes'
 import { HarnessesAndWires } from './HarnessesAndWires'
 import { DarkRoom } from './DarkRoom'
+import { Chassis } from './Chassis'
 
 // Helper function to classify component type based on node_type
 function classifyComponentType(nodeType: string): 'fuse' | 'relay' | 'sensor' | 'connector' | 'wire' | 'module' | 'ground_point' | 'ground_plane' | 'bus' | 'splice' | 'pin' | 'other' {
@@ -141,14 +142,14 @@ function CameraController() {
   return (
     <OrbitControls
       ref={controlsRef}
-      target={[0, 0.5, 0]}
+      target={[0, 1.0, 0]}
       enablePan={false}
       enableZoom={true}
       enableRotate={true}
-      minDistance={1}
+      minDistance={2}
       maxDistance={8}
-      minPolarAngle={Math.PI / 8}
-      maxPolarAngle={Math.PI - Math.PI / 8}
+      minPolarAngle={Math.PI / 4}
+      maxPolarAngle={Math.PI * 2 / 3}
       enableDamping={false}
       onStart={handleControlStart}
     />
@@ -174,25 +175,31 @@ function Scene() {
       {/* Dark fog for depth without washing out the dark room */}
       <fog attach="fog" args={['#000000', 15, 30]} />
 
-      {/* Dramatic lighting for depth */}
-      <ambientLight intensity={0.05} />
+      {/* Minimal lighting - only enough to see shapes */}
+      <ambientLight intensity={0.01} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={0.8}
+        intensity={0.2}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+        shadow-bias={-0.0001}
       />
-      {/* Strong rim lights for edge definition */}
-      <pointLight position={[-6, 4, -6]} intensity={0.5} color="#ffffff" />
-      <pointLight position={[6, 2, 6]} intensity={0.4} color="#cccccc" />
-      <pointLight position={[0, -2, -8]} intensity={0.3} color="#666666" />
-
-      {/* Environment for reflections */}
-      <Environment preset="studio" background={false} />
+      {/* Minimal rim lights */}
+      <pointLight position={[-6, 4, -6]} intensity={0.1} color="#ffffff" />
+      <pointLight position={[6, 2, 6]} intensity={0.1} color="#cccccc" />
+      <pointLight position={[0, -2, -8]} intensity={0.05} color="#666666" />
 
       {/* Load NDJSON data */}
       <NDJSONLoader />
+
+      {/* Vehicle chassis frame */}
+      <Chassis />
 
       {/* Harnesses and wires (from scene config + NDJSON edges) */}
       <HarnessesAndWires />
@@ -207,7 +214,7 @@ function Scene() {
       <EffectComposer>
         <Bloom
           intensity={2.0}
-          luminanceThreshold={2.0}
+          luminanceThreshold={5.0}
           luminanceSmoothing={0.025}
           mipmapBlur
         />

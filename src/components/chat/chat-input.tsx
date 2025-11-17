@@ -2,73 +2,110 @@
 
 import React, { useState, useRef, KeyboardEvent } from 'react'
 import { useChatStore } from '@/stores/chat-store'
+import { useModelStore } from '@/stores/model-store'
 import { Button } from '@/components/ui/button'
 import { Send, Loader2, Plus, Mic } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { SceneEvent } from '@/types/scene-events'
 
 interface ChatInputProps {
   disabled?: boolean
 }
 
 export function ChatInput({ disabled }: ChatInputProps) {
-  const { 
-    userInput, 
-    isGenerating, 
-    setUserInput, 
+  const {
+    userInput,
+    isGenerating,
+    setUserInput,
     setIsGenerating,
     activeConversation,
     addMessage
   } = useChatStore()
-  
+
+  const { dispatchSceneEvent } = useModelStore()
+
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async () => {
     if (!userInput.trim() || isGenerating || disabled) return
-    
+
     const message = userInput.trim()
     setUserInput('')
     setIsGenerating(true)
-    
+
     try {
-      // Add user message
-      if (activeConversation) {
-        addMessage({
-          id: crypto.randomUUID(),
-          conversation_id: activeConversation.id,
-          content: message,
-          role: 'user',
-          user_id: activeConversation.user_id,
-          ai_model: null,
-          attached_media_ids: null,
-          metadata: null,
-          created_at: new Date().toISOString(),
-          ai_tokens_used: null,
-          ai_confidence_score: null
+      if (!activeConversation) return
+
+      // Add user message immediately
+      const userMessageId = crypto.randomUUID()
+      addMessage({
+        id: userMessageId,
+        conversation_id: activeConversation.id,
+        content: message,
+        role: 'user',
+        user_id: activeConversation.user_id,
+        ai_model: null,
+        attached_media_ids: null,
+        metadata: null,
+        created_at: new Date().toISOString(),
+        ai_tokens_used: null,
+        ai_confidence_score: null
+      })
+
+      // Call API to get assistant response
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          chatId: activeConversation.id,
+          userMessage: message,
+          vehicle: activeConversation.context_data
         })
-        
-        // TODO: Call API to get assistant response
-        // For now, add a placeholder response
-        setTimeout(() => {
-          addMessage({
-            id: crypto.randomUUID(),
-            conversation_id: activeConversation.id,
-            content: "I'm a vehicle electrical assistant. I can help you understand wiring diagrams, troubleshoot electrical issues, and answer questions about automotive electrical systems. What would you like to know?",
-            role: 'assistant',
-            user_id: null,
-            ai_model: 'gpt-4',
-            attached_media_ids: null,
-            metadata: null,
-            created_at: new Date().toISOString(),
-            ai_tokens_used: 150,
-            ai_confidence_score: 0.95
-          })
-          setIsGenerating(false)
-        }, 1000)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to get response')
       }
-    } catch (error) {
-      console.error('Error sending message:', error)
+
+      const data = await response.json()
+      console.log('[ChatInput] API response:', data)
+
+      // Add assistant message
+      if (data.assistantMessage) {
+        addMessage(data.assistantMessage)
+      }
+
+      // Dispatch scene events if any
+      if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
+        console.log('[ChatInput] Dispatching scene events:', data.sceneEvents)
+        data.sceneEvents.forEach((event: SceneEvent) => {
+          dispatchSceneEvent(event)
+        })
+      }
+
       setIsGenerating(false)
+    } catch (error) {
+      console.error('[ChatInput] Error sending message:', error)
+      setIsGenerating(false)
+
+      // Add error message
+      addMessage({
+        id: crypto.randomUUID(),
+        conversation_id: activeConversation!.id,
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        role: 'assistant',
+        user_id: null,
+        ai_model: activeConversation!.ai_model,
+        attached_media_ids: null,
+        metadata: { error: true },
+        created_at: new Date().toISOString(),
+        ai_tokens_used: null,
+        ai_confidence_score: null
+      })
     }
   }
 

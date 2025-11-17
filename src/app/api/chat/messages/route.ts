@@ -16,17 +16,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Chat ID and user message are required' }, { status: 400 })
     }
 
-    // Get authenticated user
+    // Get authenticated user (or use demo mode)
     console.log('[API /chat/messages] Getting authenticated user...')
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     console.log('[API /chat/messages] Auth result:', { user: !!user, error: authError })
 
-    if (authError || !user) {
+    // For demo mode, allow unauthenticated requests
+    const isDemoMode = !user || authError
+    const userId = user?.id || 'demo-user'
+
+    if (!isDemoMode && authError) {
       console.log('[API /chat/messages] Auth failed:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('[API /chat/messages] User ID:', userId, 'Demo mode:', isDemoMode)
 
     // Check for OpenAI API key
     console.log('[API /chat/messages] Checking OpenAI API key...')
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
       .from('chat_messages')
       .insert({
         conversation_id: chatId,
-        user_id: user.id,
+        user_id: userId,
         content: userMessage,
         role: 'user',
         ai_model: 'gpt-5.1-chat-latest'
@@ -99,14 +105,83 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
     // Get conversation history
     const { data: previousMessages } = await supabase
       .from('chat_messages')
-      .select('content, role')
+      .select('content, role, metadata')
       .eq('conversation_id', chatId)
       .order('created_at', { ascending: true })
       .limit(20) // Last 20 messages for context
 
+    // Check if we're in onboarding problems collection phase
+    const isOnboardingProblems = previousMessages?.some(msg =>
+      msg.role === 'assistant' && msg.metadata?.type === 'onboarding_problems'
+    )
+
+    // Add special instructions for onboarding problems phase
+    let finalSystemPrompt = systemPrompt
+    if (isOnboardingProblems) {
+      finalSystemPrompt += `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚗 ONBOARDING MODE: Collecting Initial Problems
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When the user describes problems with their vehicle:
+1. Parse their description to identify which electrical components are likely faulty
+2. Search the component list above for matching component IDs (use fuzzy matching on canonical_id, type, or description)
+3. Mark those components as faulty in the 3D scene using mark_component_faulty events
+4. Provide a helpful diagnostic response explaining what you've identified
+
+COMPONENT MATCHING RULES:
+- Use fuzzy/partial string matching on the canonical_id or description fields
+- Examples:
+  * "tail lights not working" → search for components with "tail" or "light" and "rear" in canonical_id
+  * "alternator issues" → search for component with "alternator" in canonical_id
+  * "right window won't go down" → search for "window" + "right" or "actuator" + "right"
+  * "fuel pump" → search for "fuel" + "pump" or "fuel" + "relay"
+
+- If you can't find exact matches, use the most likely related components (e.g., relays, fuses in the related zone)
+- When in doubt, mark related relays and fuses as potentially faulty
+
+SCENE EVENT FORMAT:
+\`\`\`scene-events
+[
+  {
+    "type": "mark_component_faulty",
+    "data": {
+      "componentIds": ["actual_component_id_from_list"],
+      "reason": "User reported: [exact user description]"
+    },
+    "description": "Marking [component names] as faulty"
+  },
+  {
+    "type": "highlight_components",
+    "data": {
+      "componentIds": ["actual_component_id_from_list"],
+      "color": "#ff0000",
+      "duration": 5000
+    },
+    "description": "Highlighting faulty components for user"
+  }
+]
+\`\`\`
+
+RESPONSE STYLE:
+- Be empathetic and acknowledge the user's problem
+- Confirm which components you've marked as faulty in the 3D model
+- Provide a brief explanation of what might be causing the issue
+- Ask if there are any other problems or if they'd like to start diagnosing what you've identified
+- Keep responses concise and action-oriented
+
+Example response:
+"I understand you're having issues with the tail lights. I've marked the **right tail light** and its related relay in the 3D model as potentially faulty (you'll see them highlighted in red). This could be due to a blown bulb, faulty relay, or wiring issue.
+
+Are there any other electrical problems you're experiencing, or would you like me to help diagnose the tail light issue?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+    }
+
     // Build messages array for GPT-5.1
     const messages: Array<{ role: string; content: string }> = [
-      { role: 'system', content: systemPrompt }
+      { role: 'system', content: finalSystemPrompt }
     ]
 
     // Add conversation history

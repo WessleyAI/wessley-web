@@ -158,7 +158,7 @@ export function HarnessesAndWires() {
         new THREE.Vector3(targetPos[0], targetPos[1], targetPos[2])
       ]
 
-      // Check if this wire connects two highlighted components
+      // Check if this wire connects two highlighted components in the circuit path
       const isHighlighted =
         highlightedComponentIds.includes(edge.source) &&
         highlightedComponentIds.includes(edge.target)
@@ -217,21 +217,10 @@ export function HarnessesAndWires() {
       renderedCount++
     })
 
-    // Log comprehensive wire statistics
-    console.log('⚡ ELECTRICAL SYSTEM:', {
-      totalWires: wireData.length,
-      highlightedWires: highlightedWireCount,
-      skipped: skippedCount,
-      relationships: {
-        'wire_to_fuse': wireData.filter(w => w.color === '#FF0000' && !w.isHighlighted).length,
-        'wire_to_ground': wireData.filter(w => w.color === '#000000' && !w.isHighlighted).length,
-        'has_connector': wireData.filter(w => w.color === '#00FF00' && !w.isHighlighted).length,
-        'has_pin': wireData.filter(w => w.color === '#00BFFF' && !w.isHighlighted).length,
-        'pin_to_wire': wireData.filter(w => w.color === '#FFD700' && !w.isHighlighted).length,
-        'wire_to_relay': wireData.filter(w => w.color === '#FF6600' && !w.isHighlighted).length,
-        'wire_to_splice': wireData.filter(w => w.color === '#FFFF00' && !w.isHighlighted).length
-      }
-    })
+    // Log circuit path wire statistics
+    if (highlightedComponentIds.length > 0) {
+      console.log('🔌 CIRCUIT PATH:', highlightedWireCount, 'wires highlighted (out of', wireData.length, 'total)')
+    }
 
     return wireData
   }, [ndjsonData, highlightedComponentIds])
@@ -244,7 +233,7 @@ export function HarnessesAndWires() {
 
   return (
     <group ref={rotationGroupRef} name="harnesses-rotation-pivot">
-      <group ref={groupRef} name="harnesses-and-wires" rotation={[-Math.PI / 2, 0, 0]}>
+      <group ref={groupRef} name="harnesses-and-wires" rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]}>
         {/* Harness bundles - thick visible tubes */}
         <group name="harnesses">
           {harnesses.map(harness => (
@@ -256,10 +245,10 @@ export function HarnessesAndWires() {
             >
               <meshStandardMaterial
                 color={harness.color}
-                emissive={harness.color}
-                emissiveIntensity={0.05}
-                metalness={0.3}
-                roughness={0.5}
+                emissive={0x000000}
+                emissiveIntensity={0}
+                metalness={0}
+                roughness={1}
                 opacity={1}
                 transparent={false}
               />
@@ -280,10 +269,10 @@ export function HarnessesAndWires() {
               <mesh key={wire.id} geometry={tubeGeometry} castShadow receiveShadow>
                 <meshStandardMaterial
                   color={wire.color}
-                  emissive={wire.isHighlighted ? wire.color : '#000000'}
-                  emissiveIntensity={wire.isHighlighted ? 0.6 : 0.2}
-                  metalness={wire.isHighlighted ? 0.3 : 0.5}
-                  roughness={wire.isHighlighted ? 0.4 : 0.6}
+                  emissive={0x000000}
+                  emissiveIntensity={0}
+                  metalness={0}
+                  roughness={1}
                   opacity={wire.opacity || 0.7}
                   transparent={true}
                 />
