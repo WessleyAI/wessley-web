@@ -1,21 +1,35 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createClient } from '@/lib/supabase/middleware'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Create Supabase client and refresh session
+  const { supabase, response } = createClient(request)
+
+  // Refresh session if expired - required for RLS policies
+  await supabase.auth.getUser()
 
   // Allow API routes and auth callbacks
   if (pathname.startsWith('/api/') || pathname.startsWith('/auth/callback')) {
-    return NextResponse.next()
+    return response
   }
 
   // Allow access only to /waitlist
   if (pathname === '/waitlist') {
-    return NextResponse.next()
+    return response
   }
 
   // Redirect everything else (including /) to /waitlist
-  return NextResponse.redirect(new URL('/waitlist', request.url))
+  const redirectResponse = NextResponse.redirect(new URL('/waitlist', request.url))
+
+  // Copy cookies from the Supabase response to the redirect response
+  response.cookies.getAll().forEach(cookie => {
+    redirectResponse.cookies.set(cookie.name, cookie.value)
+  })
+
+  return redirectResponse
 }
 
 export const config = {

@@ -36,12 +36,14 @@ export function ProjectCard({
 
   return (
     <motion.div
-      className="group relative bg-[#161616] rounded-2xl overflow-hidden cursor-pointer h-full border border-[#808080]/30"
+      className="group relative rounded-2xl overflow-hidden cursor-pointer h-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -6 }}
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       style={{
+        backgroundColor: 'var(--app-bg-secondary)',
+        border: '1px solid var(--app-border)',
         boxShadow: isHovered
           ? "0 20px 40px rgba(139, 225, 150, 0.15)"
           : "0 4px 12px rgba(0, 0, 0, 0.3)",
@@ -75,7 +77,12 @@ export function ProjectCard({
             {tags.slice(0, 2).map((tag, index) => (
               <Badge
                 key={index}
-                className="bg-[#161616]/95 backdrop-blur-sm text-white border border-[#808080]/30 px-2.5 py-1 shadow-lg text-xs font-['DM_Sans']"
+                className="backdrop-blur-sm px-2.5 py-1 shadow-lg app-caption"
+                style={{
+                  backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                  color: 'var(--app-text-primary)',
+                  border: '1px solid var(--app-border)'
+                }}
               >
                 {tag}
               </Badge>
@@ -83,9 +90,10 @@ export function ProjectCard({
           </div>
 
           {/* Progress Indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#8BE196]/95 backdrop-blur-sm rounded-full shadow-lg shrink-0">
-            <TrendingUp className="w-3.5 h-3.5 text-[#000000]" />
-            <span className="text-xs text-[#000000] font-['DM_Sans'] font-semibold">{progress}%</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 backdrop-blur-sm rounded-full shadow-lg shrink-0"
+            style={{ backgroundColor: 'rgba(139, 225, 150, 0.95)' }}>
+            <TrendingUp className="w-3.5 h-3.5" style={{ color: '#000000' }} />
+            <span className="app-caption app-fw-semibold" style={{ color: '#000000' }}>{progress}%</span>
           </div>
         </div>
 
@@ -95,7 +103,7 @@ export function ProjectCard({
           <motion.h3
             animate={{ y: isHovered ? -4 : 0 }}
             transition={{ duration: 0.3 }}
-            className="text-white drop-shadow-lg text-base leading-tight font-['DM_Sans'] font-semibold"
+            className="drop-shadow-lg app-h6 app-text-primary"
           >
             {title}
           </motion.h3>
@@ -104,17 +112,17 @@ export function ProjectCard({
           <div className="flex items-center justify-between gap-2">
             {/* User */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <Avatar className="w-8 h-8 ring-2 ring-[#8BE196]/30 shrink-0">
+              <Avatar className="w-8 h-8 shrink-0" style={{ boxShadow: '0 0 0 2px rgba(139, 225, 150, 0.3)' }}>
                 <AvatarImage src={userAvatar} />
-                <AvatarFallback className="bg-[#8BE196] text-[#000000] text-xs font-['DM_Sans'] font-semibold">
+                <AvatarFallback className="app-caption app-fw-semibold" style={{ backgroundColor: 'var(--app-accent)', color: '#000000' }}>
                   {userName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="text-white text-xs truncate font-['DM_Sans']">{userName}</p>
-                <div className="flex items-center gap-1 text-white/80 font-['DM_Sans']">
+                <p className="app-caption app-text-primary truncate">{userName}</p>
+                <div className="flex items-center gap-1 app-text-secondary">
                   <MapPin className="w-2.5 h-2.5 shrink-0" />
-                  <span className="text-xs truncate">{location}</span>
+                  <span className="app-caption truncate">{location}</span>
                 </div>
               </div>
             </div>
@@ -127,11 +135,30 @@ export function ProjectCard({
                 e.stopPropagation();
                 setIsFollowing(!isFollowing);
               }}
-              className={`shrink-0 h-7 px-3 text-xs gap-1 font-['DM_Sans'] ${
-                isFollowing
-                  ? "bg-[#161616]/50 text-white border-[#808080]/30 hover:bg-[#161616]/70 backdrop-blur-sm"
-                  : "bg-[#8BE196] text-[#000000] hover:bg-[#9DF4A8] font-semibold"
-              }`}
+              className="shrink-0 h-7 px-3 app-caption gap-1"
+              style={isFollowing ? {
+                backgroundColor: 'rgba(26, 26, 26, 0.5)',
+                color: 'var(--app-text-primary)',
+                border: '1px solid var(--app-border)'
+              } : {
+                backgroundColor: 'var(--app-accent)',
+                color: '#000000',
+                fontWeight: 600
+              }}
+              onMouseEnter={(e) => {
+                if (!isFollowing) {
+                  e.currentTarget.style.backgroundColor = 'var(--app-accent-hover)'
+                } else {
+                  e.currentTarget.style.backgroundColor = 'rgba(26, 26, 26, 0.7)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isFollowing) {
+                  e.currentTarget.style.backgroundColor = 'var(--app-accent)'
+                } else {
+                  e.currentTarget.style.backgroundColor = 'rgba(26, 26, 26, 0.5)'
+                }
+              }}
             >
               {isFollowing ? (
                 <>Following</>
@@ -145,14 +172,14 @@ export function ProjectCard({
           </div>
 
           {/* Stats Row */}
-          <div className="flex items-center gap-3 text-white/90 font-['DM_Sans']">
+          <div className="flex items-center gap-3 app-text-primary">
             <div className="flex items-center gap-1">
-              <Heart className="w-3.5 h-3.5" fill="white" />
-              <span className="text-xs">{likes}</span>
+              <Heart className="w-3.5 h-3.5" fill="currentColor" />
+              <span className="app-caption">{likes}</span>
             </div>
             <div className="flex items-center gap-1">
               <MessageCircle className="w-3.5 h-3.5" />
-              <span className="text-xs">{comments}</span>
+              <span className="app-caption">{comments}</span>
             </div>
           </div>
         </div>
@@ -171,7 +198,18 @@ export function ProjectCard({
               opacity: isHovered ? 1 : 0,
             }}
             transition={{ duration: 0.3, delay: 0.05 }}
-            className="px-6 py-2.5 bg-[#8BE196] text-[#000000] rounded-full shadow-2xl hover:shadow-xl transition-shadow text-sm font-['DM_Sans'] font-semibold hover:bg-[#9DF4A8]"
+            className="px-6 py-2.5 rounded-full shadow-2xl transition-shadow app-body-sm app-fw-semibold"
+            style={{
+              backgroundColor: 'var(--app-accent)',
+              color: '#000000'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--app-accent-hover)'
+              e.currentTarget.style.boxShadow = 'var(--app-shadow-xl)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--app-accent)'
+            }}
           >
             View Project
           </motion.button>

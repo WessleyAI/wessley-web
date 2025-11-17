@@ -3,7 +3,7 @@ import { TablesInsert, TablesUpdate } from "@/supabase/types"
 
 export const getMessageById = async (messageId: string) => {
   const { data: message } = await supabase
-    .from("messages")
+    .from("chat_messages")
     .select("*")
     .eq("id", messageId)
     .single()
@@ -17,9 +17,10 @@ export const getMessageById = async (messageId: string) => {
 
 export const getMessagesByChatId = async (chatId: string) => {
   const { data: messages } = await supabase
-    .from("messages")
+    .from("chat_messages")
     .select("*")
-    .eq("chat_id", chatId)
+    .eq("conversation_id", chatId)
+    .order("created_at", { ascending: true })
 
   if (!messages) {
     throw new Error("Messages not found")
@@ -28,23 +29,34 @@ export const getMessagesByChatId = async (chatId: string) => {
   return messages
 }
 
-export const createMessage = async (message: TablesInsert<"messages">) => {
-  const { data: createdMessage, error } = await supabase
-    .from("messages")
-    .insert([message])
-    .select("*")
-    .single()
+export const createMessage = async (message: TablesInsert<"chat_messages">) => {
+  console.log('[DB messages] createMessage called with:', message)
 
-  if (error) {
-    throw new Error(error.message)
+  try {
+    const { data: createdMessage, error } = await supabase
+      .from("chat_messages")
+      .insert([message])
+      .select("*")
+      .single()
+
+    console.log('[DB messages] Supabase response:', { data: createdMessage, error })
+
+    if (error) {
+      console.error('[DB messages] Supabase error:', error)
+      throw new Error(error.message)
+    }
+
+    console.log('[DB messages] Message created successfully')
+    return createdMessage
+  } catch (err) {
+    console.error('[DB messages] createMessage exception:', err)
+    throw err
   }
-
-  return createdMessage
 }
 
-export const createMessages = async (messages: TablesInsert<"messages">[]) => {
+export const createMessages = async (messages: TablesInsert<"chat_messages">[]) => {
   const { data: createdMessages, error } = await supabase
-    .from("messages")
+    .from("chat_messages")
     .insert(messages)
     .select("*")
 
@@ -57,10 +69,10 @@ export const createMessages = async (messages: TablesInsert<"messages">[]) => {
 
 export const updateMessage = async (
   messageId: string,
-  message: TablesUpdate<"messages">
+  message: TablesUpdate<"chat_messages">
 ) => {
   const { data: updatedMessage, error } = await supabase
-    .from("messages")
+    .from("chat_messages")
     .update(message)
     .eq("id", messageId)
     .select("*")
@@ -74,7 +86,7 @@ export const updateMessage = async (
 }
 
 export const deleteMessage = async (messageId: string) => {
-  const { error } = await supabase.from("messages").delete().eq("id", messageId)
+  const { error } = await supabase.from("chat_messages").delete().eq("id", messageId)
 
   if (error) {
     throw new Error(error.message)

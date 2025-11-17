@@ -49,11 +49,14 @@ Assistant: ${assistantMessage || 'No response yet'}`
     }
 
     const result = await openaiResponse.json()
-    const title = result.choices?.[0]?.message?.content?.trim() || userMessage.substring(0, 50)
-    
-    return NextResponse.json({ 
+    let title = result.choices?.[0]?.message?.content?.trim() || userMessage.substring(0, 50)
+
+    // Remove surrounding quotes if present
+    title = title.replace(/^["']|["']$/g, '')
+
+    return NextResponse.json({
       title: title,
-      success: true 
+      success: true
     })
 
   } catch (error) {

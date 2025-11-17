@@ -85,15 +85,23 @@ export function ChatInput({ disabled }: ChatInputProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-3 border border-gray-600/20">
+      <div className="flex items-center gap-3 rounded-lg p-3" style={{ backgroundColor: 'var(--app-bg-tertiary)', border: '1px solid var(--app-border)' }}>
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-secondary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
         >
           <Plus className="h-4 w-4" />
         </Button>
-        
+
         <Input
           ref={inputRef}
           value={userInput}
@@ -101,26 +109,45 @@ export function ChatInput({ disabled }: ChatInputProps) {
           onKeyDown={handleKeyDown}
           placeholder="Ask anything"
           disabled={disabled || isGenerating}
-          className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto py-0"
+          className="flex-1 bg-transparent border-none app-text-primary app-fw-medium focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto py-0"
+          style={{
+            caretColor: 'var(--app-accent)'
+          }}
         />
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-secondary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
         >
           <Mic className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300 hover:bg-gray-600/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-secondary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
         >
           <div className="w-4 h-4 flex items-center justify-center">
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full ml-0.5"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full ml-0.5"></div>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--app-text-muted)' }}></div>
+            <div className="w-2 h-2 rounded-full ml-0.5" style={{ backgroundColor: 'var(--app-text-muted)' }}></div>
+            <div className="w-2 h-2 rounded-full ml-0.5" style={{ backgroundColor: 'var(--app-text-muted)' }}></div>
           </div>
         </Button>
       </div>

@@ -30,24 +30,25 @@ import { SceneControlsSidebar } from './scene-controls-sidebar'
 
 interface ChatInterfaceProps {
   className?: string
-  onNewChat?: () => void
-  onQuickStart?: (prompt: string) => void
+  onNewChat?: (aiModel?: string) => void
+  onQuickStart?: (prompt: string, aiModel?: string) => void
   chatId?: string
 }
 
 export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: ChatInterfaceProps) {
-  const { 
-    activeConversation, 
-    messages, 
+  const {
+    activeConversation,
+    messages,
     isGenerating,
     setUserInput,
     userInput
   } = useChatStore()
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [chatInput, setChatInput] = useState('')
   const [showSceneControls, setShowSceneControls] = useState(false)
   const [isSceneControlsMinimized, setIsSceneControlsMinimized] = useState(true)
+  const [selectedModel, setSelectedModel] = useState('gpt-4o')
   
   // Auto-show scene controls in extended view
   const isExtendedView = (activeConversation && messages.length > 0) || !!chatId
@@ -69,7 +70,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
   const handleStartChat = () => {
     if (!chatInput.trim() || !onQuickStart) return
-    onQuickStart(chatInput.trim())
+    onQuickStart(chatInput.trim(), selectedModel)
     setChatInput('')
   }
 
@@ -87,20 +88,8 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
           transition: 'margin-right 0.3s ease-in-out'
         }}
       >
-      {/* Top Bar with Model Selection - Floating above scene */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Select defaultValue="chatgpt5">
-            <SelectTrigger className="w-[140px] bg-transparent border-none app-text-primary app-body-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="chatgpt5">ChatGPT 5</SelectItem>
-              <SelectItem value="gpt4">GPT-4</SelectItem>
-              <SelectItem value="claude35">Claude 3.5</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Top Bar - Floating above scene */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end p-4">
         <div className="flex items-center gap-1">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -164,11 +153,11 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
       {/* 3D Scene - Dynamic size based on conversation state */}
       <motion.div
-        className="flex justify-center"
+        className="flex justify-center px-6"
         animate={{
-          height: (activeConversation && messages.length > 0) || chatId ? "40vh" : "35vh",
-          paddingTop: (activeConversation && messages.length > 0) || chatId ? "0px" : "16px",
-          paddingBottom: (activeConversation && messages.length > 0) || chatId ? "0px" : "16px"
+          height: (activeConversation && messages.length > 0) || chatId ? "56vh" : "49vh",
+          paddingTop: (activeConversation && messages.length > 0) || chatId ? "24px" : "24px",
+          paddingBottom: (activeConversation && messages.length > 0) || chatId ? "16px" : "16px"
         }}
         transition={{ duration: 0.5 }}
       >
@@ -205,7 +194,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
           >
             <div className="relative">
               <motion.div
-                className="flex items-center gap-3 rounded-full p-4"
+                className="flex items-center gap-3 rounded-lg p-4"
                 style={{
                   backgroundColor: 'var(--app-bg-hover)',
                   border: '1px solid var(--app-border)'
@@ -219,7 +208,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
                   onClick={handleStartChat}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-1 rounded-md app-text-muted hover:app-text-secondary transition-colors"
+                  className="p-1 rounded-lg app-text-muted hover:app-text-secondary transition-colors"
                   style={{ backgroundColor: 'transparent' }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}

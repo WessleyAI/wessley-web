@@ -1,7 +1,7 @@
 'use client'
 
 import { Dashboard } from '@/components/ui/dashboard'
-import '@/styles/demo-design-system.css'
+import '@/styles/app-design-system.css'
 
 export default function ChatLayout({
   children,
@@ -10,9 +10,7 @@ export default function ChatLayout({
 }) {
   return (
     <Dashboard>
-      <div className="demo-typography flex flex-col h-full">
-        {children}
-      </div>
+      {children}
     </Dashboard>
   )
 }

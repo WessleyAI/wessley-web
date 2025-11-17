@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import * as THREE from 'three'
 import { type ParsedNDJSON } from '@/lib/ndjson-loader'
+import { type SceneEvent, type SceneEventQueue } from '@/types/scene-events'
 
 export interface VehicleComponent {
   id: string
@@ -12,6 +13,7 @@ export interface VehicleComponent {
   specifications?: Record<string, any>
   connections?: string[] // IDs of connected components
   metadata?: Record<string, any>
+  faulty?: boolean // Whether the component is faulty/not working
 }
 
 export interface CameraView {
@@ -53,6 +55,10 @@ interface ModelState {
   aiControlEnabled: boolean
   currentFocus: string | null // What the AI is currently explaining/showing
 
+  // Scene events
+  eventQueue: SceneEventQueue
+  lastExecutedEvent: SceneEvent | null
+
   // Actions
   setModelPath: (path: string) => void
   setComponents: (components: VehicleComponent[]) => void
@@ -72,6 +78,12 @@ interface ModelState {
   setAIControlEnabled: (enabled: boolean) => void
   setCurrentFocus: (focus: string | null) => void
 
+  // Scene event actions
+  executeSceneEvent: (event: SceneEvent) => void
+  queueSceneEvents: (events: SceneEvent[]) => void
+  playNextEvent: () => void
+  clearEventQueue: () => void
+
   // Helper actions
   focusOnComponent: (componentId: string) => void
   resetView: () => void
@@ -79,7 +91,7 @@ interface ModelState {
 
 const DEFAULT_CAMERA_VIEW: CameraView = {
   position: [2, 1.5, 2],
-  target: [0, 0, 0],
+  target: [0, 0.5, 0],
   fov: 60
 }
 
@@ -105,6 +117,13 @@ export const useModelStore = create<ModelState>()(
 
     aiControlEnabled: true,
     currentFocus: null,
+
+    eventQueue: {
+      events: [],
+      currentIndex: 0,
+      isPlaying: false
+    },
+    lastExecutedEvent: null,
 
     setModelPath: (path) => set({ modelPath: path }),
 
@@ -138,8 +157,6 @@ export const useModelStore = create<ModelState>()(
     setHoveredComponent: (id) => set({ hoveredComponentId: id }),
 
     setHighlightedComponents: (ids) => {
-      console.log('[ModelStore] setHighlightedComponents called with', ids.length, 'IDs')
-      console.log('[ModelStore] IDs:', ids.slice(0, 10)) // Log first 10
       set({ highlightedComponentIds: ids })
     },
 
@@ -193,8 +210,8 @@ export const useModelStore = create<ModelState>()(
 
         // Use a standard camera position for consistent viewing with calculated zoom
         const cameraView: CameraView = {
-          position: [0, 0, cameraDistance], // Front view at calculated distance
-          target: [0, 0, 0],
+          position: [0, 0.5, cameraDistance], // Front view at calculated distance
+          target: [0, 0.5, 0],
           fov: 60
         }
 
@@ -202,14 +219,13 @@ export const useModelStore = create<ModelState>()(
           selectedComponentId: componentId,
           cameraView,
           modelRotation,
-          currentFocus: componentId,
-          isUserControllingCamera: false // Reset when focusing on new component
+          currentFocus: componentId
         })
       }
     },
 
     resetView: () => {
-      console.log('[ModelStore] Resetting view and clearing highlighted path')
+      ;(window as any).currentCircuitPath = []
       set({
         cameraView: DEFAULT_CAMERA_VIEW,
         modelRotation: DEFAULT_MODEL_ROTATION,
@@ -218,6 +234,226 @@ export const useModelStore = create<ModelState>()(
         highlightedComponentIds: [],
         currentFocus: null
       })
+    },
+
+    // Scene event execution
+    executeSceneEvent: (event) => {
+      console.log('[ModelStore] Executing scene event:', event.type, event.data)
+      const state = get()
+
+      switch (event.type) {
+        case 'focus_component': {
+          const data = event.data as import('@/types/scene-events').FocusComponentData
+          state.focusOnComponent(data.componentId)
+          break
+        }
+
+        case 'highlight_components': {
+          const data = event.data as import('@/types/scene-events').HighlightComponentsData
+          state.setHighlightedComponents(data.componentIds)
+          break
+        }
+
+        case 'show_path': {
+          const data = event.data as import('@/types/scene-events').ShowPathData
+          // Find path between components using NDJSON edges
+          if (state.ndjsonData) {
+            const path = findPathBetweenComponents(
+              state.ndjsonData,
+              data.fromComponentId,
+              data.toComponentId
+            )
+            if (path) {
+              state.setHighlightedComponents(path)
+            }
+          }
+          break
+        }
+
+        case 'show_connections': {
+          const data = event.data as import('@/types/scene-events').ShowConnectionsData
+          // Show all directly connected components
+          if (state.ndjsonData) {
+            const connections = getComponentConnections(
+              state.ndjsonData,
+              data.componentId,
+              data.depth || 1
+            )
+            state.setHighlightedComponents([data.componentId, ...connections])
+            state.focusOnComponent(data.componentId)
+          }
+          break
+        }
+
+        case 'show_circuit': {
+          const data = event.data as import('@/types/scene-events').ShowCircuitData
+          state.setHighlightedComponents(data.componentIds)
+          break
+        }
+
+        case 'reset_view': {
+          state.resetView()
+          break
+        }
+
+        case 'rotate_view': {
+          const data = event.data as import('@/types/scene-events').RotateViewData
+          state.setModelRotation(data.rotation)
+          break
+        }
+
+        case 'zoom_to_area': {
+          const data = event.data as import('@/types/scene-events').ZoomToAreaData
+          // Find components in this zone
+          if (state.ndjsonData && state.ndjsonData.byZone[data.zone]) {
+            const zoneComponentIds = state.ndjsonData.byZone[data.zone].map(n => n.id)
+            state.setHighlightedComponents(zoneComponentIds)
+          }
+          break
+        }
+
+        case 'compare_components': {
+          const data = event.data as import('@/types/scene-events').CompareComponentsData
+          state.setHighlightedComponents(data.componentIds)
+          break
+        }
+
+        case 'show_ground_points': {
+          // Find all ground points
+          const groundComponents = state.components.filter(c =>
+            c.type === 'ground_point' || c.type === 'ground_plane'
+          )
+          state.setHighlightedComponents(groundComponents.map(c => c.id))
+          break
+        }
+
+        case 'mark_component_faulty': {
+          const data = event.data as import('@/types/scene-events').MarkComponentFaultyData
+          // Mark each component as faulty
+          data.componentIds.forEach(componentId => {
+            state.updateComponent(componentId, { faulty: true })
+          })
+          // Optionally highlight the faulty components
+          state.setHighlightedComponents(data.componentIds)
+          console.log('[ModelStore] Marked components as faulty:', data.componentIds, data.reason)
+          break
+        }
+
+        case 'mark_component_healthy': {
+          const data = event.data as import('@/types/scene-events').MarkComponentHealthyData
+          // Mark each component as healthy (not faulty)
+          data.componentIds.forEach(componentId => {
+            state.updateComponent(componentId, { faulty: false })
+          })
+          console.log('[ModelStore] Marked components as healthy:', data.componentIds)
+          break
+        }
+
+        default:
+          console.warn('[ModelStore] Unknown event type:', event.type)
+      }
+
+      set({ lastExecutedEvent: event })
+    },
+
+    queueSceneEvents: (events) => {
+      console.log('[ModelStore] Queueing', events.length, 'scene events')
+      set({
+        eventQueue: {
+          events,
+          currentIndex: 0,
+          isPlaying: false
+        }
+      })
+    },
+
+    playNextEvent: () => {
+      const { eventQueue } = get()
+      if (eventQueue.currentIndex < eventQueue.events.length) {
+        const event = eventQueue.events[eventQueue.currentIndex]
+        get().executeSceneEvent(event)
+        set({
+          eventQueue: {
+            ...eventQueue,
+            currentIndex: eventQueue.currentIndex + 1,
+            isPlaying: eventQueue.currentIndex + 1 < eventQueue.events.length
+          }
+        })
+      }
+    },
+
+    clearEventQueue: () => {
+      set({
+        eventQueue: {
+          events: [],
+          currentIndex: 0,
+          isPlaying: false
+        }
+      })
     }
   }))
 )
+
+// Helper function to find path between components
+function findPathBetweenComponents(
+  ndjsonData: ParsedNDJSON,
+  fromId: string,
+  toId: string
+): string[] | null {
+  // BFS to find shortest path
+  const queue: Array<{ id: string, path: string[] }> = [{ id: fromId, path: [fromId] }]
+  const visited = new Set<string>()
+
+  while (queue.length > 0) {
+    const { id, path } = queue.shift()!
+
+    if (id === toId) {
+      return path
+    }
+
+    if (visited.has(id)) continue
+    visited.add(id)
+
+    // Find all edges from this node
+    const edges = ndjsonData.edges.filter(e => e.from === id || e.to === id)
+    for (const edge of edges) {
+      const nextId = edge.from === id ? edge.to : edge.from
+      if (!visited.has(nextId)) {
+        queue.push({ id: nextId, path: [...path, nextId] })
+      }
+    }
+  }
+
+  return null
+}
+
+// Helper function to get component connections
+function getComponentConnections(
+  ndjsonData: ParsedNDJSON,
+  componentId: string,
+  depth: number
+): string[] {
+  const connections = new Set<string>()
+  const queue: Array<{ id: string, level: number }> = [{ id: componentId, level: 0 }]
+  const visited = new Set<string>()
+
+  while (queue.length > 0) {
+    const { id, level } = queue.shift()!
+
+    if (level >= depth) continue
+    if (visited.has(id)) continue
+    visited.add(id)
+
+    // Find all directly connected components
+    const edges = ndjsonData.edges.filter(e => e.from === id || e.to === id)
+    for (const edge of edges) {
+      const connectedId = edge.from === id ? edge.to : edge.from
+      connections.add(connectedId)
+      if (level + 1 < depth) {
+        queue.push({ id: connectedId, level: level + 1 })
+      }
+    }
+  }
+
+  return Array.from(connections)
+}

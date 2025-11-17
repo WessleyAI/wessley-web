@@ -4,11 +4,13 @@ import * as React from "react"
 import { useEffect, useRef } from 'react'
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
 import { OrbitControls, Grid, Environment, PerspectiveCamera } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useModelStore, type VehicleComponent } from '@/stores/model-store'
 import { loadNDJSON, getPositionedNodes, buildSceneGraphFromNDJSON, type NDJSONNode } from '@/lib/ndjson-loader'
 import { ComponentMeshes } from './ComponentMeshes'
 import { HarnessesAndWires } from './HarnessesAndWires'
+import { DarkRoom } from './DarkRoom'
 
 // Helper function to classify component type based on node_type
 function classifyComponentType(nodeType: string): 'fuse' | 'relay' | 'sensor' | 'connector' | 'wire' | 'module' | 'ground_point' | 'ground_plane' | 'bus' | 'splice' | 'pin' | 'other' {
@@ -45,7 +47,8 @@ function ndjsonNodeToComponent(node: NDJSONNode): VehicleComponent | null {
       anchor_zone: node.anchor_zone,
       bbox_m: node.bbox_m
     },
-    metadata: node
+    metadata: node,
+    faulty: false // Default to not faulty, can be changed via scene events
   }
 }
 
@@ -61,32 +64,21 @@ function NDJSONLoader() {
 
     const loadComponentData = async () => {
       try {
-        console.log('[ChatScene] Loading enhanced NDJSON data...')
         const ndjsonData = await loadNDJSON('/models/enhanced_model.ndjson')
-        console.log('[ChatScene] NDJSON data loaded:', {
-          nodes: Object.keys(ndjsonData.nodesById).length,
-          edges: ndjsonData.edges.length,
-          zones: Object.keys(ndjsonData.byZone).length
-        })
-
         setNDJSONData(ndjsonData)
 
-        // Build scene graph from NDJSON
         const sceneGraph = buildSceneGraphFromNDJSON(ndjsonData)
-        console.log('[ChatScene] Scene graph built:', sceneGraph)
         setSceneGraph(sceneGraph)
 
-        // Convert positioned nodes to VehicleComponents
         const positionedNodes = getPositionedNodes(ndjsonData)
         const components: VehicleComponent[] = positionedNodes
           .map(ndjsonNodeToComponent)
           .filter((c): c is VehicleComponent => c !== null)
 
-        console.log(`[ChatScene] Extracted ${components.length} positioned components`)
-        console.log('[ChatScene] Sample components:', components.slice(0, 5))
         setComponents(components)
+        console.log('✅ Scene loaded:', components.length, 'components')
       } catch (error) {
-        console.error('[ChatScene] Failed to load NDJSON data:', error)
+        console.error('❌ Failed to load NDJSON data:', error)
       }
     }
 
@@ -96,70 +88,65 @@ function NDJSONLoader() {
   return null
 }
 
-// Camera controller that responds to store changes
+// Camera controller - smooth animation on click, stops when user touches controls
 function CameraController() {
-  const { cameraView, setUserControllingCamera } = useModelStore()
+  const { cameraView } = useModelStore()
   const controlsRef = useRef<any>(null)
-  const isUserControllingRef = useRef(false) // Use ref for immediate check
-  const hasReachedTargetRef = useRef(false)
+  const isAnimatingRef = useRef(false)
+  const targetPositionRef = useRef(new THREE.Vector3(...cameraView.position))
+  const targetLookAtRef = useRef(new THREE.Vector3(...cameraView.target))
 
-  useFrame(({ camera }) => {
-    // Don't lerp if user is controlling OR we've already reached target
-    if (controlsRef.current && !isUserControllingRef.current && !hasReachedTargetRef.current) {
-      const { target, position } = cameraView
-      const targetVector = new THREE.Vector3(...target)
-      const positionVector = new THREE.Vector3(...position)
-
-      // Check if we're close enough to stop animating
-      const positionDistance = camera.position.distanceTo(positionVector)
-      const targetDistance = controlsRef.current.target.distanceTo(targetVector)
-
-      // Stop lerping if we're very close (within 0.01 units)
-      if (positionDistance < 0.01 && targetDistance < 0.01) {
-        hasReachedTargetRef.current = true
-        return
-      }
-
-      // Lerp to target
-      camera.position.lerp(positionVector, 0.1)
-      controlsRef.current.target.lerp(targetVector, 0.1)
-      controlsRef.current.update()
-    }
-  })
-
-  // Reset flags when camera view changes (new component selected)
+  // When cameraView changes (component clicked), start smooth animation
   React.useEffect(() => {
-    isUserControllingRef.current = false
-    hasReachedTargetRef.current = false
+    targetPositionRef.current.set(...cameraView.position)
+    targetLookAtRef.current.set(...cameraView.target)
+    isAnimatingRef.current = true
   }, [cameraView])
 
+  // Smooth lerp animation
+  useFrame(({ camera }) => {
+    if (!controlsRef.current || !isAnimatingRef.current) return
+
+    const positionDistance = camera.position.distanceTo(targetPositionRef.current)
+    const targetDistance = controlsRef.current.target.distanceTo(targetLookAtRef.current)
+
+    // Stop animating if close enough
+    if (positionDistance < 0.01 && targetDistance < 0.01) {
+      isAnimatingRef.current = false
+      return
+    }
+
+    // Smooth lerp
+    camera.position.lerp(targetPositionRef.current, 0.1)
+    controlsRef.current.target.lerp(targetLookAtRef.current, 0.1)
+    controlsRef.current.update()
+  })
+
+  // Stop animation when user touches controls
   const handleControlStart = () => {
-    isUserControllingRef.current = true
-    setUserControllingCamera(true)
+    isAnimatingRef.current = false
   }
 
   return (
     <OrbitControls
       ref={controlsRef}
+      target={[0, 0.5, 0]}
       enablePan={true}
       enableZoom={true}
       enableRotate={true}
-      minDistance={3}
-      maxDistance={50}
-      minPolarAngle={0}
-      maxPolarAngle={Math.PI / 2.1}
-      target={cameraView.target}
-      autoRotate={false}
-      autoRotateSpeed={0.5}
+      minDistance={1}
+      maxDistance={8}
+      minPolarAngle={Math.PI / 8}
+      maxPolarAngle={Math.PI - Math.PI / 8}
+      enableDamping={false}
       onStart={handleControlStart}
-      onChange={handleControlStart}
     />
   )
 }
 
 // Simplified scene setup for chat interface
 function ChatSceneContent() {
-  const { cameraView, resetView } = useModelStore()
+  const { resetView } = useModelStore()
 
   // Handle clicking on empty space to deselect
   const handleCanvasClick = (e: ThreeEvent<MouseEvent>) => {
@@ -170,30 +157,25 @@ function ChatSceneContent() {
 
   return (
     <>
-      {/* Camera with store-controlled position */}
-      <PerspectiveCamera
-        makeDefault
-        position={cameraView.position}
-        fov={cameraView.fov || 50}
-      />
+      {/* Dark room environment with reflective walls */}
+      <DarkRoom />
 
-      {/* Extreme fog for maximum visibility */}
-      <fog attach="fog" args={['#666666', 1, 8]} />
+      {/* Dark fog for depth without washing out the dark room */}
+      <fog attach="fog" args={['#000000', 15, 30]} />
 
       {/* Dramatic lighting for depth */}
-      <ambientLight intensity={0.15} />
+      <ambientLight intensity={0.05} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={2}
+        intensity={0.8}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
       {/* Strong rim lights for edge definition */}
-      <pointLight position={[-6, 4, -6]} intensity={1.5} color="#ffffff" />
-      <pointLight position={[6, 2, 6]} intensity={1.2} color="#cccccc" />
-      <spotLight position={[0, 12, 0]} intensity={1.5} angle={0.5} penumbra={0.8} castShadow />
-      <pointLight position={[0, -2, -8]} intensity={0.8} color="#666666" />
+      <pointLight position={[-6, 4, -6]} intensity={0.5} color="#ffffff" />
+      <pointLight position={[6, 2, 6]} intensity={0.4} color="#cccccc" />
+      <pointLight position={[0, -2, -8]} intensity={0.3} color="#666666" />
 
       {/* Environment for reflections */}
       <Environment preset="studio" background={false} />
@@ -224,6 +206,16 @@ function ChatSceneContent() {
 
       {/* Smart camera controls */}
       <CameraController />
+
+      {/* Production-ready post-processing - Bloom for volumetric light glow */}
+      <EffectComposer>
+        <Bloom
+          intensity={2.0}
+          luminanceThreshold={2.0}
+          luminanceSmoothing={0.025}
+          mipmapBlur
+        />
+      </EffectComposer>
     </>
   )
 }
@@ -237,7 +229,7 @@ export function ChatScene({ isExtended = false }: ChatSceneProps) {
     <div className="w-full h-full">
       <Canvas
         shadows
-        camera={{ position: [2, 1.5, 2], fov: 60 }}
+        camera={{ position: [2, 1.5, 2], fov: 50 }}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
@@ -245,8 +237,7 @@ export function ChatScene({ isExtended = false }: ChatSceneProps) {
         }}
         style={{
           background: 'radial-gradient(circle at center, #2a2a2a 0%, #000000 70%)',
-          borderBottomLeftRadius: isExtended ? '8px' : '10rem',
-          borderBottomRightRadius: isExtended ? '8px' : '10rem'
+          borderRadius: '8px'
         }}
       >
         <ChatSceneContent />

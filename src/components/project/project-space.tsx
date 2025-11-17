@@ -8,8 +8,8 @@ import { HoverLabel } from "@/components/3d/HoverLabel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  IconClipboard, 
+import {
+  IconClipboard,
   IconCalculator,
   IconPlus,
   IconMicrophone,
@@ -20,7 +20,8 @@ import {
   IconTrash,
   IconPencil,
   IconCar,
-  IconMenu2
+  IconMenu2,
+  IconBuildingWarehouse
 } from "@tabler/icons-react"
 import {
   Select,
@@ -51,6 +52,8 @@ import { Tables } from "@/supabase/types"
 import { createChat, updateChat, deleteChat } from "@/db/chats"
 import { getVehiclesByWorkspaceId, createVehicle, updateVehicle } from "@/db/vehicles"
 import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
+import { useModelStore } from "@/stores/model-store"
+import { type SceneEvent } from "@/types/scene-events"
 
 // Chat skeleton component
 const ProjectChatSkeleton = () => (
@@ -78,14 +81,16 @@ interface ChatItem {
 export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const router = useRouter()
   const { chats, profile, setChats, setSelectedChat, setUserInput: setGlobalUserInput } = useContext(ChatbotUIContext)
+  const { executeSceneEvent, queueSceneEvents } = useModelStore()
   const [chatInput, setChatInput] = useState("")
-  
+  const [selectedModel, setSelectedModel] = useState('gpt-4o')
+
   // Context menu and dialog state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedChatForAction, setSelectedChatForAction] = useState<Tables<"chat_conversations"> | null>(null)
   const [newChatName, setNewChatName] = useState("")
-  
+
   // Vehicle state
   const [vehicle, setVehicle] = useState<Tables<"vehicles"> | null>(null)
   const [isLoadingVehicle, setIsLoadingVehicle] = useState(true)
@@ -100,7 +105,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   
   // Loading states
   const [isLoadingChats, setIsLoadingChats] = useState(true)
-  
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
+
+  // Store last message for each chat
+  const [chatLastMessages, setChatLastMessages] = useState<Record<string, string>>({})
+
   // Filter chats by workspace/project ID
   const projectChats = chats.filter(chat => chat.workspace_id === projectId)
   
@@ -110,6 +119,41 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       setIsLoadingChats(false)
     }
   }, [chats])
+
+  // Fetch last message for each chat
+  React.useEffect(() => {
+    const fetchLastMessages = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase/browser-client')
+
+        for (const chat of projectChats) {
+          try {
+            const { data: messages } = await supabase
+              .from('chat_messages')
+              .select('content')
+              .eq('conversation_id', chat.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+
+            if (messages && messages.length > 0) {
+              setChatLastMessages(prev => ({
+                ...prev,
+                [chat.id]: messages[0].content
+              }))
+            }
+          } catch (err) {
+            console.error(`Error fetching messages for chat ${chat.id}:`, err)
+          }
+        }
+      } catch (err) {
+        console.error('Error loading supabase client:', err)
+      }
+    }
+
+    if (projectChats.length > 0 && !isLoadingChats) {
+      fetchLastMessages()
+    }
+  }, [projectChats.length, isLoadingChats])
 
   // Load vehicle data on component mount
   React.useEffect(() => {
@@ -133,25 +177,63 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   }, [projectId])
 
   const handleStartChat = async () => {
+    console.log('[ProjectSpace] handleStartChat called', {
+      chatInput: chatInput.trim(),
+      hasProfile: !!profile,
+      profile: profile,
+      projectId
+    })
+
     if (!chatInput.trim() || !profile) {
+      console.log('[ProjectSpace] Early return - missing input or profile')
       return
     }
 
     const userMessage = chatInput.trim()
     setChatInput("") // Clear input immediately for better UX
+    setIsSendingMessage(true) // Show loading state
+
+    const chatParams = {
+      title: userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''),
+      user_id: profile.user_id,
+      workspace_id: projectId,
+      ai_model: selectedModel
+    }
+
+    console.log('[ProjectSpace] Creating chat with params:', chatParams)
 
     try {
       // Create chat with temporary title
-      const newChat = await createChat({
-        title: userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''),
-        user_id: profile.user_id,
-        workspace_id: projectId,
-        ai_model: "gpt-5.1-chat-latest"
-      })
+      let newChat
+      try {
+        console.log('[ProjectSpace] About to call createChat...')
+
+        // Add timeout to catch hanging requests
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('createChat timeout after 5s')), 5000)
+        )
+
+        newChat = await Promise.race([
+          createChat(chatParams),
+          timeoutPromise
+        ]) as any
+
+        console.log('[ProjectSpace] Chat created successfully:', newChat)
+      } catch (createError) {
+        console.error('[ProjectSpace] createChat threw error:', createError)
+        alert(`Error creating chat: ${createError}`)
+        throw createError
+      }
+
+      if (!newChat) {
+        console.error('[ProjectSpace] createChat returned null/undefined')
+        return
+      }
 
       setChats(prevChats => [...prevChats, newChat])
       setSelectedChat(newChat)
 
+      console.log('[ProjectSpace] Sending message to GPT-5.1...')
       // Send first message to GPT-5.1 and get response
       const messageResponse = await fetch('/api/chat/messages', {
         method: 'POST',
@@ -170,13 +252,28 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       })
 
       if (!messageResponse.ok) {
-        console.error('Failed to send message')
+        const errorText = await messageResponse.text()
+        console.error('[ProjectSpace] Failed to send message:', errorText)
         router.push(`/c/${newChat.id}`)
         return
       }
 
-      const { assistantMessage } = await messageResponse.json()
+      const messageData = await messageResponse.json()
+      console.log('[ProjectSpace] Got GPT response:', messageData)
+      const { assistantMessage, sceneEvents } = messageData
 
+      // Execute scene events if any were returned
+      if (sceneEvents && sceneEvents.length > 0) {
+        console.log('[ProjectSpace] Executing scene events:', sceneEvents)
+        // Queue all events and execute them
+        queueSceneEvents(sceneEvents)
+        // Execute the first event immediately
+        if (sceneEvents[0]) {
+          executeSceneEvent(sceneEvents[0])
+        }
+      }
+
+      console.log('[ProjectSpace] Generating title...')
       // Generate contextual title based on conversation
       const titleResponse = await fetch('/api/chat/generate-title', {
         method: 'POST',
@@ -191,6 +288,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       if (titleResponse.ok) {
         const { title } = await titleResponse.json()
+        console.log('[ProjectSpace] Generated title:', title)
 
         // Update chat title
         await updateChat(newChat.id, { title })
@@ -201,15 +299,20 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         )
       }
 
+      console.log('[ProjectSpace] Navigating to chat:', newChat.id)
       // Navigate to chat
       router.push(`/c/${newChat.id}`)
     } catch (error) {
-      console.error('Error creating chat:', error)
+      console.error('[ProjectSpace] Error creating chat:', error)
+    } finally {
+      setIsSendingMessage(false) // Clear loading state
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    console.log('[ProjectSpace] Key pressed:', e.key)
     if (e.key === 'Enter') {
+      console.log('[ProjectSpace] Enter key detected, calling handleStartChat')
       handleStartChat()
     }
   }
@@ -314,34 +417,17 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   }
 
   return (
-    <motion.div 
-      className="flex h-full"
+    <motion.div
+      className="flex h-full overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
       <motion.div
-        className="flex-1 flex flex-col h-full app-bg-primary app-text-primary relative"
-        animate={{
-          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px'
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="flex-1 flex flex-col h-full app-bg-primary app-text-primary relative min-w-0"
       >
-      {/* Top Bar with Model Selection - Floating above scene */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Select defaultValue="gpt-5.1">
-            <SelectTrigger className="w-[140px] bg-transparent border-none app-text-primary app-body-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gpt-5.1">GPT-5.1</SelectItem>
-              <SelectItem value="gpt-5">GPT-5</SelectItem>
-              <SelectItem value="gpt-4">GPT-4</SelectItem>
-              <SelectItem value="claude35">Claude 3.5</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Top Bar - Floating above scene */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end p-4">
         <div className="flex items-center gap-1">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -426,8 +512,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       </div>
 
       {/* 3D Scene - Full height */}
-      <div className="h-80 relative overflow-hidden">
-        <ThreeScene />
+      <div className="px-6 pt-6 pb-4">
+        <div
+          className="h-[448px] relative overflow-hidden rounded-lg"
+          style={{
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.4)'
+          }}
+        >
+          <ThreeScene />
+        </div>
       </div>
 
       {/* Main Content Container - Centered */}
@@ -436,7 +529,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         {/* Project Header */}
         <div className="w-full flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <IconFolder className="w-6 h-6 app-text-muted" />
+            <IconBuildingWarehouse className="w-6 h-6 app-text-muted" />
             <h1 className="app-h2">{projectName}</h1>
             {isLoadingVehicle ? (
               <div className="flex items-center gap-2 px-2 py-1">
@@ -484,7 +577,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         >
           <div className="relative">
             <motion.div
-              className="flex items-center gap-3 rounded-full p-4"
+              className="flex items-center gap-3 rounded-lg p-4"
               style={{
                 backgroundColor: 'var(--app-bg-hover)',
                 border: '1px solid var(--app-border)'
@@ -498,7 +591,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 onClick={handleStartChat}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-1 rounded-md app-text-muted hover:app-text-secondary transition-colors"
+                className="p-1 rounded-lg app-text-muted hover:app-text-secondary transition-colors"
                 style={{ backgroundColor: 'transparent' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -535,6 +628,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           ) : (
             <ScrollArea className="h-full project-chat-scroll">
               <div className="divide-y pr-4" style={{ borderColor: 'var(--app-border)' }}>
+                {isSendingMessage && <ProjectChatSkeleton />}
                 {isLoadingChats ? (
                   // Show skeleton loading states
                   Array.from({ length: 4 }).map((_, index) => (
@@ -566,8 +660,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                         <div className="flex-1 min-w-0">
                           <div className="app-caption app-fw-medium mb-1 app-text-primary truncate">{chat.title}</div>
                           <div className="app-body-sm app-text-muted line-clamp-2 leading-relaxed">
-                            {/* Show latest message or placeholder */}
-                            New conversation
+                            {/* Show last message (last 100 chars) or placeholder */}
+                            {chatLastMessages[chat.id]
+                              ? chatLastMessages[chat.id].substring(0, 100) + (chatLastMessages[chat.id].length > 100 ? '...' : '')
+                              : 'New conversation'}
                           </div>
                         </div>
                         <span className="app-caption app-text-muted ml-4 shrink-0">

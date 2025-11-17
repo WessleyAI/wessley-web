@@ -154,6 +154,29 @@
     }
   },
   "harnesses": {
+    "harness_battery": {
+      "path": [
+        [
+          1.8,
+          -0.4,
+          0.5
+        ],
+        [
+          1.7,
+          -0.3,
+          0.55
+        ],
+        [
+          1.6,
+          0,
+          0.6
+        ]
+      ],
+      "thickness": 0.03,
+      "bundleCount": 20,
+      "region": "engine_bay_left",
+      "connects_to": ["harness_engine", "harness_dash"]
+    },
     "harness_engine": {
       "path": [
         [
@@ -163,12 +186,12 @@
         ],
         [
           1.2,
-          -0.2,
+          -0.1,
           0.7
         ],
         [
           0.9,
-          -0.2,
+          -0.15,
           0.8
         ],
         [
@@ -194,8 +217,8 @@
         ],
         [
           0.3,
-          0.3,
-          0.9
+          0.2,
+          0.95
         ],
         [
           0.2,
@@ -205,6 +228,76 @@
       ],
       "thickness": 0.02,
       "bundleCount": 32
+    },
+    "harness_Ldoor": {
+      "path": [
+        [
+          0.4,
+          0,
+          0.9
+        ],
+        [
+          0.4,
+          -0.5,
+          0.85
+        ],
+        [
+          0.5,
+          -0.85,
+          0.8
+        ]
+      ],
+      "thickness": 0.012,
+      "bundleCount": 12
+    },
+    "harness_Rdoor": {
+      "path": [
+        [
+          0.4,
+          0,
+          0.9
+        ],
+        [
+          0.4,
+          0.5,
+          0.85
+        ],
+        [
+          0.5,
+          0.85,
+          0.8
+        ]
+      ],
+      "thickness": 0.012,
+      "bundleCount": 12
+    },
+    "harness_roof": {
+      "path": [
+        [
+          0.3,
+          0.2,
+          0.95
+        ],
+        [
+          0,
+          0,
+          1.6
+        ],
+        [
+          -0.5,
+          0,
+          1.65
+        ],
+        [
+          -1.2,
+          0,
+          1.5
+        ]
+      ],
+      "thickness": 0.01,
+      "bundleCount": 15,
+      "region": "roof_interior",
+      "connects_to": ["harness_tailgate", "harness_dash"]
     },
     "harness_floor": {
       "path": [
@@ -232,47 +325,51 @@
       "thickness": 0.018,
       "bundleCount": 28
     },
-    "harness_Ldoor": {
+    "harness_trans": {
       "path": [
         [
-          0.4,
-          -0.7,
-          0.9
-        ],
-        [
-          0.5,
-          -0.8,
+          0.9,
+          -0.15,
           0.8
         ],
         [
-          0.6,
-          -0.85,
-          0.7
+          0.5,
+          0,
+          0.5
+        ],
+        [
+          0,
+          0,
+          0.4
         ]
       ],
       "thickness": 0.012,
-      "bundleCount": 12
+      "bundleCount": 14,
+      "region": "gearbox_region",
+      "connects_to": ["harness_floor", "harness_engine"]
     },
-    "harness_Rdoor": {
+    "harness_fuel": {
       "path": [
         [
-          0.4,
-          0.7,
-          0.9
+          -1.5,
+          0,
+          0.15
         ],
         [
-          0.5,
-          0.8,
-          0.8
+          -1.2,
+          0,
+          0.2
         ],
         [
-          0.6,
-          0.85,
-          0.7
+          -0.5,
+          0,
+          0.3
         ]
       ],
-      "thickness": 0.012,
-      "bundleCount": 12
+      "thickness": 0.008,
+      "bundleCount": 8,
+      "region": "rear_floor_fuel_tank_area",
+      "connects_to": ["harness_floor"]
     },
     "harness_tailgate": {
       "path": [
@@ -282,18 +379,62 @@
           0.4
         ],
         [
-          -1.6,
+          -1.5,
           0,
-          0.5
+          0.6
         ],
         [
           -1.9,
           0,
-          0.7
+          0.8
         ]
       ],
       "thickness": 0.015,
-      "bundleCount": 18
+      "bundleCount": 18,
+      "region": "rear_hatch",
+      "connects_to": ["harness_roof", "harness_floor"]
+    }
+  },
+  "harness_connectivity": {
+    "harness_engine": {
+      "region": "engine_bay_front",
+      "connects_to": ["harness_battery", "harness_dash", "harness_trans"]
+    },
+    "harness_battery": {
+      "region": "engine_bay_left",
+      "connects_to": ["harness_engine", "harness_dash"]
+    },
+    "harness_dash": {
+      "region": "cabin_front",
+      "connects_to": ["harness_roof", "harness_floor", "harness_Ldoor", "harness_Rdoor", "harness_engine", "harness_battery"]
+    },
+    "harness_roof": {
+      "region": "roof_interior",
+      "connects_to": ["harness_tailgate", "harness_fuel", "harness_dash"]
+    },
+    "harness_fuel": {
+      "region": "rear_floor_fuel_tank_area",
+      "connects_to": ["harness_floor", "harness_roof"]
+    },
+    "harness_floor": {
+      "region": "cabin_floor_rear",
+      "connects_to": ["harness_tailgate", "harness_trans", "harness_dash", "harness_fuel"]
+    },
+    "harness_trans": {
+      "region": "gearbox_region",
+      "connects_to": ["harness_floor", "harness_engine"]
+    },
+    "harness_Ldoor": {
+      "region": "doors_front_left",
+      "connects_to": ["harness_dash"]
+    },
+    "harness_Rdoor": {
+      "region": "doors_front_right",
+      "connects_to": ["harness_dash"]
+    },
+    "harness_tailgate": {
+      "region": "rear_hatch",
+      "connects_to": ["harness_roof", "harness_floor"]
     }
   },
   "materials": {

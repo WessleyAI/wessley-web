@@ -121,7 +121,6 @@ function findShortestPath(
     const node = ndjsonData.nodesById[id]
     if (node && targetTest(id, node)) {
       // Found target! Return the complete path
-      console.log('[PathTracer] Found path with', path.length, 'hops:', path.slice(0, 5), '...')
       return path
     }
 
@@ -177,111 +176,39 @@ export function traceElectricalPath(
   componentId: string,
   ndjsonData: ParsedNDJSON
 ): TracedPaths {
+  console.log('🔍 TRACE:', componentId)
+
   const { forward, backward } = buildAdjacencyList(ndjsonData.edges)
   const bidirectional = mergeAdjacency(forward, backward)
 
-  console.log('[ElectricalPathTracer] Component:', componentId)
+  // Simple BFS: traverse ALL connected nodes via electrical edges
+  const visited = new Set<string>()
+  const queue: string[] = [componentId]
+  const allConnected: string[] = []
 
-  // 1. Find SHORTEST path to ground (usually backward/upstream)
-  const groundPath = findShortestPath(
-    componentId,
-    (id, node) => {
-      const nodeType = node.node_type?.toLowerCase() || ''
-      const canonicalId = node.canonical_id?.toLowerCase() || ''
-      return (
-        nodeType.includes('ground') ||
-        canonicalId.includes('ground') ||
-        canonicalId.includes('gnd')
-      )
-    },
-    bidirectional,
-    ndjsonData,
-    15
-  )
+  while (queue.length > 0) {
+    const currentId = queue.shift()!
 
-  console.log('[ElectricalPathTracer] Ground path:', groundPath.length, 'nodes', groundPath)
+    if (visited.has(currentId)) continue
+    visited.add(currentId)
+    allConnected.push(currentId)
 
-  // 2. Find SHORTEST path to battery/fusebox (can be either direction)
-  let batteryPath = findShortestPath(
-    componentId,
-    (id, node) => {
-      const nodeType = node.node_type?.toLowerCase() || ''
-      const canonicalId = node.canonical_id?.toLowerCase() || ''
-      return (
-        nodeType.includes('battery') ||
-        nodeType.includes('batt') ||
-        canonicalId.includes('battery') ||
-        canonicalId.includes('batt') ||
-        nodeType.includes('fuse_box') ||
-        canonicalId.includes('fusebox')
-      )
-    },
-    bidirectional,
-    ndjsonData,
-    15
-  )
-
-  console.log('[ElectricalPathTracer] Battery/Fusebox path:', batteryPath.length, 'nodes', batteryPath)
-
-  // 3. If we found a fusebox but not battery, continue from fusebox to battery
-  if (batteryPath.length > 0) {
-    const lastNode = ndjsonData.nodesById[batteryPath[batteryPath.length - 1]]
-    const lastNodeType = lastNode?.node_type?.toLowerCase() || ''
-
-    if (lastNodeType.includes('fuse') && !lastNodeType.includes('batt')) {
-      console.log('[ElectricalPathTracer] Found fusebox, continuing to battery...')
-      const fuseboxToBattery = findShortestPath(
-        batteryPath[batteryPath.length - 1],
-        (id, node) => {
-          const nodeType = node.node_type?.toLowerCase() || ''
-          const canonicalId = node.canonical_id?.toLowerCase() || ''
-          return (
-            nodeType.includes('battery') ||
-            nodeType.includes('batt') ||
-            canonicalId.includes('battery') ||
-            canonicalId.includes('batt')
-          )
-        },
-        bidirectional,
-        ndjsonData,
-        10
-      )
-      console.log('[ElectricalPathTracer] Fusebox to battery:', fuseboxToBattery.length, 'nodes')
-
-      // Merge paths: remove duplicate fusebox node at connection point
-      if (fuseboxToBattery.length > 1) {
-        batteryPath = [...batteryPath, ...fuseboxToBattery.slice(1)]
+    // Get all neighbors (bidirectional)
+    const neighbors = bidirectional.get(currentId) || []
+    for (const neighborId of neighbors) {
+      if (!visited.has(neighborId)) {
+        queue.push(neighborId)
       }
     }
   }
 
-  // Build complete circuit: ground path + component + battery path (reversed if needed)
-  const completeCircuit: string[] = []
-
-  // Add ground path (component is at start)
-  if (groundPath.length > 0) {
-    completeCircuit.push(...groundPath)
-  }
-
-  // Add battery path (component is at start, so reverse it to go component->battery)
-  if (batteryPath.length > 1) {
-    // Skip first element since it's the component (already in ground path)
-    completeCircuit.push(...batteryPath.slice(1))
-  }
-
-  // Collect all unique highlighted IDs
-  const allHighlighted = Array.from(new Set([...groundPath, ...batteryPath]))
-
-  console.log('[ElectricalPathTracer] Total highlighted:', allHighlighted.length, 'nodes')
-  console.log('[ElectricalPathTracer] Complete circuit:', completeCircuit.length, 'nodes')
-  console.log('[ElectricalPathTracer] Has ground path:', groundPath.length > 0)
-  console.log('[ElectricalPathTracer] Has battery path:', batteryPath.length > 0)
+  console.log('   💚 CONNECTED:', allConnected.length, 'nodes')
 
   return {
-    allHighlighted,
-    groundPath,
-    batteryPath,
-    completeCircuit
+    allHighlighted: allConnected,
+    groundPath: allConnected, // Use all connected as path for wire generation
+    batteryPath: [],
+    completeCircuit: allConnected
   }
 }
 
@@ -294,12 +221,14 @@ export function getPathSummary(highlightedIds: string[], ndjsonData: ParsedNDJSO
   fuseCount: number
   relayCount: number
   connectorCount: number
+  harnesses: string[]
 } {
   let hasGround = false
   let hasBattery = false
   let fuseCount = 0
   let relayCount = 0
   let connectorCount = 0
+  const harnesses: string[] = []
 
   for (const id of highlightedIds) {
     const node = ndjsonData.nodesById[id]
@@ -312,7 +241,12 @@ export function getPathSummary(highlightedIds: string[], ndjsonData: ParsedNDJSO
     if (nodeType.includes('fuse')) fuseCount++
     if (nodeType.includes('relay')) relayCount++
     if (nodeType.includes('connector')) connectorCount++
+
+    // Extract harness IDs
+    if (id.startsWith('harness_')) {
+      harnesses.push(id)
+    }
   }
 
-  return { hasGround, hasBattery, fuseCount, relayCount, connectorCount }
+  return { hasGround, hasBattery, fuseCount, relayCount, connectorCount, harnesses }
 }

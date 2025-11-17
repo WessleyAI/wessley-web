@@ -15,7 +15,7 @@ const TYPE_COLORS: Record<string, string> = {
 }
 
 export const ComponentList: FC = () => {
-  const { components, selectedComponentId, setSelectedComponent, focusOnComponent } = useModelStore()
+  const { components, selectedComponentId, highlightedComponentIds, setSelectedComponent, focusOnComponent } = useModelStore()
   const [searchQuery, setSearchQuery] = useState('')
 
   const filteredComponents = useMemo(() => {
@@ -53,29 +53,52 @@ export const ComponentList: FC = () => {
 
       {/* Component list */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {filteredComponents.map((component) => (
-          <div
-            key={component.id}
-            className={`p-2 rounded cursor-pointer hover:bg-accent/50 transition-colors ${
-              selectedComponentId === component.id ? 'bg-accent text-accent-foreground' : ''
-            }`}
-            onClick={() => focusOnComponent(component.id)}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs truncate font-medium" title={component.name}>
-                {component.name}
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${TYPE_COLORS[component.type]}`}>
-                {component.type}
-              </span>
-            </div>
-            {component.position && (
-              <div className="text-[10px] text-muted-foreground mt-1">
-                Position: ({component.position[0].toFixed(2)}, {component.position[1].toFixed(2)}, {component.position[2].toFixed(2)})
+        {filteredComponents.map((component) => {
+          const isSelected = selectedComponentId === component.id
+          const isHighlighted = highlightedComponentIds.includes(component.id)
+
+          return (
+            <div
+              key={component.id}
+              className="p-2 rounded-lg cursor-pointer transition-colors"
+              style={{
+                backgroundColor: isSelected
+                  ? 'var(--app-accent)'
+                  : isHighlighted
+                    ? 'rgba(139, 225, 150, 0.2)'
+                    : 'transparent',
+                color: isSelected ? '#000000' : 'var(--app-text-primary)',
+                border: isHighlighted && !isSelected ? '1px solid var(--app-accent)' : '1px solid transparent',
+                boxShadow: isSelected ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected && !isHighlighted) {
+                  e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected && !isHighlighted) {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                }
+              }}
+              onClick={() => focusOnComponent(component.id)}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs truncate font-medium" title={component.name}>
+                  {component.name}
+                </span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${TYPE_COLORS[component.type]}`}>
+                  {component.type}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+              {component.position && (
+                <div className="text-[10px] mt-1" style={{ color: isSelected ? '#00000080' : 'var(--app-text-muted)' }}>
+                  Position: ({component.position[0].toFixed(2)}, {component.position[1].toFixed(2)}, {component.position[2].toFixed(2)})
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* Results count */}

@@ -66,8 +66,7 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
         className
       )}
       style={{
-        backgroundColor: 'var(--app-bg-secondary)',
-        borderLeft: '1px solid var(--app-border)'
+        backgroundColor: 'var(--app-bg-secondary)'
       }}
     >
       {/* Header */}
@@ -75,7 +74,7 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
         "flex items-center p-4",
         isMinimized ? "justify-center" : "justify-between"
       )}>
-        {!isMinimized && <h2 className="app-h6 app-text-primary">Scene Controls</h2>}
+        {!isMinimized && <h2 className="app-h6 app-text-primary">Vehicle Explorer</h2>}
         <div className="flex items-center gap-1">
           {onToggleMinimized && (
             <Button
@@ -108,11 +107,12 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
                   size="sm"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-200"
+                    "h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-500"
                   )}
                   style={{
-                    color: activeTab === tab.id ? 'var(--app-text-primary)' : 'var(--app-text-secondary)',
-                    backgroundColor: activeTab === tab.id ? 'var(--app-bg-hover)' : 'transparent'
+                    color: activeTab === tab.id ? '#000000' : 'var(--app-text-secondary)',
+                    backgroundColor: activeTab === tab.id ? 'var(--app-accent)' : 'transparent',
+                    boxShadow: activeTab === tab.id ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (activeTab !== tab.id) {
@@ -136,18 +136,18 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
         </div>
       ) : (
         /* Expanded: Horizontal tabs */
-        <div className="flex" style={{ borderBottom: '1px solid var(--app-border)' }}>
+        <div className="flex gap-2 p-2">
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex-1 flex flex-col items-center gap-1 p-3 app-caption app-fw-medium transition-colors"
+                className="flex-1 flex flex-col items-center gap-1 p-3 app-caption app-fw-medium transition-all duration-500 rounded-lg"
                 style={{
-                  color: activeTab === tab.id ? 'var(--app-accent)' : 'var(--app-text-secondary)',
-                  backgroundColor: activeTab === tab.id ? 'var(--app-accent-subtle)' : 'transparent',
-                  borderBottom: activeTab === tab.id ? '2px solid var(--app-accent)' : 'none'
+                  color: activeTab === tab.id ? '#000000' : 'var(--app-text-secondary)',
+                  backgroundColor: activeTab === tab.id ? 'var(--app-accent)' : 'transparent',
+                  boxShadow: activeTab === tab.id ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : 'none'
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab.id) {
@@ -183,7 +183,7 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
 
       {/* Footer */}
       {!isMinimized && (
-        <div className="p-4" style={{ borderTop: '1px solid var(--app-border)' }}>
+        <div className="p-4">
           <Button
             variant="ghost"
             size="sm"
@@ -198,7 +198,7 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
             }}
           >
             <IconSettings size={16} className="mr-3" />
-            Scene Settings
+            View Settings
           </Button>
         </div>
       )}

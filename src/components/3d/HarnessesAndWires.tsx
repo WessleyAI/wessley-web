@@ -19,12 +19,16 @@ interface SceneConfig {
 
 // Harness materials based on location
 const HARNESS_MATERIALS: Record<string, string> = {
-  engine: '#FF4500',    // Orange
-  dash: '#4169E1',      // Royal Blue
-  floor: '#32CD32',     // Lime Green
-  door_left: '#FFD700', // Gold
-  door_right: '#FFD700', // Gold
-  tailgate: '#FF6347'   // Tomato
+  engine: '#FF4500',    // Orange - Engine bay
+  battery: '#DC143C',   // Crimson - Battery harness
+  dash: '#4169E1',      // Royal Blue - Dashboard
+  floor: '#32CD32',     // Lime Green - Floor/body
+  door_left: '#FFD700', // Gold - Left door
+  door_right: '#FFD700', // Gold - Right door
+  tailgate: '#FF6347',  // Tomato - Tailgate
+  roof: '#9370DB',      // Medium Purple - Roof
+  fuel: '#FF1493',      // Deep Pink - Fuel tank
+  trans: '#8B4513'      // Saddle Brown - Transmission
 }
 
 export function HarnessesAndWires() {
@@ -41,10 +45,9 @@ export function HarnessesAndWires() {
         if (response.ok) {
           const config = await response.json()
           setSceneConfig(config)
-          console.log('[HarnessesAndWires] Scene config loaded:', config)
         }
       } catch (error) {
-        console.error('[HarnessesAndWires] Failed to load scene config:', error)
+        console.error('❌ Failed to load scene config:', error)
       }
     }
     loadConfig()
@@ -66,129 +69,72 @@ export function HarnessesAndWires() {
       if (path && path.length > 1) {
         const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2]))
         const curve = new THREE.CatmullRomCurve3(points)
-        const geometry = new THREE.TubeGeometry(curve, 64, thickness / 2, 8, false)
+        // Make harnesses THICKER and more visible
+        const geometry = new THREE.TubeGeometry(curve, 64, thickness, 16, false)
 
         // Determine color based on harness ID
-        let color = HARNESS_MATERIALS.engine
-        if (harnessId.includes('dash')) color = HARNESS_MATERIALS.dash
+        let color = HARNESS_MATERIALS.engine // Default
+
+        if (harnessId.includes('battery')) color = HARNESS_MATERIALS.battery
+        else if (harnessId.includes('dash')) color = HARNESS_MATERIALS.dash
         else if (harnessId.includes('floor')) color = HARNESS_MATERIALS.floor
         else if (harnessId.includes('Ldoor')) color = HARNESS_MATERIALS.door_left
         else if (harnessId.includes('Rdoor')) color = HARNESS_MATERIALS.door_right
         else if (harnessId.includes('tailgate')) color = HARNESS_MATERIALS.tailgate
+        else if (harnessId.includes('roof')) color = HARNESS_MATERIALS.roof
+        else if (harnessId.includes('fuel')) color = HARNESS_MATERIALS.fuel
+        else if (harnessId.includes('trans')) color = HARNESS_MATERIALS.trans
+        else if (harnessId.includes('engine')) color = HARNESS_MATERIALS.engine
+
+        console.log('🔌 Harness:', harnessId, 'at', points[0], 'color:', color)
 
         harnessData.push({ id: harnessId, geometry, color })
       }
     }
 
-    console.log('[HarnessesAndWires] Built', harnessData.length, 'harnesses')
+    console.log('✅ Built', harnessData.length, 'harnesses')
     return harnessData
   }, [sceneConfig])
 
-  // Build wire connections from NDJSON edges AND generate missing wires for highlighted path
+  // Build wire connections from NDJSON edges - render ALL electrical connections
   const wires = useMemo(() => {
     if (!ndjsonData?.edges || !ndjsonData?.nodesById) return []
-
-    console.log('[HarnessesAndWires] Rebuilding wires with', highlightedComponentIds.length, 'highlighted components')
-    console.log('[HarnessesAndWires] Highlighted IDs:', highlightedComponentIds.slice(0, 10))
-    console.log('[HarnessesAndWires] Total NDJSON edges:', ndjsonData.edges.length)
 
     const wireData: Array<{
       id: string
       points: [THREE.Vector3, THREE.Vector3]
       color: string
       isHighlighted: boolean
+      thickness?: number
+      opacity?: number
     }> = []
 
     let renderedCount = 0
     let skippedCount = 0
+    let highlightedWireCount = 0
 
-    // 1. Generate wires for ALL highlighted component pairs (comprehensive approach)
-    if (highlightedComponentIds.length > 1) {
-      console.log('[HarnessesAndWires] Generating wires for', highlightedComponentIds.length, 'highlighted components')
+    // Build a set for quick highlight lookup
+    const highlightedSet = new Set(highlightedComponentIds)
 
-      // Build a set for quick lookup
-      const highlightedSet = new Set(highlightedComponentIds)
+    // Render ALL electrical NDJSON edges as visible wires - COMPLETE ELECTRICAL SYSTEM
+    const electricalRelationships = [
+      'pin_to_wire',
+      'wire_to_fuse',
+      'wire_to_relay',
+      'wire_to_ground',
+      'wire_to_splice',
+      'has_pin',
+      'has_connector',
+      'ground_to_plane' // Add ground plane connections for REALISM
+    ]
 
-      // Method A: Generate wires from NDJSON edges where BOTH nodes are highlighted
-      ndjsonData.edges.forEach((edge: any) => {
-        if (highlightedSet.has(edge.source) && highlightedSet.has(edge.target)) {
-          const sourceNode = ndjsonData.nodesById[edge.source]
-          const targetNode = ndjsonData.nodesById[edge.target]
-
-          if (!sourceNode || !targetNode) return
-
-          const sourcePos = sourceNode.anchor_xyz
-          const targetPos = targetNode.anchor_xyz
-
-          if (!sourcePos || !targetPos) return
-
-          const points: [THREE.Vector3, THREE.Vector3] = [
-            new THREE.Vector3(sourcePos[0], sourcePos[1], sourcePos[2]),
-            new THREE.Vector3(targetPos[0], targetPos[1], targetPos[2])
-          ]
-
-          console.log('[HarnessesAndWires] Edge wire:', edge.source, '->', edge.target)
-
-          wireData.push({
-            id: `edge_wire_${edge.source}_${edge.target}`,
-            points,
-            color: '#8BE196',
-            isHighlighted: true
-          })
-
-          renderedCount++
-        }
-      })
-
-      // Method B: Generate direct wires between consecutive nodes in ordered path
-      const orderedPath = (window as any).currentCircuitPath as string[] | undefined
-      if (orderedPath && orderedPath.length > 1) {
-        console.log('[HarnessesAndWires] Also generating path sequence wires for', orderedPath.length, 'nodes')
-
-        for (let i = 0; i < orderedPath.length - 1; i++) {
-          const sourceId = orderedPath[i]
-          const targetId = orderedPath[i + 1]
-
-          const sourceNode = ndjsonData.nodesById[sourceId]
-          const targetNode = ndjsonData.nodesById[targetId]
-
-          if (!sourceNode || !targetNode) continue
-
-          const sourcePos = sourceNode.anchor_xyz
-          const targetPos = targetNode.anchor_xyz
-
-          if (!sourcePos || !targetPos) continue
-
-          const points: [THREE.Vector3, THREE.Vector3] = [
-            new THREE.Vector3(sourcePos[0], sourcePos[1], sourcePos[2]),
-            new THREE.Vector3(targetPos[0], targetPos[1], targetPos[2])
-          ]
-
-          // Check if this wire already exists
-          const wireId = `path_wire_${sourceId}_${targetId}`
-          const edgeWireId = `edge_wire_${sourceId}_${targetId}`
-          const exists = wireData.some(w => w.id === edgeWireId || w.id === wireId)
-
-          if (!exists) {
-            console.log('[HarnessesAndWires] Path wire:', sourceId, '->', targetId, 'distance:', points[0].distanceTo(points[1]).toFixed(3))
-
-            wireData.push({
-              id: wireId,
-              points,
-              color: '#8BE196',
-              isHighlighted: true
-            })
-
-            renderedCount++
-          }
-        }
+    ndjsonData.edges.forEach((edge: any) => {
+      // Skip non-electrical relationships
+      if (!electricalRelationships.includes(edge.relationship)) {
+        skippedCount++
+        return
       }
 
-      console.log('[HarnessesAndWires] Generated total', renderedCount, 'highlighted wires')
-    }
-
-    // 2. Render existing NDJSON edges (if they have positions)
-    ndjsonData.edges.forEach((edge: any) => {
       const sourceNode = ndjsonData.nodesById[edge.source]
       const targetNode = ndjsonData.nodesById[edge.target]
 
@@ -217,70 +163,68 @@ export function HarnessesAndWires() {
         highlightedComponentIds.includes(edge.source) &&
         highlightedComponentIds.includes(edge.target)
 
-      // Debug: Log highlighted wires
-      if (isHighlighted) {
-        console.log('[HarnessesAndWires] Wire highlighted:', edge.source, '->', edge.target)
-      }
-
-      // Determine wire color based on edge properties or relationship
+      // Determine wire color based on relationship and highlight state
+      // REALISTIC WIRE COLORS based on automotive electrical standards
       let color = '#666666' // Default gray
+      let thickness = 0.006 // Default 6mm - MORE VISIBLE
+      let opacity = 0.7 // MUCH MORE VISIBLE by default (was 0.15)
+
       if (isHighlighted) {
         color = '#8BE196' // Accent mint green for highlighted path
-      } else if (edge.wire_color) {
-        color = edge.wire_color
-      } else if (edge.color) {
-        color = edge.color
-      } else if (edge.relationship === 'power') {
-        color = '#FF0000' // Red for power
-      } else if (edge.relationship === 'ground') {
-        color = '#000000' // Black for ground
-      } else if (edge.relationship === 'signal') {
-        color = '#00FF00' // Green for signal
+        thickness = 0.018 // 18mm thick for highlighted - MAXIMUM visibility
+        opacity = 1.0 // Full opacity for highlighted
+      } else if (edge.relationship === 'wire_to_fuse') {
+        color = '#FF0000' // BRIGHT RED for fuse power wires (hot)
+        thickness = 0.010 // 10mm - thick power wire
+        opacity = 0.85
+      } else if (edge.relationship === 'pin_to_wire') {
+        color = '#FFD700' // GOLD for pin connections
+        thickness = 0.005 // 5mm
+        opacity = 0.75
+      } else if (edge.relationship === 'wire_to_ground' || edge.relationship === 'ground_to_plane') {
+        color = '#000000' // BLACK for ground (automotive standard)
+        thickness = 0.009 // 9mm thick ground wire
+        opacity = 0.8
+      } else if (edge.relationship === 'wire_to_relay') {
+        color = '#FF6600' // ORANGE for relay control signals
+        thickness = 0.007 // 7mm
+        opacity = 0.75
+      } else if (edge.relationship === 'has_connector') {
+        color = '#00FF00' // GREEN for component-to-connector
+        thickness = 0.008 // 8mm
+        opacity = 0.7
+      } else if (edge.relationship === 'has_pin') {
+        color = '#00BFFF' // DEEP SKY BLUE for connector-to-pin
+        thickness = 0.004 // 4mm
+        opacity = 0.7
+      } else if (edge.relationship === 'wire_to_splice') {
+        color = '#FFFF00' // YELLOW for splice points
+        thickness = 0.006 // 6mm
+        opacity = 0.75
       }
 
+      // Store opacity for rendering
       wireData.push({
         id: `${edge.source}_${edge.target}_${renderedCount}`,
         points,
         color,
-        isHighlighted
+        isHighlighted,
+        thickness,
+        opacity // Pass opacity through for REALISTIC visibility
       })
 
+      if (isHighlighted) highlightedWireCount++
       renderedCount++
     })
 
-    console.log('[HarnessesAndWires] ===== WIRE SUMMARY =====')
-    console.log('[HarnessesAndWires] Total wires rendered:', renderedCount)
-    console.log('[HarnessesAndWires] Total wires skipped:', skippedCount)
-    const highlightedCount = wireData.filter(w => w.isHighlighted).length
-    console.log('[HarnessesAndWires] Highlighted wires:', highlightedCount)
-    console.log('[HarnessesAndWires] Total wireData array length:', wireData.length)
-    console.log('[HarnessesAndWires] First 3 wires:', wireData.slice(0, 3).map(w => ({
-      id: w.id,
-      highlighted: w.isHighlighted,
-      color: w.color
-    })))
+    if (highlightedComponentIds.length > 0) {
+      console.log('🔌 WIRES:', wireData.length, 'total,', highlightedWireCount, 'highlighted')
+    }
+
     return wireData
   }, [ndjsonData, highlightedComponentIds])
 
-  // Gentle left to right rolling animation (stops when component is selected)
-  useFrame((state) => {
-    if (groupRef.current && !selectedComponentId) {
-      groupRef.current.position.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
-      groupRef.current.rotation.z = state.clock.elapsedTime * 0.1
-    } else if (groupRef.current && selectedComponentId) {
-      // Reset to center when component is selected
-      groupRef.current.position.x = 0
-      groupRef.current.rotation.z = 0
-    }
-
-    // Smoothly apply model rotation from store
-    if (rotationGroupRef.current) {
-      const targetRotation = new THREE.Euler(modelRotation.x, modelRotation.y, modelRotation.z)
-      rotationGroupRef.current.rotation.x += (targetRotation.x - rotationGroupRef.current.rotation.x) * 0.1
-      rotationGroupRef.current.rotation.y += (targetRotation.y - rotationGroupRef.current.rotation.y) * 0.1
-      rotationGroupRef.current.rotation.z += (targetRotation.z - rotationGroupRef.current.rotation.z) * 0.1
-    }
-  })
+  // NO ANIMATIONS - model stays still
 
   if (!sceneConfig && (!ndjsonData || !ndjsonData.edges)) {
     return null
@@ -288,19 +232,24 @@ export function HarnessesAndWires() {
 
   return (
     <group ref={rotationGroupRef} name="harnesses-rotation-pivot">
-      <group ref={groupRef} name="harnesses-and-wires" rotation={[Math.PI / 2, Math.PI, 0]}>
-        {/* Harness bundles */}
+      <group ref={groupRef} name="harnesses-and-wires" rotation={[-Math.PI / 2, 0, 0]}>
+        {/* Harness bundles - thick visible tubes */}
         <group name="harnesses">
           {harnesses.map(harness => (
             <mesh
               key={harness.id}
               geometry={harness.geometry}
               castShadow
+              receiveShadow
             >
-              <meshLambertMaterial
+              <meshStandardMaterial
                 color={harness.color}
-                transparent
-                opacity={0.7}
+                emissive={harness.color}
+                emissiveIntensity={0.05}
+                metalness={0.3}
+                roughness={0.5}
+                opacity={1}
+                transparent={false}
               />
             </mesh>
           ))}
@@ -308,50 +257,25 @@ export function HarnessesAndWires() {
 
         {/* Individual wires - use tubes for thickness */}
         <group name="wires">
-          {wires.map((wire, index) => {
-            // Calculate wire direction and length
-            const start = wire.points[0]
-            const end = wire.points[1]
-            const direction = new THREE.Vector3().subVectors(end, start)
-            const length = direction.length()
+          {wires.map((wire) => {
+            // Use tube geometry for ALL wires (visible electrical system)
+            const curve = new THREE.LineCurve3(wire.points[0], wire.points[1])
+            const radius = wire.thickness || 0.004 // Default 4mm (matches base thickness)
+            const tubeGeometry = new THREE.TubeGeometry(curve, 2, radius, 8, false)
 
-            if (index < 3) {
-              console.log('[HarnessesAndWires] Rendering wire', index, ':', wire.id, 'highlighted:', wire.isHighlighted, 'length:', length.toFixed(3))
-            }
-
-            // Use tube geometry for thick visible wires
-            if (wire.isHighlighted) {
-              const curve = new THREE.LineCurve3(start, end)
-              const tubeGeometry = new THREE.TubeGeometry(curve, 2, 0.015, 8, false) // 15mm thick tube
-
-              if (index < 3) {
-                console.log('[HarnessesAndWires] Creating THICK TUBE for wire', wire.id)
-              }
-
-              return (
-                <mesh key={wire.id} geometry={tubeGeometry} castShadow>
-                  <meshStandardMaterial
-                    color={wire.color}
-                    emissive={wire.color}
-                    emissiveIntensity={0.6}
-                    metalness={0.3}
-                    roughness={0.4}
-                  />
-                </mesh>
-              )
-            } else {
-              // Thin line for non-highlighted wires
-              const lineGeometry = new THREE.BufferGeometry().setFromPoints(wire.points)
-              return (
-                <line key={wire.id} geometry={lineGeometry}>
-                  <lineBasicMaterial
-                    color={wire.color}
-                    opacity={0.4}
-                    transparent
-                  />
-                </line>
-              )
-            }
+            return (
+              <mesh key={wire.id} geometry={tubeGeometry} castShadow receiveShadow>
+                <meshStandardMaterial
+                  color={wire.color}
+                  emissive={wire.isHighlighted ? wire.color : '#000000'}
+                  emissiveIntensity={wire.isHighlighted ? 0.6 : 0}
+                  metalness={wire.isHighlighted ? 0.3 : 0.5}
+                  roughness={wire.isHighlighted ? 0.4 : 0.6}
+                  opacity={wire.isHighlighted ? 1 : 0.15}
+                  transparent={true}
+                />
+              </mesh>
+            )
           })}
         </group>
       </group>

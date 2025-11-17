@@ -87,10 +87,10 @@ export function ChatWelcomeScreen() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full bg-[#2a2a2a] text-white px-6 py-12">
+    <div className="flex flex-col items-center justify-center min-h-full app-bg-tertiary px-6 py-12">
       {/* Title */}
-      <motion.h1 
-        className="text-4xl font-normal mb-12 text-center"
+      <motion.h1
+        className="app-h1 app-text-primary mb-12 text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -99,48 +99,63 @@ export function ChatWelcomeScreen() {
       </motion.h1>
 
       {/* Chat Input */}
-      <motion.div 
+      <motion.div
         className="w-full max-w-2xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="relative">
-          <motion.div 
-            className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-4 border border-gray-600/20"
-            whileHover={{ backgroundColor: "#404040" }}
+          <motion.div
+            className="flex items-center gap-3 rounded-lg p-4"
+            style={{
+              backgroundColor: 'var(--app-bg-tertiary)',
+              border: '1px solid var(--app-border)'
+            }}
+            whileHover={{ backgroundColor: 'var(--app-bg-hover)' }}
             transition={{ duration: 0.2 }}
           >
-            <motion.button 
+            <motion.button
               onClick={handleStartChat}
-              whileHover={{ scale: 1.1 }} 
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="p-1 rounded-md hover:bg-gray-600/50 transition-colors"
+              className="p-1 rounded-lg transition-colors app-text-muted"
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <IconPlus className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+              <IconPlus className="w-5 h-5" />
             </motion.button>
-            
+
             <Input
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
-              className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="flex-1 bg-transparent border-none app-text-primary app-fw-medium focus:ring-0 focus:border-none focus:outline-none text-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+              style={{ caretColor: 'var(--app-accent)' }}
               autoFocus
             />
-            
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="app-text-muted transition-colors"
+            >
+              <IconMicrophone className="w-5 h-5" />
             </motion.button>
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <IconPlayerRecord className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="app-text-muted transition-colors"
+            >
+              <IconPlayerRecord className="w-5 h-5" />
             </motion.button>
           </motion.div>
         </div>
       </motion.div>
       
       {/* Example prompts/suggestions */}
-      <motion.div 
+      <motion.div
         className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl w-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -149,17 +164,27 @@ export function ChatWelcomeScreen() {
         {[
           "Help me plan a project",
           "Explain a concept",
-          "Write some code", 
+          "Write some code",
           "Analyze data"
         ].map((suggestion, index) => (
           <motion.button
             key={index}
             onClick={() => handleSuggestionClick(suggestion)}
-            className="p-4 text-left bg-[#3a3a3a] hover:bg-[#404040] rounded-lg border border-gray-600/20 transition-colors"
+            className="p-4 text-left rounded-lg transition-colors app-body-sm app-text-secondary"
+            style={{
+              backgroundColor: 'var(--app-bg-tertiary)',
+              border: '1px solid var(--app-border)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'
+            }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <span className="text-gray-300">{suggestion}</span>
+            <span>{suggestion}</span>
           </motion.button>
         ))}
       </motion.div>

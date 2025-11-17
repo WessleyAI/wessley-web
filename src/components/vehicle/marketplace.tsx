@@ -248,17 +248,19 @@ export function Marketplace() {
         {/* Buy/Sell Tabs */}
         <div className="flex justify-center">
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'buy' | 'sell')} className="flex-shrink-0">
-            <TabsList className="inline-flex bg-[#1a1a1a] border border-[#808080]/30 p-1.5 gap-3 relative">
+            <TabsList className="inline-flex app-bg-secondary p-1.5 gap-3 relative" style={{ border: '1px solid var(--app-border)' }}>
               <TabsTrigger
                 value="buy"
-                className="data-[state=active]:bg-[#8BE196] data-[state=active]:text-[#000000] data-[state=active]:shadow-[0_0_15px_rgba(139,225,150,0.4),inset_0_0_10px_rgba(139,225,150,0.2)] transition-all duration-500 px-6 py-2 relative z-10 text-white font-['DM_Sans']"
+                className="data-[state=active]:shadow-[0_0_15px_rgba(139,225,150,0.4),inset_0_0_10px_rgba(139,225,150,0.2)] transition-all duration-500 px-6 py-2 relative z-10 app-body-sm app-text-primary"
+                style={{ backgroundColor: activeTab === 'buy' ? 'var(--app-accent)' : 'transparent', color: activeTab === 'buy' ? '#000000' : undefined }}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Buy
               </TabsTrigger>
               <TabsTrigger
                 value="sell"
-                className="data-[state=active]:bg-[#8BE196] data-[state=active]:text-[#000000] data-[state=active]:shadow-[0_0_15px_rgba(139,225,150,0.4),inset_0_0_10px_rgba(139,225,150,0.2)] transition-all duration-500 px-6 py-2 relative z-10 text-white font-['DM_Sans']"
+                className="data-[state=active]:shadow-[0_0_15px_rgba(139,225,150,0.4),inset_0_0_10px_rgba(139,225,150,0.2)] transition-all duration-500 px-6 py-2 relative z-10 app-body-sm app-text-primary"
+                style={{ backgroundColor: activeTab === 'sell' ? 'var(--app-accent)' : 'transparent', color: activeTab === 'sell' ? '#000000' : undefined }}
               >
                 <Package className="w-4 h-4 mr-2" />
                 Sell
@@ -318,22 +320,23 @@ export function Marketplace() {
                 return (
                   <div className="grid lg:grid-cols-[1fr_280px] gap-6">
                     {/* Main Content - Market Demand Table */}
-                    <div className="bg-[#1a1a1a] border border-[#808080]/30 rounded-xl p-6 shadow-xl">
+                    <div className="app-bg-secondary rounded-xl p-6 shadow-xl" style={{ border: '1px solid var(--app-border)' }}>
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <h3 className="text-white mb-1 font-['DM_Sans']">Market Demand Analysis</h3>
-                          <p className="text-xs text-[#C4C4C4]/60 font-['DM_Sans']">AI-powered insights for {selectedCar.year} {selectedCar.make} {selectedCar.model}</p>
+                          <h3 className="app-text-primary mb-1 app-h6">Market Demand Analysis</h3>
+                          <p className="app-caption app-text-muted">AI-powered insights for {selectedCar.year} {selectedCar.make} {selectedCar.model}</p>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#8BE196]/10 border border-[#8BE196]/30 rounded-lg">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--app-accent-subtle)', border: '1px solid var(--app-accent-border)' }}>
                           <motion.div
                             animate={{
                               opacity: [0.5, 1, 0.5],
                               scale: [1, 1.2, 1]
                             }}
                             transition={{ duration: 2, repeat: Infinity }}
-                            className="w-1.5 h-1.5 rounded-full bg-[#8BE196]"
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: 'var(--app-accent)' }}
                           />
-                          <span className="text-[10px] text-[#8BE196] uppercase tracking-wider font-['DM_Sans']">Live Data</span>
+                          <span className="app-caption app-text-accent uppercase tracking-wider">Live Data</span>
                         </div>
                       </div>
                       <MarketDemandTable onListPart={handleListPart} />
@@ -356,12 +359,12 @@ export function Marketplace() {
                         onAddPart={() => setAddPartOpen(true)}
                       />
 
-                      <div className="bg-[#1a1a1a] border border-[#808080]/30 rounded-xl p-6 shadow-xl">
-                        <h3 className="text-white text-sm mb-3 font-['DM_Sans']">Requests ({selectedCar.pendingRequests})</h3>
+                      <div className="app-bg-secondary rounded-xl p-6 shadow-xl" style={{ border: '1px solid var(--app-border)' }}>
+                        <h3 className="app-text-primary app-body-sm mb-3">Requests ({selectedCar.pendingRequests})</h3>
                         <SaleRequestsCard />
                       </div>
-                      <div className="bg-[#1a1a1a] border border-[#808080]/30 rounded-xl p-6 shadow-xl">
-                        <h3 className="text-white text-sm mb-3 font-['DM_Sans']">Performance</h3>
+                      <div className="app-bg-secondary rounded-xl p-6 shadow-xl" style={{ border: '1px solid var(--app-border)' }}>
+                        <h3 className="app-text-primary app-body-sm mb-3">Performance</h3>
                         <SellerPerformanceCard />
                       </div>
                     </div>

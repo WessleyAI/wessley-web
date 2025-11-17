@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { useFrame, ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useModelStore, type VehicleComponent } from '@/stores/model-store'
-import { traceElectricalPath, getPathSummary, type TracedPaths } from '@/lib/electrical-path-tracer'
+import { traceElectricalPath, getPathSummary } from '@/lib/electrical-path-tracer'
 
 interface ComponentMeshProps {
   component: VehicleComponent
@@ -43,68 +43,52 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
   const isSelected = selectedComponentId === component.id
   const isHovered = hoveredComponentId === component.id || hovered
   const isHighlighted = highlightedComponentIds.includes(component.id)
-
-  // Debug: Log when highlighting changes
-  if (isHighlighted && component.id !== selectedComponentId) {
-    console.log('[ComponentMesh] Component highlighted:', component.name, component.id)
-  }
+  const isFaulty = component.faulty === true
 
   // Get bounding box dimensions from specifications
   const bbox = component.specifications?.bbox_m as [number, number, number] | undefined
   const [width, height, depth] = bbox || [0.05, 0.05, 0.025]
 
-  // Determine color based on type and state
-  const baseColor = COMPONENT_COLORS[component.type] || COMPONENT_COLORS.other
-  const emissiveColor = isSelected ? baseColor : isHighlighted ? 0x8BE196 : 0x000000 // Mint green for highlighted
-  const emissiveIntensity = isSelected ? 0.5 : isHighlighted ? 0.4 : isHovered ? 0.2 : 0
+  // Determine color based on type and state - FAULTY components override to RED
+  // Ground points and ground planes ALWAYS BLACK, no glow, no highlight
+  const isGround = component.type === 'ground_point' || component.type === 'ground_plane'
+  const baseColor = isGround ? 0x000000 : (isFaulty ? 0xff0000 : (COMPONENT_COLORS[component.type] || COMPONENT_COLORS.other))
+  const emissiveColor = isGround ? 0x000000 : (isFaulty ? 0xff0000 : (isSelected ? baseColor : isHighlighted ? 0x8BE196 : 0x000000))
+  // Reduced emissive on regular components - only lights should bloom
+  // Ground points and ground planes NEVER glow
+  const emissiveIntensity = isGround ? 0 : (isFaulty ? 0.8 : (isSelected ? 0.15 : isHighlighted ? 0.1 : isHovered ? 0.05 : 0))
 
-  // Pulsing animation for selected component
+  // Pulsing animation for faulty components only
+  const pulseRef = useRef(0)
   useFrame((state) => {
-    if (meshRef.current && isSelected) {
-      const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.1 + 1
-      meshRef.current.scale.setScalar(pulse)
-    } else if (meshRef.current) {
-      meshRef.current.scale.setScalar(1)
+    if (isFaulty && pulseRef.current !== undefined) {
+      pulseRef.current = Math.sin(state.clock.elapsedTime * 3) * 0.5 + 0.5 // Oscillate 0-1
     }
   })
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
-    console.log('[ComponentMesh] ===== CLICKED =====')
-    console.log('[ComponentMesh] Component:', component.name, component.id)
-    console.log('[ComponentMesh] NDJSON Data available?', !!ndjsonData)
 
-    if (ndjsonData) {
-      console.log('[ComponentMesh] NDJSON edges:', ndjsonData.edges?.length)
-      console.log('[ComponentMesh] NDJSON nodes:', Object.keys(ndjsonData.nodesById || {}).length)
-    }
-
-    // Clear previous highlights and circuit path FIRST
-    console.log('[ComponentMesh] Clearing previous highlights...')
+    // Clear previous state
     setHighlightedComponents([])
     ;(window as any).currentCircuitPath = []
 
     setSelectedComponent(component.id)
-    focusOnComponent(component.id)
+    focusOnComponent(component.id) // Snap camera to component
 
-    // Trace and highlight electrical path for NEW component
+    // Trace and highlight electrical path
     if (ndjsonData) {
-      console.log('[ComponentMesh] Starting path trace...')
       const tracedPaths = traceElectricalPath(component.id, ndjsonData)
-      console.log('[ComponentMesh] Traced paths:', tracedPaths)
-      console.log('[ComponentMesh] Setting highlighted components:', tracedPaths.allHighlighted.length, 'components')
-      setHighlightedComponents(tracedPaths.allHighlighted)
-
-      // Store the ordered circuit path for wire generation
-      ;(window as any).currentCircuitPath = tracedPaths.completeCircuit
-
-      // Log path summary
       const summary = getPathSummary(tracedPaths.allHighlighted, ndjsonData)
-      console.log('[ComponentMesh] Path Summary:', summary)
+
+      console.log('🎯 CLICKED:', component.name)
+      console.log('   Connected nodes:', tracedPaths.allHighlighted.length)
+      console.log('   🔌 Harnesses:', summary.harnesses.join(', ') || 'none')
+
+      setHighlightedComponents(tracedPaths.allHighlighted)
+      ;(window as any).currentCircuitPath = tracedPaths.completeCircuit
     } else {
-      console.error('[ComponentMesh] ERROR: No NDJSON data available!')
-      // Still clear if no data
-      setHighlightedComponents([])
+      console.error('❌ NO NDJSON DATA!')
     }
   }
 
@@ -123,93 +107,476 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
 
   if (!component.position) return null
 
-  // Different geometry based on component type (enhanced, matching viewer)
-  let geometry: JSX.Element
-  let hasGroundCone = false
+  // Check component name for specific models
+  const componentName = component.name.toLowerCase()
+  const componentId = component.id.toLowerCase()
 
-  switch (component.type) {
-    case 'fuse':
-      geometry = <cylinderGeometry args={[width / 2, width / 2, depth, 8]} />
-      break
-    case 'relay':
-      geometry = <boxGeometry args={[width, height, depth]} />
-      break
-    case 'bus':
-      geometry = <boxGeometry args={[width, height, depth]} />
-      break
-    case 'ground_point':
-      geometry = <sphereGeometry args={[0.04, 16, 12]} />
-      hasGroundCone = true
-      break
-    case 'ground_plane':
-      geometry = <sphereGeometry args={[0.06, 16, 12]} />
-      hasGroundCone = true
-      break
-    case 'connector':
-      geometry = <boxGeometry args={[width, height, depth]} />
-      break
-    case 'splice':
-      // Dynamic size based on connections (fallback to bbox)
-      geometry = <boxGeometry args={[width, height, depth * 0.5]} />
-      break
-    case 'pin':
-      geometry = <cylinderGeometry args={[0.005, 0.005, 0.015, 6]} />
-      break
-    case 'sensor':
-      geometry = <sphereGeometry args={[Math.min(width, height, depth) / 2, 8, 8]} />
-      break
-    case 'module':
-      geometry = <boxGeometry args={[width, height, depth]} />
-      break
-    default:
-      geometry = <boxGeometry args={[width, height, depth]} />
+  // Different geometry based on component type and name
+  let geometryElements: JSX.Element[] = []
+
+  // SPECIAL COMPONENTS - Realistic 3D models
+  if (componentName.includes('alternator') || componentId.includes('alternator')) {
+    // Alternator - cylindrical body with pulley
+    geometryElements.push(
+      <group key="alternator">
+        <mesh>
+          <cylinderGeometry args={[0.08, 0.08, 0.12, 16]} />
+          <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0.08, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.02, 16]} />
+          <meshStandardMaterial color={0x404040} metalness={0.9} roughness={0.2} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('battery') || componentId.includes('battery')) {
+    // Battery - rectangular with terminals
+    geometryElements.push(
+      <group key="battery">
+        <mesh>
+          <boxGeometry args={[0.25, 0.18, 0.2]} />
+          <meshStandardMaterial color={0x1a1a1a} metalness={0.2} roughness={0.8} />
+        </mesh>
+        <mesh position={[-0.08, 0.12, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.03, 8]} />
+          <meshStandardMaterial color={0xff0000} metalness={0.6} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.08, 0.12, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.03, 8]} />
+          <meshStandardMaterial color={0x000000} metalness={0.6} roughness={0.4} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('lamp') || componentName.includes('light') || componentId.includes('lamp')) {
+    // Determine light type and color based on actual component naming
+    const isHeadlight = componentName.includes('headlamp') || componentName.includes('head lamp') || componentId.includes('headlamp')
+    const isFogLight = componentName.includes('fog') || componentId.includes('fog')
+    const isTaillight = componentName.includes('tail') || componentName.includes('rear combination') || componentId.includes('tail')
+    const isStopLight = componentName.includes('stop') || componentId.includes('stop')
+    const isTurnSignal = componentName.includes('turn') || componentName.includes('signal') || componentName.includes('indicator')
+    const isParking = componentName.includes('park') || componentName.includes('position')
+    const isInterior = componentName.includes('courtesy') || componentName.includes('room') || componentName.includes('cargo') || componentName.includes('luggage') || componentName.includes('glove')
+
+    // Color selection based on light type
+    const lightColor = isStopLight ? 0xff0000 :         // Bright red for stop/brake
+                      isTaillight ? 0xff3333 :          // Red for tail
+                      isTurnSignal ? 0xffaa00 :         // Amber for turn signals
+                      isParking ? 0xff8800 :            // Orange for parking
+                      isFogLight ? 0xffffaa :           // Warm yellow for fog
+                      isInterior ? 0xffffdd :           // Warm white for interior
+                      0xffffff                          // Pure white for headlights
+
+    const lightIntensity = isHeadlight ? 3.0 :          // Bright headlights
+                          isFogLight ? 2.5 :            // Bright fog lights
+                          isStopLight ? 2.0 :           // Stop lights
+                          isTaillight ? 1.5 :           // Tail lights
+                          isInterior ? 0.8 :            // Interior lighting
+                          1.0
+
+    const lightDistance = isHeadlight ? 5.0 :           // Far-reaching headlights
+                         isFogLight ? 4.0 :             // Wide fog coverage
+                         isStopLight ? 3.0 :            // Visible stop lights
+                         isTaillight ? 2.5 :            // Tail lights
+                         1.2                            // Interior/small lights
+
+    // Determine rotation based on light position
+    const isLeftSide = componentName.includes('left') || componentId.includes('_l')
+    const isRightSide = componentName.includes('right') || componentId.includes('_r')
+    const isFront = isHeadlight || isFogLight
+    const isRear = isTaillight || isStopLight
+
+    // Calculate rotation to face correct direction
+    // After parent rotation, need Z rotation to control forward/backward
+    let rotationZ = 0
+    if (isFront) {
+      // Front lights point FORWARD (+X direction)
+      rotationZ = -Math.PI / 2  // -90 degrees
+      if (isLeftSide) rotationZ = -Math.PI / 2 - Math.PI / 12  // Slightly left
+      if (isRightSide) rotationZ = -Math.PI / 2 + Math.PI / 12 // Slightly right
+    } else if (isRear) {
+      // Rear lights point BACKWARD (-X direction)
+      rotationZ = Math.PI / 2  // +90 degrees
+      if (isLeftSide) rotationZ = Math.PI / 2 + Math.PI / 12  // Slightly left
+      if (isRightSide) rotationZ = Math.PI / 2 - Math.PI / 12 // Slightly right
+    }
+
+    // Lamp/Light - cone with lens and actual point light
+    geometryElements.push(
+      <group key="lamp" rotation={[0, 0, rotationZ]}>
+        {/* Light housing */}
+        <mesh>
+          <cylinderGeometry args={[0.04, 0.05, 0.06, 12]} />
+          <meshStandardMaterial color={0xcccccc} metalness={0.3} roughness={0.4} />
+        </mesh>
+
+        {/* Glowing lens */}
+        <mesh position={[0, 0.035, 0]}>
+          <cylinderGeometry args={[0.045, 0.045, 0.01, 12]} />
+          <meshStandardMaterial
+            color={lightColor}
+            transparent
+            opacity={0.98}
+            emissive={lightColor}
+            emissiveIntensity={10.0}
+          />
+        </mesh>
+
+        {/* Point light emanating from bulb */}
+        <pointLight
+          position={[0, 0.04, 0]}
+          color={lightColor}
+          intensity={lightIntensity}
+          distance={lightDistance}
+          decay={2}
+          castShadow={false}
+        />
+
+        {/* Light glow sphere - brighter and more visible */}
+        <mesh position={[0, 0.04, 0]}>
+          <sphereGeometry args={[0.03, 8, 8]} />
+          <meshBasicMaterial
+            color={lightColor}
+            transparent
+            opacity={0.95}
+          />
+        </mesh>
+
+        {/* Additional outer glow for visibility */}
+        <mesh position={[0, 0.04, 0]}>
+          <sphereGeometry args={[0.06, 8, 8]} />
+          <meshBasicMaterial
+            color={lightColor}
+            transparent
+            opacity={0.6}
+          />
+        </mesh>
+
+        {/* Extra wide glow halo */}
+        <mesh position={[0, 0.04, 0]}>
+          <sphereGeometry args={[0.1, 8, 8]} />
+          <meshBasicMaterial
+            color={lightColor}
+            transparent
+            opacity={0.25}
+          />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('pump') || componentId.includes('pump')) {
+    // Pump - cylindrical with inlet/outlet
+    geometryElements.push(
+      <group key="pump">
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.12, 12]} />
+          <meshStandardMaterial color={0x4a4a4a} metalness={0.7} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.03, 8]} />
+          <meshStandardMaterial color={0x2a2a2a} metalness={0.5} roughness={0.5} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('radiator') || componentId.includes('radiator')) {
+    // Radiator - flat rectangular with fins
+    geometryElements.push(
+      <group key="radiator">
+        <mesh>
+          <boxGeometry args={[0.4, 0.3, 0.05]} />
+          <meshStandardMaterial color={0x606060} metalness={0.6} roughness={0.4} />
+        </mesh>
+        {/* Fins */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <mesh key={i} position={[-0.15 + i * 0.04, 0, 0.03]}>
+            <boxGeometry args={[0.005, 0.28, 0.01]} />
+            <meshStandardMaterial color={0x404040} metalness={0.8} roughness={0.3} />
+          </mesh>
+        ))}
+      </group>
+    )
+  } else if (componentName.includes('starter') || componentId.includes('starter')) {
+    // Starter motor - cylindrical
+    geometryElements.push(
+      <group key="starter">
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.06, 0.06, 0.15, 16]} />
+          <meshStandardMaterial color={0x505050} metalness={0.7} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.09, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.05, 12]} />
+          <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('compressor') || componentId.includes('compressor')) {
+    // A/C Compressor - cylindrical with pulley
+    geometryElements.push(
+      <group key="compressor">
+        <mesh>
+          <cylinderGeometry args={[0.09, 0.09, 0.14, 16]} />
+          <meshStandardMaterial color={0x606060} metalness={0.7} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0.09, 0]}>
+          <cylinderGeometry args={[0.06, 0.06, 0.03, 16]} />
+          <meshStandardMaterial color={0x404040} metalness={0.9} roughness={0.2} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('injector') || componentId.includes('injector')) {
+    // Fuel Injector - cylindrical with nozzle
+    geometryElements.push(
+      <group key="injector">
+        <mesh>
+          <cylinderGeometry args={[0.02, 0.02, 0.08, 12]} />
+          <meshStandardMaterial color={0x4a4a4a} metalness={0.7} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, -0.05, 0]}>
+          <cylinderGeometry args={[0.015, 0.008, 0.03, 12]} />
+          <meshStandardMaterial color={0x2a2a2a} metalness={0.8} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.05, 0]}>
+          <cylinderGeometry args={[0.025, 0.025, 0.02, 12]} />
+          <meshStandardMaterial color={0x1a1a1a} metalness={0.5} roughness={0.4} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('coil') || componentId.includes('coil')) {
+    // Ignition Coil - cylindrical with connector on top
+    geometryElements.push(
+      <group key="coil">
+        <mesh>
+          <cylinderGeometry args={[0.035, 0.035, 0.12, 16]} />
+          <meshStandardMaterial color={0x2a2a2a} metalness={0.3} roughness={0.6} />
+        </mesh>
+        <mesh position={[0, 0.07, 0]}>
+          <boxGeometry args={[0.04, 0.02, 0.04]} />
+          <meshStandardMaterial color={0x1a1a1a} metalness={0.4} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, -0.07, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 0.02, 8]} />
+          <meshStandardMaterial color={0xc0c0c0} metalness={0.9} roughness={0.2} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('solenoid') || componentId.includes('solenoid')) {
+    // Solenoid - cylindrical with coil appearance
+    geometryElements.push(
+      <group key="solenoid">
+        <mesh>
+          <cylinderGeometry args={[0.03, 0.03, 0.06, 16]} />
+          <meshStandardMaterial color={0x5a5a5a} metalness={0.6} roughness={0.4} />
+        </mesh>
+        {/* Coil winding lines */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <mesh key={i} position={[0, -0.025 + i * 0.012, 0]}>
+            <torusGeometry args={[0.032, 0.002, 8, 16]} />
+            <meshStandardMaterial color={0xb87333} metalness={0.8} roughness={0.3} />
+          </mesh>
+        ))}
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.02, 8]} />
+          <meshStandardMaterial color={0x808080} metalness={0.7} roughness={0.3} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('motor') || componentId.includes('motor')) {
+    // Electric Motor - cylindrical with mounting bracket
+    geometryElements.push(
+      <group key="motor">
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.08, 16]} />
+          <meshStandardMaterial color={0x3a3a3a} metalness={0.6} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.05, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.01, 0.01, 0.02, 8]} />
+          <meshStandardMaterial color={0xc0c0c0} metalness={0.9} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 0.03, 0]}>
+          <boxGeometry args={[0.06, 0.01, 0.04]} />
+          <meshStandardMaterial color={0x2a2a2a} metalness={0.5} roughness={0.5} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('valve') || componentId.includes('valve')) {
+    // Valve - cylindrical body with actuator
+    geometryElements.push(
+      <group key="valve">
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.025, 0.025, 0.06, 12]} />
+          <meshStandardMaterial color={0x5a5a5a} metalness={0.7} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0.04, 0]}>
+          <boxGeometry args={[0.03, 0.04, 0.03]} />
+          <meshStandardMaterial color={0x4a4a4a} metalness={0.6} roughness={0.4} />
+        </mesh>
+        <mesh position={[-0.04, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.012, 0.012, 0.02, 8]} />
+          <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0.04, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.012, 0.012, 0.02, 8]} />
+          <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+        </mesh>
+      </group>
+    )
+  } else if (componentName.includes('ecu') || componentName.includes('control unit') || componentId.includes('ecu')) {
+    // ECU/Control Unit - rectangular box with connector ports
+    geometryElements.push(
+      <group key="ecu">
+        <mesh>
+          <boxGeometry args={[0.15, 0.12, 0.05]} />
+          <meshStandardMaterial color={0x2a2a2a} metalness={0.3} roughness={0.6} />
+        </mesh>
+        {/* Connector ports */}
+        <mesh position={[0, -0.07, 0]}>
+          <boxGeometry args={[0.08, 0.02, 0.04]} />
+          <meshStandardMaterial color={0x1a1a1a} metalness={0.4} roughness={0.5} />
+        </mesh>
+        <mesh position={[0.05, -0.07, 0]}>
+          <boxGeometry args={[0.04, 0.02, 0.04]} />
+          <meshStandardMaterial color={0x1a1a1a} metalness={0.4} roughness={0.5} />
+        </mesh>
+        {/* Heat sink fins */}
+        {Array.from({ length: 4 }).map((_, i) => (
+          <mesh key={i} position={[0, 0.065, -0.02 + i * 0.012]}>
+            <boxGeometry args={[0.13, 0.005, 0.008]} />
+            <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+          </mesh>
+        ))}
+      </group>
+    )
+  } else {
+    // DEFAULT GEOMETRIES based on type
+    switch (component.type) {
+      case 'fuse':
+        geometryElements.push(
+          <cylinderGeometry key="geom" args={[width / 2, width / 2, depth, 8]} />
+        )
+        break
+      case 'relay':
+        geometryElements.push(
+          <group key="relay">
+            <mesh>
+              <boxGeometry args={[width, height, depth]} />
+            </mesh>
+            {/* Relay pins */}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <mesh key={i} position={[
+                -width/3 + (i % 2) * width*2/3,
+                -height/2 - 0.01,
+                -depth/3 + Math.floor(i / 2) * depth*2/3
+              ]}>
+                <cylinderGeometry args={[0.005, 0.005, 0.02, 6]} />
+                <meshStandardMaterial color={0xc0c0c0} metalness={0.9} roughness={0.2} />
+              </mesh>
+            ))}
+          </group>
+        )
+        break
+      case 'bus':
+        geometryElements.push(
+          <boxGeometry key="geom" args={[width * 1.5, height, depth * 0.5]} />
+        )
+        break
+      case 'ground_point':
+        geometryElements.push(
+          <sphereGeometry key="geom" args={[0.04, 16, 12]} />
+        )
+        break
+      case 'ground_plane':
+        geometryElements.push(
+          <sphereGeometry key="geom" args={[0.06, 16, 12]} />
+        )
+        break
+      case 'connector':
+        geometryElements.push(
+          <boxGeometry key="geom" args={[width, height, depth]} />
+        )
+        break
+      case 'splice':
+        geometryElements.push(
+          <boxGeometry key="geom" args={[width, height, depth * 0.5]} />
+        )
+        break
+      case 'pin':
+        geometryElements.push(
+          <cylinderGeometry key="geom" args={[0.005, 0.005, 0.015, 6]} />
+        )
+        break
+      case 'sensor':
+        geometryElements.push(
+          <sphereGeometry key="geom" args={[Math.min(width, height, depth) / 2, 8, 8]} />
+        )
+        break
+      case 'module':
+        geometryElements.push(
+          <group key="module">
+            <mesh>
+              <boxGeometry args={[width, height, depth]} />
+            </mesh>
+            {/* Heat sink fins */}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <mesh key={i} position={[0, height/2 + 0.005, -depth/3 + i * depth/3]}>
+                <boxGeometry args={[width * 0.8, 0.005, depth * 0.15]} />
+                <meshStandardMaterial color={0x808080} metalness={0.8} roughness={0.3} />
+              </mesh>
+            ))}
+          </group>
+        )
+        break
+      default:
+        geometryElements.push(
+          <boxGeometry key="geom" args={[width, height, depth]} />
+        )
+    }
   }
 
   return (
-    <mesh
-      ref={meshRef}
+    <group
       position={component.position}
       onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
-      castShadow
-      receiveShadow
     >
-      {geometry}
-      <meshStandardMaterial
-        color={baseColor}
-        emissive={emissiveColor}
-        emissiveIntensity={emissiveIntensity}
-        metalness={0.6}
-        roughness={0.4}
-        opacity={isHighlighted ? 1 : isHovered ? 1 : 0.75}
-        transparent
-      />
+      <mesh ref={meshRef} castShadow receiveShadow>
+        {geometryElements}
+        {/* Only apply material if it's a simple geometry */}
+        {geometryElements.length === 1 && geometryElements[0].type !== 'group' && (
+          <meshStandardMaterial
+            color={baseColor}
+            emissive={emissiveColor}
+            emissiveIntensity={emissiveIntensity}
+            metalness={isGround ? 0 : 0.6}
+            roughness={isGround ? 1 : 0.4}
+            opacity={isGround ? 1 : (isHighlighted ? 1 : isHovered ? 1 : 0.75)}
+            transparent={!isGround}
+          />
+        )}
+      </mesh>
 
-      {/* Ground indicator cone (points down) */}
-      {hasGroundCone && (
-        <mesh position={[0, -0.06, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.03, 0.08, 8]} />
-          <meshLambertMaterial color={0x000000} opacity={0.9} transparent />
+      {/* Selection glow effect - NOT for ground points/planes */}
+      {isSelected && !isGround && (
+        <mesh scale={1.2}>
+          {geometryElements}
+          <meshBasicMaterial color={0xffffff} transparent opacity={0.3} />
         </mesh>
       )}
 
-      {/* Selection outline */}
-      {isSelected && (
-        <lineSegments>
-          <edgesGeometry args={[meshRef.current?.geometry!]} />
-          <lineBasicMaterial color={0xffffff} linewidth={2} />
-        </lineSegments>
+      {/* Highlight glow for path components - NOT for ground points/planes */}
+      {isHighlighted && !isSelected && !isGround && (
+        <mesh scale={1.15}>
+          {geometryElements}
+          <meshBasicMaterial color={0x8BE196} transparent opacity={0.2} />
+        </mesh>
       )}
 
-      {/* Highlight outline for path components */}
-      {isHighlighted && !isSelected && (
-        <lineSegments>
-          <edgesGeometry args={[meshRef.current?.geometry!]} />
-          <lineBasicMaterial color={0x8BE196} linewidth={1} />
-        </lineSegments>
+      {/* FAULTY component pulsing red sphere */}
+      {isFaulty && (
+        <mesh scale={1.3 + pulseRef.current * 0.2}>
+          <sphereGeometry args={[Math.max(width, height, depth), 16, 16]} />
+          <meshBasicMaterial color={0xff0000} transparent opacity={0.2 * pulseRef.current} />
+        </mesh>
       )}
-    </mesh>
+    </group>
   )
 }
 
@@ -219,36 +586,23 @@ export function ComponentMeshes() {
   const groupRef = useRef<THREE.Group>(null)
   const rotationGroupRef = useRef<THREE.Group>(null)
 
-  console.log('[ComponentMeshes] Rendering with', highlightedComponentIds.length, 'highlighted components')
-
-  // Gentle left to right rolling animation (stops when component is selected)
-  useFrame((state) => {
-    if (groupRef.current && !selectedComponentId) {
-      groupRef.current.position.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
-      groupRef.current.rotation.z = state.clock.elapsedTime * 0.1
-    } else if (groupRef.current && selectedComponentId) {
-      // Reset to center when component is selected
-      groupRef.current.position.x = 0
-      groupRef.current.rotation.z = 0
-    }
-
-    // Smoothly apply model rotation from store
-    if (rotationGroupRef.current) {
-      const targetRotation = new THREE.Euler(modelRotation.x, modelRotation.y, modelRotation.z)
-      rotationGroupRef.current.rotation.x += (targetRotation.x - rotationGroupRef.current.rotation.x) * 0.1
-      rotationGroupRef.current.rotation.y += (targetRotation.y - rotationGroupRef.current.rotation.y) * 0.1
-      rotationGroupRef.current.rotation.z += (targetRotation.z - rotationGroupRef.current.rotation.z) * 0.1
-    }
-  })
-
-  console.log('[ComponentMeshes] Rendering', components.length, 'component meshes')
+  // NO ANIMATIONS - model stays still
 
   return (
     <group ref={rotationGroupRef} name="model-rotation-pivot">
-      <group ref={groupRef} name="component-meshes" rotation={[Math.PI / 2, Math.PI, 0]}>
-        {components.map(component => (
-          <ComponentMesh key={component.id} component={component} />
-        ))}
+      <group ref={groupRef} name="component-meshes" rotation={[-Math.PI / 2, 0, 0]}>
+        {components
+          .filter(component => {
+            // Filter out harness nodes - they're rendered as tubes in HarnessesAndWires
+            const isHarness = component.id.toLowerCase().startsWith('harness_') ||
+                             component.id.toLowerCase().startsWith('h-') ||
+                             component.name.toLowerCase().includes('harness')
+            return !isHarness
+          })
+          .map(component => (
+            <ComponentMesh key={component.id} component={component} />
+          ))
+        }
       </group>
     </group>
   )

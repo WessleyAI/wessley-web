@@ -4,11 +4,13 @@ import * as React from "react"
 import { useRef, useEffect } from 'react'
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useModelStore, type VehicleComponent } from '@/stores/model-store'
 import { loadNDJSON, getPositionedNodes, buildSceneGraphFromNDJSON, type NDJSONNode } from '@/lib/ndjson-loader'
 import { ComponentMeshes } from './ComponentMeshes'
 import { HarnessesAndWires } from './HarnessesAndWires'
+import { DarkRoom } from './DarkRoom'
 
 // Helper function to classify component type based on node_type
 function classifyComponentType(nodeType: string): 'fuse' | 'relay' | 'sensor' | 'connector' | 'wire' | 'module' | 'ground_point' | 'ground_plane' | 'bus' | 'splice' | 'pin' | 'other' {
@@ -45,7 +47,8 @@ function ndjsonNodeToComponent(node: NDJSONNode): VehicleComponent | null {
       anchor_zone: node.anchor_zone,
       bbox_m: node.bbox_m
     },
-    metadata: node
+    metadata: node,
+    faulty: false // Default to not faulty, can be changed via scene events
   }
 }
 
@@ -96,35 +99,58 @@ function NDJSONLoader() {
   return null
 }
 
-// Camera controller that responds to store changes
+// Camera controller - smooth animation on click, stops when user touches controls
 function CameraController() {
   const { cameraView } = useModelStore()
   const controlsRef = useRef<any>(null)
+  const isAnimatingRef = useRef(false)
+  const targetPositionRef = useRef(new THREE.Vector3(...cameraView.position))
+  const targetLookAtRef = useRef(new THREE.Vector3(...cameraView.target))
 
+  // When cameraView changes (component clicked), start smooth animation
+  React.useEffect(() => {
+    targetPositionRef.current.set(...cameraView.position)
+    targetLookAtRef.current.set(...cameraView.target)
+    isAnimatingRef.current = true
+  }, [cameraView])
+
+  // Smooth lerp animation
   useFrame(({ camera }) => {
-    if (controlsRef.current) {
-      const { target, position } = cameraView
-      const targetVector = new THREE.Vector3(...target)
-      const positionVector = new THREE.Vector3(...position)
+    if (!controlsRef.current || !isAnimatingRef.current) return
 
-      // Smoothly move both camera and target
-      camera.position.lerp(positionVector, 0.1)
-      controlsRef.current.target.lerp(targetVector, 0.1)
-      controlsRef.current.update()
+    const positionDistance = camera.position.distanceTo(targetPositionRef.current)
+    const targetDistance = controlsRef.current.target.distanceTo(targetLookAtRef.current)
+
+    // Stop animating if close enough
+    if (positionDistance < 0.01 && targetDistance < 0.01) {
+      isAnimatingRef.current = false
+      return
     }
+
+    // Smooth lerp
+    camera.position.lerp(targetPositionRef.current, 0.1)
+    controlsRef.current.target.lerp(targetLookAtRef.current, 0.1)
+    controlsRef.current.update()
   })
+
+  // Stop animation when user touches controls
+  const handleControlStart = () => {
+    isAnimatingRef.current = false
+  }
 
   return (
     <OrbitControls
       ref={controlsRef}
+      target={[0, 0.5, 0]}
       enablePan={true}
       enableZoom={true}
       enableRotate={true}
-      minDistance={1.5}
-      maxDistance={20}
-      minPolarAngle={0}
-      maxPolarAngle={Math.PI / 2.2}
-      target={cameraView.target}
+      minDistance={1}
+      maxDistance={8}
+      minPolarAngle={Math.PI / 8}
+      maxPolarAngle={Math.PI - Math.PI / 8}
+      enableDamping={false}
+      onStart={handleControlStart}
     />
   )
 }
@@ -142,23 +168,25 @@ function Scene() {
 
   return (
     <>
-      {/* Camera with store-controlled position */}
-      <PerspectiveCamera
-        makeDefault
-        position={cameraView.position}
-        fov={cameraView.fov || 60}
-      />
+      {/* Dark room environment with reflective walls */}
+      <DarkRoom />
 
-      {/* Lighting setup */}
-      <ambientLight intensity={0.4} />
+      {/* Dark fog for depth without washing out the dark room */}
+      <fog attach="fog" args={['#000000', 15, 30]} />
+
+      {/* Dramatic lighting for depth */}
+      <ambientLight intensity={0.05} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={1}
+        intensity={0.8}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <pointLight position={[-10, -10, -10]} intensity={0.3} color="#4a90e2" />
+      {/* Strong rim lights for edge definition */}
+      <pointLight position={[-6, 4, -6]} intensity={0.5} color="#ffffff" />
+      <pointLight position={[6, 2, 6]} intensity={0.4} color="#cccccc" />
+      <pointLight position={[0, -2, -8]} intensity={0.3} color="#666666" />
 
       {/* Environment for reflections */}
       <Environment preset="studio" background={false} />
@@ -174,6 +202,16 @@ function Scene() {
 
       {/* Smart camera controls */}
       <CameraController />
+
+      {/* Production-ready post-processing - Bloom for volumetric light glow */}
+      <EffectComposer>
+        <Bloom
+          intensity={2.0}
+          luminanceThreshold={2.0}
+          luminanceSmoothing={0.025}
+          mipmapBlur
+        />
+      </EffectComposer>
     </>
   )
 }
@@ -190,7 +228,10 @@ export function ThreeScene() {
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1
         }}
-        style={{ background: '#1a1a1a', borderBottomLeftRadius: '10rem', borderBottomRightRadius: '10rem' }}
+        style={{
+          background: 'radial-gradient(circle at center, #2a2a2a 0%, #000000 70%)',
+          borderRadius: '0.5rem'
+        }}
       >
         <Scene />
       </Canvas>
