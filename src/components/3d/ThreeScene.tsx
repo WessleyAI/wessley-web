@@ -142,7 +142,7 @@ function CameraController() {
     <OrbitControls
       ref={controlsRef}
       target={[0, 0.5, 0]}
-      enablePan={true}
+      enablePan={false}
       enableZoom={true}
       enableRotate={true}
       minDistance={1}

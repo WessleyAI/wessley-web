@@ -268,7 +268,7 @@ export function HarnessesAndWires() {
                 <meshStandardMaterial
                   color={wire.color}
                   emissive={wire.isHighlighted ? wire.color : '#000000'}
-                  emissiveIntensity={wire.isHighlighted ? 0.6 : 0}
+                  emissiveIntensity={wire.isHighlighted ? 0.15 : 0}
                   metalness={wire.isHighlighted ? 0.3 : 0.5}
                   roughness={wire.isHighlighted ? 0.4 : 0.6}
                   opacity={wire.isHighlighted ? 1 : 0.15}
