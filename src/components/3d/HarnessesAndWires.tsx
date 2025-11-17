@@ -273,7 +273,8 @@ export function HarnessesAndWires() {
             // Use tube geometry for ALL wires (visible electrical system)
             const curve = new THREE.LineCurve3(wire.points[0], wire.points[1])
             const radius = wire.thickness || 0.004 // Default 4mm (matches base thickness)
-            const tubeGeometry = new THREE.TubeGeometry(curve, 2, radius, 8, false)
+            // SMOOTHER tubes: increase tubular segments (2→8) and radial segments (8→12) for REALISM
+            const tubeGeometry = new THREE.TubeGeometry(curve, 8, radius, 12, false)
 
             return (
               <mesh key={wire.id} geometry={tubeGeometry} castShadow receiveShadow>
