@@ -122,7 +122,7 @@ function Scene() {
       
       {/* Vehicle model */}
       <Suspense fallback={<LoadingPlaceholder />}>
-        <VehicleModel />
+        <VehicleModel url="/models/pajero_pinin_2001_electrical.glb" />
       </Suspense>
       
       {/* Orbit controls for interaction */}

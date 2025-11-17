@@ -3,7 +3,6 @@
 import React, { useEffect, useContext } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Dashboard } from '@/components/ui/dashboard'
 import { useChatStore } from '@/stores/chat-store'
 import { ChatInterface } from '@/components/chat/chat-interface'
 import { ChatScene } from '@/components/3d/ChatScene'
@@ -123,10 +122,9 @@ export function Bench({ chatId }: BenchProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
+      className="w-full h-full"
     >
-      <Dashboard>
-        {renderMainContent()}
-      </Dashboard>
+      {renderMainContent()}
     </motion.div>
   )
 }

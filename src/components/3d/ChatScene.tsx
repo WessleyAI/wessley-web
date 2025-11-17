@@ -52,10 +52,14 @@ function CarPlaceholder() {
   )
 }
 
-// Vehicle model component - just show placeholder for now
+// Vehicle model component - loads the actual GLB model
 function VehicleModel() {
-  // Always return placeholder until we have a valid GLB model
-  return <CarPlaceholder />
+  const modelUrl = '/models/pajero_pinin_2001_electrical.glb'
+  const { scene } = useGLTF(modelUrl)
+
+  return (
+    <primitive object={scene} scale={0.5} position={[0, 0, 0]} />
+  )
 }
 
 // Camera controller that responds to store changes

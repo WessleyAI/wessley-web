@@ -101,12 +101,12 @@ export function AIChatDialog({ open, onOpenChange, partName, context = 'buy' }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2E3135] border-[#4A4E52] max-w-lg">
+      <DialogContent className="bg-[#1a1a1a] border-[#808080]/30 max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <Bot className="w-5 h-5 text-[#B5E4D3]" />
+          <DialogTitle className="flex items-center gap-2 text-white font-['DM_Sans']">
+            <Bot className="w-5 h-5 text-[#8BE196]" />
             AI Assistant
-            <span className="text-gray-400 text-sm">• {partName}</span>
+            <span className="text-[#C4C4C4]/70 text-sm font-['DM_Sans']">• {partName}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -125,14 +125,14 @@ export function AIChatDialog({ open, onOpenChange, partName, context = 'buy' }: 
                   <div
                     className={`max-w-[85%] rounded-lg p-3 ${
                       message.role === 'user'
-                        ? 'bg-[#B5E4D3]/20 border border-[#B5E4D3]/30 text-gray-200'
-                        : 'bg-[#3A3E42] border border-[#4A4E52] text-gray-300'
+                        ? 'bg-[#8BE196]/20 border border-[#8BE196]/30 text-gray-200 font-[\'DM_Sans\']'
+                        : 'bg-[#161616] border border-[#808080]/30 text-[#C4C4C4] font-[\'DM_Sans\']'
                     }`}
                   >
                     {message.role === 'ai' && (
                       <div className="flex items-center gap-1.5 mb-1.5">
-                        <Sparkles className="w-3 h-3 text-[#B5E4D3]" />
-                        <span className="text-[10px] text-[#B5E4D3]">Wessley AI</span>
+                        <Sparkles className="w-3 h-3 text-[#8BE196]" />
+                        <span className="text-[10px] text-[#8BE196] font-['DM_Sans']">Wessley AI</span>
                       </div>
                     )}
                     <p className="text-sm leading-relaxed">{message.content}</p>
@@ -149,14 +149,14 @@ export function AIChatDialog({ open, onOpenChange, partName, context = 'buy' }: 
                     exit={{ opacity: 0, y: -10 }}
                     className="flex justify-start"
                   >
-                    <div className="bg-[#3A3E42] border border-[#4A4E52] rounded-lg p-3">
+                    <div className="bg-[#161616] border border-[#808080]/30 rounded-lg p-3">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3 text-[#B5E4D3]" />
+                        <Sparkles className="w-3 h-3 text-[#8BE196]" />
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
                               key={i}
-                              className="w-1.5 h-1.5 bg-[#B5E4D3] rounded-full"
+                              className="w-1.5 h-1.5 bg-[#8BE196] rounded-full"
                               animate={{ opacity: [0.3, 1, 0.3] }}
                               transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                             />
@@ -182,12 +182,12 @@ export function AIChatDialog({ open, onOpenChange, partName, context = 'buy' }: 
                 }
               }}
               placeholder="Ask about pricing, compatibility, installation..."
-              className="bg-[#3A3E42] border-[#4A4E52] text-gray-200 placeholder:text-gray-500 resize-none min-h-[60px] max-h-[120px]"
+              className="bg-[#161616] border-[#808080]/30 text-gray-200 placeholder:text-gray-500 resize-none min-h-[60px] max-h-[120px] font-['DM_Sans']"
             />
             <Button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="bg-[#B5E4D3] hover:bg-[#B5E4D3]/80 text-[#2E3135] h-[60px] px-4"
+              className="bg-[#8BE196] hover:bg-[#9DF4A8] text-[#000000] h-[60px] px-4 font-['DM_Sans'] font-semibold"
             >
               <Send className="w-4 h-4" />
             </Button>
@@ -209,7 +209,7 @@ export function AIChatDialog({ open, onOpenChange, partName, context = 'buy' }: 
                   setInput(action);
                   setTimeout(() => handleSend(), 100);
                 }}
-                className="text-xs h-6 px-2 text-gray-400 hover:text-[#B5E4D3] hover:bg-[#B5E4D3]/10 border border-[#4A4E52] hover:border-[#B5E4D3]/30"
+                className="text-xs h-6 px-2 text-[#C4C4C4]/70 hover:text-[#8BE196] hover:bg-[#8BE196]/10 border border-[#808080]/30 hover:border-[#8BE196]/30 font-['DM_Sans']"
               >
                 {action}
               </Button>

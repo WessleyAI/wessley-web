@@ -222,7 +222,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/chat`
+        redirectTo: `${window.location.origin}/auth/callback?next=/chat`
       }
     })
   }
@@ -571,16 +571,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem]"
               onClick={handleNewChat}
             >
               <IconEdit size={16} className="mr-3" />
               New chat
             </Button>
-            
+
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem]"
               onClick={open}
             >
               <IconSearch size={16} className="mr-3" />
@@ -592,15 +592,15 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem]"
             >
               <IconLibrary size={16} className="mr-3" />
               Library
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
+              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem] ${
                 currentView === 'marketplace' ? 'bg-white/10 text-white' : ''
               }`}
               onClick={() => handleViewChange('marketplace')}
@@ -608,10 +608,10 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
               <IconShoppingCart size={16} className="mr-3" />
               Marketplace
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
+              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem] ${
                 currentView === 'auto-tuning' ? 'bg-white/10 text-white' : ''
               }`}
               onClick={() => handleViewChange('auto-tuning')}
@@ -619,10 +619,10 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
               <IconSettings size={16} className="mr-3" />
               Auto-tune
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
+              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white font-inter text-[0.833rem] ${
                 currentView === 'explore' ? 'bg-white/10 text-white' : ''
               }`}
               onClick={() => handleViewChange('explore')}
@@ -794,7 +794,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                             className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
                             onClick={() => router.push(`/c/${chat.id}`)}
                           >
-                            <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
+                            <span className="truncate text-[0.833rem]">{chat.title || 'New Chat'}</span>
                           </Button>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
@@ -862,14 +862,14 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             </div>
             {!isMinimized && (
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-medium text-foreground truncate">
+                <div className="text-[0.833rem] font-poppins font-medium text-foreground truncate">
                   {authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || profile.display_name || profile.full_name || profile.username || 'User'}
-                </h3>
-                <p className="text-xs font-normal text-gray-500">
-                  {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' : 
-                   profile.subscription_tier === 'pro' ? 'Pro' : 
+                </div>
+                <div className="text-[0.833rem] font-normal text-gray-500">
+                  {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' :
+                   profile.subscription_tier === 'pro' ? 'Pro' :
                    profile.subscription_tier === 'enterprise' ? 'Enterprise' : 'Free'}
-                </p>
+                </div>
               </div>
             )}
           </div>

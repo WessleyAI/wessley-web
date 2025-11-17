@@ -110,22 +110,22 @@ export function PartDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl bg-gradient-to-br from-[#3D3541] via-[#39333D] to-[#2E3135] border-[#564B5C] text-white p-0 gap-0 max-h-[90vh]">
+      <DialogContent className="max-w-5xl bg-gradient-to-br from-[#161616] via-[#121212] to-[#1a1a1a] border-[#808080]/30 text-white p-0 gap-0 max-h-[90vh]">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#564B5C]/50">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[#808080]/50">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="bg-[#3D3541]/80 backdrop-blur-sm border border-[#564B5C]/50 rounded-lg p-2">
-                  <PartIcon className="w-6 h-6 text-[#9D7B52]" />
+                <div className="bg-[#161616]/80 backdrop-blur-sm border border-[#808080]/50 rounded-lg p-2">
+                  <PartIcon className="w-6 h-6 text-[#8BE196]" />
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-2xl text-white mb-1">{partName}</DialogTitle>
+                  <DialogTitle className="text-2xl text-white mb-1 font-['DM_Sans']">{partName}</DialogTitle>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge 
+                    <Badge
                       variant="outline"
-                      className="border-0 flex items-center gap-1.5 text-xs px-2 py-1"
-                      style={{ 
+                      className="border-0 flex items-center gap-1.5 text-xs px-2 py-1 font-['DM_Sans']"
+                      style={{
                         backgroundColor: `${urgencyConfig[urgency].color}20`,
                         color: urgencyConfig[urgency].color,
                       }}
@@ -134,16 +134,16 @@ export function PartDetailsDialog({
                       <span>{urgencyConfig[urgency].label}</span>
                     </Badge>
                     {aiVerified && (
-                      <Badge className="bg-[#B5E4D3]/20 text-[#B5E4D3] border-[#B5E4D3]/30 flex items-center gap-1 text-xs">
+                      <Badge className="bg-[#8BE196]/20 text-[#8BE196] border-[#8BE196]/30 flex items-center gap-1 text-xs font-['DM_Sans']">
                         <ImageWithFallback src={wessleyIcon} alt="AI" className="w-3 h-3" />
                         AI Verified
                       </Badge>
                     )}
-                    <span className="text-[#C5B8CC] text-sm">{priceRange}</span>
+                    <span className="text-[#C4C4C4] text-sm font-['DM_Sans']">{priceRange}</span>
                   </div>
                 </div>
               </div>
-              <p className="text-[#C5B8CC]/70 text-sm">{urgencyConfig[urgency].description}</p>
+              <p className="text-[#C4C4C4]/70 text-sm font-['DM_Sans']">{urgencyConfig[urgency].description}</p>
             </div>
           </div>
         </DialogHeader>
@@ -153,38 +153,38 @@ export function PartDetailsDialog({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-4">
             {/* Left Column - Part Image & Info */}
             <div className="lg:col-span-1">
-              <Card className="bg-[#2E3135]/60 border-[#564B5C]/50 p-4 mb-4">
+              <Card className="bg-[#1a1a1a]/60 border-[#808080]/50 p-4 mb-4">
                 {partImage && (
-                  <div className="relative rounded-lg overflow-hidden mb-4 aspect-square bg-[#3D3541]/40">
+                  <div className="relative rounded-lg overflow-hidden mb-4 aspect-square bg-[#161616]/40">
                     <ImageWithFallback
                       src={partImage}
                       alt={partName}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2E3135]/80 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a]/80 to-transparent" />
                   </div>
                 )}
-                
-                <h3 className="text-white text-sm mb-2.5 flex items-center gap-2">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#B5E4D3]" />
+
+                <h3 className="text-white text-sm mb-2.5 flex items-center gap-2 font-['DM_Sans']">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#8BE196]" />
                   Market Insights
                 </h3>
-                <div className="space-y-1.5 text-xs">
+                <div className="space-y-1.5 text-xs font-['DM_Sans']">
                   <div className="flex justify-between">
-                    <span className="text-[#C5B8CC]/70">Available Sellers</span>
+                    <span className="text-[#C4C4C4]/70">Available Sellers</span>
                     <span className="text-white">{sellers.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#C5B8CC]/70">Best Price</span>
-                    <span className="text-[#B5E4D3]">${lowestPrice.toFixed(0)}</span>
+                    <span className="text-[#C4C4C4]/70">Best Price</span>
+                    <span className="text-[#8BE196]">${lowestPrice.toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#C5B8CC]/70">Avg. Response</span>
+                    <span className="text-[#C4C4C4]/70">Avg. Response</span>
                     <span className="text-white">~2 hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#C5B8CC]/70">Stock Level</span>
-                    <span className="text-[#9D7B52]">High</span>
+                    <span className="text-[#C4C4C4]/70">Stock Level</span>
+                    <span className="text-[#8BE196]">High</span>
                   </div>
                 </div>
               </Card>
@@ -193,7 +193,7 @@ export function PartDetailsDialog({
                 onClick={onCompare}
                 variant="outline"
                 size="sm"
-                className="w-full bg-[#B5E4D3]/10 border-[#B5E4D3]/30 text-white hover:bg-[#B5E4D3]/20 hover:text-[#B5E4D3] h-8 text-xs"
+                className="w-full bg-[#8BE196]/10 border-[#8BE196]/30 text-white hover:bg-[#8BE196]/20 hover:text-[#8BE196] h-8 text-xs font-['DM_Sans']"
               >
                 Compare All Sellers
                 <ArrowRight className="w-3 h-3 ml-1.5" />
@@ -203,8 +203,8 @@ export function PartDetailsDialog({
             {/* Right Column - Sellers List */}
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-white text-sm">Available from {sellers.length} sellers</h3>
-                <div className="flex items-center gap-1.5 text-xs text-[#C5B8CC]/70">
+                <h3 className="text-white text-sm font-['DM_Sans']">Available from {sellers.length} sellers</h3>
+                <div className="flex items-center gap-1.5 text-xs text-[#C4C4C4]/70 font-['DM_Sans']">
                   <MapPin className="w-3 h-3" />
                   Sorted by distance
                 </div>
@@ -216,7 +216,7 @@ export function PartDetailsDialog({
                     const suppliesTotal = getSuppliesTotal(seller);
                     const totalPrice = seller.price + suppliesTotal;
                     const savings = seller.price - lowestPrice;
-                    
+
                     return (
                       <motion.div
                         key={seller.id}
@@ -224,16 +224,16 @@ export function PartDetailsDialog({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
                       >
-                      <Card 
-                        className={`bg-gradient-to-br from-[#3D3541]/80 to-[#2E3135]/60 border-[#564B5C]/50 p-3 hover:border-[#B5E4D3]/50 transition-all cursor-pointer ${
-                          selectedSeller === seller.id ? 'ring-2 ring-[#B5E4D3] border-[#B5E4D3]' : ''
+                      <Card
+                        className={`bg-gradient-to-br from-[#161616]/80 to-[#1a1a1a]/60 border-[#808080]/50 p-3 hover:border-[#8BE196]/50 transition-all cursor-pointer ${
+                          selectedSeller === seller.id ? 'ring-2 ring-[#8BE196] border-[#8BE196]' : ''
                         }`}
                         onClick={() => setSelectedSeller(seller.id)}
                       >
                         <div className="flex items-start gap-3">
                           {/* Seller Info */}
                           <Avatar className="h-10 w-10 flex-shrink-0">
-                            <AvatarFallback className="bg-[#9D7B52] text-white text-xs">
+                            <AvatarFallback className="bg-[#8BE196] text-[#000000] text-xs font-['DM_Sans'] font-semibold">
                               {seller.initials}
                             </AvatarFallback>
                           </Avatar>
@@ -242,19 +242,19 @@ export function PartDetailsDialog({
                             <div className="flex items-start justify-between gap-2 mb-1.5">
                               <div>
                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                  <h4 className="text-white text-sm">{seller.name}</h4>
+                                  <h4 className="text-white text-sm font-['DM_Sans']">{seller.name}</h4>
                                   {seller.verified && (
-                                    <Shield className="w-3 h-3 text-[#B5E4D3]" />
+                                    <Shield className="w-3 h-3 text-[#8BE196]" />
                                   )}
                                   {index === 0 && (
-                                    <Badge className="bg-[#B5E4D3]/20 text-[#B5E4D3] border-0 text-[10px] px-1.5 py-0">
+                                    <Badge className="bg-[#8BE196]/20 text-[#8BE196] border-0 text-[10px] px-1.5 py-0 font-['DM_Sans']">
                                       Best Price
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 text-[10px] text-[#C5B8CC]/70">
+                                <div className="flex items-center gap-2 text-[10px] text-[#C4C4C4]/70 font-['DM_Sans']">
                                   <span className="flex items-center gap-0.5">
-                                    <Star className="w-2.5 h-2.5 fill-[#9D7B52] text-[#9D7B52]" />
+                                    <Star className="w-2.5 h-2.5 fill-[#8BE196] text-[#8BE196]" />
                                     {seller.rating.toFixed(1)} ({seller.reviews})
                                   </span>
                                   <span className="flex items-center gap-0.5">
@@ -269,16 +269,16 @@ export function PartDetailsDialog({
                               </div>
 
                               <div className="text-right flex-shrink-0">
-                                <div className="text-lg text-[#B5E4D3]">
+                                <div className="text-lg text-[#8BE196] font-['DM_Sans'] font-semibold">
                                   ${totalPrice.toFixed(0)}
                                 </div>
                                 {savings > 0 && (
-                                  <div className="text-[9px] text-[#EF4444]">
+                                  <div className="text-[9px] text-[#EF4444] font-['DM_Sans']">
                                     +${savings.toFixed(0)} vs best
                                   </div>
                                 )}
                                 {savings === 0 && (
-                                  <div className="text-[9px] text-[#B5E4D3]">
+                                  <div className="text-[9px] text-[#8BE196] font-['DM_Sans']">
                                     Lowest price
                                   </div>
                                 )}
@@ -286,29 +286,29 @@ export function PartDetailsDialog({
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 mb-2">
-                              <div className="flex items-center gap-1.5 text-[10px]">
-                                <Package className="w-3 h-3 text-[#9D7B52]" />
-                                <span className="text-[#C5B8CC]/70">
+                              <div className="flex items-center gap-1.5 text-[10px] font-['DM_Sans']">
+                                <Package className="w-3 h-3 text-[#8BE196]" />
+                                <span className="text-[#C4C4C4]/70">
                                   {seller.stock} in stock
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px]">
-                                <Truck className="w-3 h-3 text-[#9D7B52]" />
-                                <span className="text-[#C5B8CC]/70">
+                              <div className="flex items-center gap-1.5 text-[10px] font-['DM_Sans']">
+                                <Truck className="w-3 h-3 text-[#8BE196]" />
+                                <span className="text-[#C4C4C4]/70">
                                   {seller.shippingTime}
                                 </span>
                               </div>
-                              <div className="text-[10px] text-[#C5B8CC]/70">
+                              <div className="text-[10px] text-[#C4C4C4]/70 font-['DM_Sans']">
                                 {seller.distanceMiles.toFixed(0)} miles away
                               </div>
                             </div>
 
                             {/* Restoration Supplies */}
                             {seller.restorationSupplies && seller.restorationSupplies.length > 0 && (
-                              <div className="bg-[#2E3135]/60 backdrop-blur-sm border border-[#564B5C]/30 rounded-lg p-2 mb-2">
+                              <div className="bg-[#1a1a1a]/60 backdrop-blur-sm border border-[#808080]/30 rounded-lg p-2 mb-2">
                                 <div className="flex items-center gap-1.5 mb-1.5">
-                                  <Package className="w-3 h-3 text-[#B5E4D3]" />
-                                  <span className="text-[#B5E4D3] text-[10px]">
+                                  <Package className="w-3 h-3 text-[#8BE196]" />
+                                  <span className="text-[#8BE196] text-[10px] font-['DM_Sans']">
                                     Optional restoration supplies:
                                   </span>
                                 </div>
@@ -322,10 +322,10 @@ export function PartDetailsDialog({
                                           e.stopPropagation();
                                           toggleSupply(seller.id, idx);
                                         }}
-                                        className={`px-1.5 py-0.5 rounded border flex items-center gap-1 transition-all text-[10px] ${
+                                        className={`px-1.5 py-0.5 rounded border flex items-center gap-1 transition-all text-[10px] font-['DM_Sans'] ${
                                           isSelected
-                                            ? 'bg-[#B5E4D3]/20 text-[#B5E4D3] border-[#B5E4D3]/40 hover:bg-[#B5E4D3]/30'
-                                            : 'bg-[#3D3541]/80 text-[#C5B8CC]/50 border-[#564B5C]/40 hover:bg-[#3D3541]'
+                                            ? 'bg-[#8BE196]/20 text-[#8BE196] border-[#8BE196]/40 hover:bg-[#8BE196]/30'
+                                            : 'bg-[#161616]/80 text-[#C4C4C4]/50 border-[#808080]/40 hover:bg-[#161616]'
                                         }`}
                                       >
                                         <span className={isSelected ? '' : 'line-through'}>{supply.name}</span>
@@ -345,7 +345,7 @@ export function PartDetailsDialog({
                                   e.stopPropagation();
                                   onAddToCart(seller.id);
                                 }}
-                                className="flex-1 bg-[#B5E4D3]/20 text-white hover:bg-[#B5E4D3]/30 hover:text-[#B5E4D3] border border-[#B5E4D3]/30 h-7 text-[10px]"
+                                className="flex-1 bg-[#8BE196]/20 text-white hover:bg-[#8BE196]/30 hover:text-[#8BE196] border border-[#8BE196]/30 h-7 text-[10px] font-['DM_Sans']"
                               >
                                 <ShoppingCart className="w-3 h-3 mr-1" />
                                 Add to Cart
@@ -357,7 +357,7 @@ export function PartDetailsDialog({
                                   e.stopPropagation();
                                   onContactSeller(seller.id);
                                 }}
-                                className="bg-[#9D7B52]/10 text-white hover:bg-[#9D7B52]/20 hover:text-[#9D7B52] border-[#9D7B52]/30 h-7 text-[10px] px-2"
+                                className="bg-[#8BE196]/10 text-white hover:bg-[#8BE196]/20 hover:text-[#8BE196] border-[#8BE196]/30 h-7 text-[10px] px-2 font-['DM_Sans']"
                               >
                                 <MessageSquare className="w-3 h-3 mr-1" />
                                 Contact

@@ -29,7 +29,8 @@ export function useAuth() {
   }, [supabase.auth])
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    console.log('🔐 Starting Google OAuth sign in...')
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=/demo/bench`
@@ -37,7 +38,9 @@ export function useAuth() {
     })
 
     if (error) {
-      console.error('Error signing in with Google:', error)
+      console.error('❌ Error signing in with Google:', error)
+    } else {
+      console.log('✅ OAuth initiated:', data)
     }
   }
 
