@@ -1,0 +1,124 @@
+/* ===========================
+   DEMO DESIGN SYSTEM
+   Typography for demo pages only
+   1.2 Typescale (Minor Third)
+   =========================== */
+
+/* Scoped to .demo-typography class to prevent affecting homepage */
+
+/* Base: 16px, Scale: 1.2 (Minor Third) */
+.demo-typography h1,
+.demo-typography .h1 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-b);
+  font-size: 2.986rem;  /* 47.78px = 16 × 1.2^6 */
+  line-height: var(--lh-tight);
+  letter-spacing: var(--trk-tight);
+  color: var(--text-primary);
+}
+
+.demo-typography h2,
+.demo-typography .h2 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-sb);
+  font-size: 2.488rem;  /* 39.81px = 16 × 1.2^5 */
+  line-height: var(--lh-tight);
+  letter-spacing: var(--trk-tight);
+  color: var(--text-primary);
+}
+
+.demo-typography h3,
+.demo-typography .h3 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-sb);
+  font-size: 2.074rem;  /* 33.18px = 16 × 1.2^4 */
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+}
+
+.demo-typography h4,
+.demo-typography .h4 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-med);
+  font-size: 1.728rem;  /* 27.65px = 16 × 1.2^3 */
+  line-height: 1.3;
+  letter-spacing: var(--trk-normal);
+  color: var(--text-primary);
+}
+
+.demo-typography h5,
+.demo-typography .h5 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-med);
+  font-size: 1.44rem;   /* 23.04px = 16 × 1.2^2 */
+  line-height: 1.35;
+  letter-spacing: var(--trk-normal);
+  color: var(--text-primary);
+}
+
+.demo-typography h6,
+.demo-typography .h6 {
+  font-family: var(--font-inter);
+  font-weight: var(--w-med);
+  font-size: 1.2rem;    /* 19.2px = 16 × 1.2 */
+  line-height: 1.4;
+  letter-spacing: var(--trk-normal);
+  color: var(--text-primary);
+}
+
+.demo-typography p,
+.demo-typography .text {
+  font-family: var(--font-body);
+  font-weight: var(--w-reg);
+  font-size: 1rem;      /* 16px = base */
+  line-height: var(--lh-normal);
+  letter-spacing: var(--trk-normal);
+  color: var(--text-secondary);
+}
+
+/* Small text utility */
+.demo-typography .small {
+  font-family: var(--font-body);
+  font-weight: var(--w-reg);
+  font-size: 0.833rem;  /* 13.33px = 16 / 1.2 */
+  line-height: 1.4;
+  letter-spacing: var(--trk-wide);
+  color: var(--text-muted);
+}
+
+/* Caption utility */
+.demo-typography .caption {
+  font-family: var(--font-body);
+  font-weight: var(--w-reg);
+  font-size: 0.694rem;  /* 11.11px = 16 / 1.2^2 */
+  line-height: 1.35;
+  letter-spacing: var(--trk-wide);
+  color: var(--text-muted);
+}
+
+/* Lead text for larger introductory paragraphs */
+.demo-typography .lead {
+  font-family: var(--font-body);
+  font-weight: var(--w-reg);
+  font-size: 1.2rem;    /* 19.2px = 16 × 1.2 */
+  line-height: var(--lh-relaxed);
+  letter-spacing: var(--trk-normal);
+  color: var(--text-secondary);
+}
+
+/* Muted text */
+.demo-typography .muted {
+  color: var(--text-muted);
+}
+
+/* Text alignment utilities */
+.demo-typography .text-left { text-align: left; }
+.demo-typography .text-center { text-align: center; }
+.demo-typography .text-right { text-align: right; }
+
+/* Font weight utilities */
+.demo-typography .font-regular { font-weight: var(--w-reg); }
+.demo-typography .font-medium { font-weight: var(--w-med); }
+.demo-typography .font-semibold { font-weight: var(--w-sb); }
+.demo-typography .font-bold { font-weight: var(--w-b); }

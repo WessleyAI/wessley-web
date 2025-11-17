@@ -10,6 +10,7 @@
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
   --font-display: "Space Grotesk", system-ui, -apple-system, sans-serif;
   --font-inter: var(--font-inter);
+  --font-poppins: var(--font-poppins);
   --font-mono: ui-monospace, "SFMono-Regular", "Consolas", monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -136,6 +137,10 @@ body {
 
 .font-inter {
   font-family: var(--font-inter);
+}
+
+.font-poppins {
+  font-family: var(--font-poppins);
 }
 
 .h-35 {

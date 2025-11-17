@@ -11,7 +11,7 @@ export const SceneExplorer: FC = () => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <div className="absolute top-4 right-4 z-10">
+    <div className="absolute top-4 right-4 z-50">
       {/* Vertical Icon Menu */}
       <div className="flex flex-col bg-background border rounded-lg shadow-lg">
         <button

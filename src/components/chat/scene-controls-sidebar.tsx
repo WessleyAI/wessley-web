@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  IconList, 
-  IconHierarchy3, 
+import {
+  IconList,
+  IconHierarchy3,
   IconAlertTriangle,
   IconX,
   IconSettings,
-  IconEye,
-  IconEyeOff,
   IconChevronLeft,
   IconChevronRight
 } from '@tabler/icons-react'
@@ -17,6 +15,9 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { ComponentTree } from '@/components/scene-explorer/component-tree'
+import { ComponentList } from '@/components/scene-explorer/component-list'
+import { ErrorList } from '@/components/scene-explorer/error-list'
 
 interface SceneControlsSidebarProps {
   isOpen: boolean
@@ -28,22 +29,6 @@ interface SceneControlsSidebarProps {
 
 type TabType = 'components' | 'tree' | 'faults'
 
-// Mock data for demonstration
-const mockComponents = [
-  { id: '1', name: 'Main Battery', type: 'Battery', visible: true, status: 'normal' },
-  { id: '2', name: 'Alternator', type: 'Generator', visible: true, status: 'normal' },
-  { id: '3', name: 'Starter Motor', type: 'Motor', visible: true, status: 'warning' },
-  { id: '4', name: 'Headlight (Left)', type: 'Light', visible: false, status: 'normal' },
-  { id: '5', name: 'Headlight (Right)', type: 'Light', visible: true, status: 'error' },
-  { id: '6', name: 'ECU', type: 'Computer', visible: true, status: 'normal' },
-]
-
-const mockFaults = [
-  { id: '1', component: 'Headlight (Right)', severity: 'high', message: 'Bulb burned out', code: 'H001' },
-  { id: '2', component: 'Starter Motor', severity: 'medium', message: 'High resistance detected', code: 'S003' },
-  { id: '3', component: 'Wire Harness', severity: 'low', message: 'Insulation wear', code: 'W015' },
-]
-
 export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized = true, onToggleMinimized }: SceneControlsSidebarProps) {
   const [activeTab, setActiveTab] = useState<TabType>('components')
 
@@ -53,117 +38,14 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
     { id: 'faults' as TabType, label: 'Faults', icon: IconAlertTriangle },
   ]
 
-  const renderComponentsList = () => (
-    <div className="space-y-1">
-      {mockComponents.map((component) => (
-        <Button
-          key={component.id}
-          variant="ghost"
-          className="w-full justify-start h-auto p-3 text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
-        >
-          <div className="flex items-center gap-3 flex-1">
-            <div className={cn(
-              "w-3 h-3 rounded-full flex-shrink-0",
-              component.status === 'normal' && "bg-green-500",
-              component.status === 'warning' && "bg-yellow-500",
-              component.status === 'error' && "bg-red-500"
-            )} />
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium">{component.name}</div>
-              <div className="text-xs text-white/60">{component.type}</div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-white/60 hover:text-white hover:bg-white/10"
-              onClick={(e) => {
-                e.stopPropagation()
-                /* Toggle visibility */
-              }}
-            >
-              {component.visible ? (
-                <IconEye className="h-3 w-3" />
-              ) : (
-                <IconEyeOff className="h-3 w-3" />
-              )}
-            </Button>
-          </div>
-        </Button>
-      ))}
-    </div>
-  )
-
-  const renderComponentTree = () => (
-    <div className="space-y-1">
-      <div className="text-sm font-medium text-white/90 mb-3 px-2">Electrical System</div>
-      <div className="space-y-1">
-        <Button variant="ghost" className="w-full justify-start h-8 px-2 text-white/80 hover:bg-white/10 hover:text-white">
-          <span className="pl-2">🔋 Power System</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• Main Battery</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• Alternator</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-8 px-2 text-white/80 hover:bg-white/10 hover:text-white">
-          <span className="pl-2">🚗 Engine</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• Starter Motor</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• ECU</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-8 px-2 text-white/80 hover:bg-white/10 hover:text-white">
-          <span className="pl-2">💡 Lighting</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• Headlight (Left)</span>
-        </Button>
-        <Button variant="ghost" className="w-full justify-start h-7 px-2 text-white/60 hover:bg-white/10 hover:text-white text-xs">
-          <span className="pl-6">• Headlight (Right)</span>
-        </Button>
-      </div>
-    </div>
-  )
-
-  const renderFaultsList = () => (
-    <div className="space-y-1">
-      {mockFaults.map((fault) => (
-        <Button
-          key={fault.id}
-          variant="ghost"
-          className="w-full justify-start h-auto p-3 text-white/80 hover:bg-white/10 hover:text-white border-l-2 border-l-red-500/50 transition-all duration-200"
-        >
-          <div className="flex items-start justify-between w-full">
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium">{fault.component}</div>
-              <div className="text-xs text-white/60 mt-1">{fault.message}</div>
-              <div className="text-xs text-white/40 mt-1">Code: {fault.code}</div>
-            </div>
-            <div className={cn(
-              "px-2 py-1 rounded text-xs font-medium flex-shrink-0 ml-2",
-              fault.severity === 'high' && "bg-red-500/20 text-red-400",
-              fault.severity === 'medium' && "bg-yellow-500/20 text-yellow-400",
-              fault.severity === 'low' && "bg-blue-500/20 text-blue-400"
-            )}>
-              {fault.severity}
-            </div>
-          </div>
-        </Button>
-      ))}
-    </div>
-  )
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'components':
-        return renderComponentsList()
+        return <ComponentList />
       case 'tree':
-        return renderComponentTree()
+        return <ComponentTree />
       case 'faults':
-        return renderFaultsList()
+        return <ErrorList />
       default:
         return null
     }

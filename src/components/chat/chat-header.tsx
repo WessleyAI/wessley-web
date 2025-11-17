@@ -13,7 +13,7 @@ export function ChatHeader() {
       <div className="flex items-center gap-2">
         <MessageCircle className="h-5 w-5 text-muted-foreground" />
         <h2 className="font-semibold truncate">
-          {activeConversation?.title || 'Vehicle Assistant'}
+          {activeConversation?.title}
         </h2>
       </div>
       

@@ -38,6 +38,11 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   // Get current workspace - for now use the first one or selected one
   const currentWorkspace = selectedWorkspace || workspaces[0]
 
+  // Sync mainView with URL changes
+  useEffect(() => {
+    setMainView(mainTabValue as ContentType)
+  }, [mainTabValue])
+
   const handleMainViewChange = (view: ContentType) => {
     setMainView(view)
     router.replace(`${pathname}?view=${view}`)

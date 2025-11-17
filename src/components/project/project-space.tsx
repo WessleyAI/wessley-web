@@ -4,6 +4,7 @@ import * as React from "react"
 import { useState, useContext } from "react"
 import { motion } from "framer-motion"
 import { ThreeScene } from "@/components/3d/ThreeScene"
+import { HoverLabel } from "@/components/3d/HoverLabel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -365,7 +366,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         </div>
       </div>
 
-      {/* 3D Scene - Full height with floating toolbar above */}
+      {/* 3D Scene - Full height */}
       <div className="h-80 relative overflow-hidden">
         <ThreeScene />
       </div>
@@ -377,33 +378,33 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         <div className="w-full flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <IconFolder className="w-6 h-6 text-gray-400" />
-            <h1 className="text-xl font-medium">{projectName}</h1>
+            <h1 className="font-inter text-[2.074rem] font-semibold">{projectName}</h1>
             {isLoadingVehicle ? (
-              <div className="flex items-center gap-2 text-sm px-2 py-1">
+              <div className="flex items-center gap-2 px-2 py-1">
                 <IconCar className="w-4 h-4 text-gray-500" />
                 <Skeleton className="h-4 w-32 bg-gray-600/50" />
               </div>
             ) : (
               <motion.button
                 onClick={handleEditVehicle}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
+                className="flex items-center gap-2 font-inter text-[0.833rem] text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <IconCar className="w-4 h-4" />
                 <span>
-                  {vehicle 
-                    ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` 
+                  {vehicle
+                    ? `${vehicle.make} ${vehicle.model} ${vehicle.year}`
                     : 'Set vehicle model'
                   }
                 </span>
               </motion.button>
             )}
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700"
+            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 font-inter text-[0.833rem]"
           >
             Add files
           </Button>
@@ -435,7 +436,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`New chat in ${projectName}`}
-                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 font-inter text-[0.833rem]"
               />
               <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
@@ -452,8 +453,8 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           {projectChats.length === 0 ? (
             <div className="flex items-center justify-center h-32">
               <div className="text-center text-gray-500">
-                <p>No chats yet...</p>
-                <p className="text-sm mt-2">Start a conversation above to begin</p>
+                <p className="font-body text-[1rem]">No chats yet...</p>
+                <p className="font-body text-[0.833rem] mt-2">Start a conversation above to begin</p>
               </div>
             </div>
           ) : (
@@ -486,13 +487,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                         onContextMenu={(e) => e.stopPropagation()}
                       >
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium mb-1 text-white truncate">{chat.title}</h3>
-                          <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                          <div className="font-inter text-[0.694rem] font-medium mb-1 text-white truncate">{chat.title}</div>
+                          <div className="font-body text-[0.833rem] text-gray-400 line-clamp-2 leading-relaxed">
                             {/* Show latest message or placeholder */}
                             New conversation
-                          </p>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500 ml-4 shrink-0">
+                        <span className="font-body text-[0.694rem] text-gray-500 ml-4 shrink-0">
                           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </motion.div>
@@ -526,23 +527,23 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent>
+        <DialogContent className="demo-typography">
           <DialogHeader>
-            <DialogTitle>Rename Chat</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-inter text-[1.44rem] font-medium">Rename Chat</DialogTitle>
+            <DialogDescription className="font-body text-[1rem] text-gray-400">
               Enter a new name for "{selectedChatForAction?.title}".
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="name" className="text-right font-body text-[0.833rem]">
                 Name
               </Label>
               <Input
                 id="name"
                 value={newChatName}
                 onChange={(e) => setNewChatName(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 font-body text-[1rem]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmRename()
@@ -552,10 +553,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} className="font-inter text-[0.833rem]">
               Cancel
             </Button>
-            <Button onClick={confirmRename} disabled={!newChatName.trim()}>
+            <Button onClick={confirmRename} disabled={!newChatName.trim()} className="font-inter text-[0.833rem]">
               Rename
             </Button>
           </DialogFooter>
@@ -564,20 +565,21 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="demo-typography">
           <DialogHeader>
-            <DialogTitle>Delete Chat</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-inter text-[1.44rem] font-medium">Delete Chat</DialogTitle>
+            <DialogDescription className="font-body text-[1rem] text-gray-400">
               Are you sure you want to delete "{selectedChatForAction?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="font-inter text-[0.833rem]">
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
+              className="font-inter text-[0.833rem]"
             >
               Delete
             </Button>
@@ -587,11 +589,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Vehicle Dialog */}
       <Dialog open={vehicleDialogOpen} onOpenChange={setVehicleDialogOpen}>
-        <DialogContent>
+        <DialogContent className="demo-typography">
           <DialogHeader>
-            <DialogTitle>{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
-            <DialogDescription>
-              {vehicle 
+            <DialogTitle className="font-inter text-[1.44rem] font-medium">{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
+            <DialogDescription className="font-body text-[1rem] text-gray-400">
+              {vehicle
                 ? 'Update the vehicle information for this project.'
                 : 'Set the vehicle model for this project to get more accurate assistance.'
               }
@@ -599,7 +601,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="make" className="text-right">
+              <Label htmlFor="make" className="text-right font-body text-[0.833rem]">
                 Make
               </Label>
               <Input
@@ -607,11 +609,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
                 placeholder="e.g., Hyundai"
-                className="col-span-3"
+                className="col-span-3 font-body text-[1rem]"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="model" className="text-right">
+              <Label htmlFor="model" className="text-right font-body text-[0.833rem]">
                 Model
               </Label>
               <Input
@@ -619,11 +621,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleModel}
                 onChange={(e) => setVehicleModel(e.target.value)}
                 placeholder="e.g., Galloper"
-                className="col-span-3"
+                className="col-span-3 font-body text-[1rem]"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="year" className="text-right">
+              <Label htmlFor="year" className="text-right font-body text-[0.833rem]">
                 Year
               </Label>
               <Input
@@ -631,7 +633,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleYear}
                 onChange={(e) => setVehicleYear(e.target.value)}
                 placeholder="e.g., 2000"
-                className="col-span-3"
+                className="col-span-3 font-body text-[1rem]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmVehicle()
@@ -641,12 +643,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)} className="font-inter text-[0.833rem]">
               Cancel
             </Button>
-            <Button 
-              onClick={confirmVehicle} 
+            <Button
+              onClick={confirmVehicle}
               disabled={!vehicleMake.trim() || !vehicleModel.trim() || !vehicleYear.trim()}
+              className="font-inter text-[0.833rem]"
             >
               {vehicle ? 'Update' : 'Set Vehicle'}
             </Button>
@@ -657,12 +660,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       </motion.div>
 
       {/* Scene Controls Sidebar */}
-      <SceneControlsSidebar 
+      <SceneControlsSidebar
         isOpen={showSceneControls}
         onClose={() => setShowSceneControls(false)}
         isMinimized={isSceneControlsMinimized}
         onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
       />
+
+      {/* Hover label for 3D components */}
+      <HoverLabel />
     </motion.div>
   )
 }

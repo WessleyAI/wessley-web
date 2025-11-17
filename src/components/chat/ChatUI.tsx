@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChatMessages } from './ChatMessages'
 import { ChatInput } from './ChatInput'
-import { ChatHeader } from './ChatHeader'
 import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react'
 
@@ -86,8 +85,6 @@ export function ChatUI({ className = '' }: ChatUIProps) {
 
   return (
     <div className={`relative flex h-full flex-col items-center ${className}`}>
-      <ChatHeader />
-      
       {/* Scroll to Bottom Button */}
       {showScrollButton && (
         <div className="absolute right-4 top-14 z-10">

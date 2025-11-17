@@ -1,141 +1,179 @@
 'use client'
 
 import * as React from "react"
-import { Suspense, useRef } from 'react'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
-import { OrbitControls, Grid, useGLTF, Environment, PerspectiveCamera } from '@react-three/drei'
+import { useRef, useEffect } from 'react'
+import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
+import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
+import { useModelStore, type VehicleComponent } from '@/stores/model-store'
+import { loadNDJSON, getPositionedNodes, buildSceneGraphFromNDJSON, type NDJSONNode } from '@/lib/ndjson-loader'
+import { ComponentMeshes } from './ComponentMeshes'
+import { HarnessesAndWires } from './HarnessesAndWires'
 
-// Vehicle GLB Component with placeholder fallback
-function VehicleModel({ url }: { url?: string }) {
-  const groupRef = useRef<THREE.Group>(null)
-  
-  useFrame((state) => {
-    if (groupRef.current) {
-      // Gentle floating animation
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1
-    }
-  })
-
-  if (!url) {
-    // Placeholder: Simple car-like shape
-    return (
-      <group ref={groupRef} position={[0, 0.5, 0]}>
-        {/* Car body */}
-        <mesh position={[0, 0.3, 0]}>
-          <boxGeometry args={[2, 0.6, 4]} />
-          <meshStandardMaterial color="#4a90e2" metalness={0.7} roughness={0.3} />
-        </mesh>
-        
-        {/* Car roof */}
-        <mesh position={[0, 0.8, -0.5]}>
-          <boxGeometry args={[1.6, 0.4, 2]} />
-          <meshStandardMaterial color="#4a90e2" metalness={0.7} roughness={0.3} />
-        </mesh>
-        
-        {/* Wheels */}
-        {[[-0.8, -0.1, 1.3], [0.8, -0.1, 1.3], [-0.8, -0.1, -1.3], [0.8, -0.1, -1.3]].map((pos, i) => (
-          <mesh key={i} position={pos} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.3, 0.3, 0.2, 16]} />
-            <meshStandardMaterial color="#333" />
-          </mesh>
-        ))}
-        
-        {/* Headlights */}
-        <mesh position={[-0.6, 0.2, 2.1]}>
-          <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.3} />
-        </mesh>
-        <mesh position={[0.6, 0.2, 2.1]}>
-          <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.3} />
-        </mesh>
-      </group>
-    )
-  }
-
-  // Load actual GLB model when URL is provided
-  const { scene } = useGLTF(url)
-  
-  return (
-    <group ref={groupRef}>
-      <primitive object={scene} scale={1} />
-    </group>
-  )
+// Helper function to classify component type based on node_type
+function classifyComponentType(nodeType: string): 'fuse' | 'relay' | 'sensor' | 'connector' | 'wire' | 'module' | 'ground_point' | 'ground_plane' | 'bus' | 'splice' | 'pin' | 'other' {
+  const lower = nodeType.toLowerCase()
+  if (lower === 'fuse') return 'fuse'
+  if (lower === 'relay') return 'relay'
+  if (lower === 'sensor') return 'sensor'
+  if (lower === 'connector' || lower === 'plug') return 'connector'
+  if (lower === 'wire' || lower === 'cable') return 'wire'
+  if (lower === 'module' || lower === 'ecu' || lower === 'control') return 'module'
+  if (lower === 'ground_point') return 'ground_point'
+  if (lower === 'ground_plane') return 'ground_plane'
+  if (lower === 'bus') return 'bus'
+  if (lower === 'splice') return 'splice'
+  if (lower === 'pin') return 'pin'
+  if (lower === 'component') return 'other' // Generic component
+  return 'other'
 }
 
-// Loading fallback component
-function LoadingPlaceholder() {
-  const meshRef = useRef<THREE.Mesh>(null)
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = state.clock.elapsedTime * 0.5
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3
+// Convert NDJSON node to VehicleComponent
+function ndjsonNodeToComponent(node: NDJSONNode): VehicleComponent | null {
+  if (!node.anchor_xyz) return null // Skip nodes without positions
+
+  return {
+    id: node.id,
+    name: node.canonical_id || node.id,
+    type: classifyComponentType(node.node_type || 'other'),
+    position: node.anchor_xyz as [number, number, number],
+    description: node.code_id || undefined,
+    specifications: {
+      voltage: node.voltage,
+      mounting_surface: node.mounting_surface,
+      service_access: node.service_access,
+      anchor_zone: node.anchor_zone,
+      bbox_m: node.bbox_m
+    },
+    metadata: node
+  }
+}
+
+// NDJSON Data Loader Component
+function NDJSONLoader() {
+  const { setComponents, setNDJSONData, setSceneGraph } = useModelStore()
+  const hasLoaded = useRef(false)
+
+  // Load NDJSON component data
+  useEffect(() => {
+    if (hasLoaded.current) return
+    hasLoaded.current = true
+
+    const loadComponentData = async () => {
+      try {
+        console.log('[ThreeScene] Loading enhanced NDJSON data...')
+        const ndjsonData = await loadNDJSON('/models/enhanced_model.ndjson')
+        console.log('[ThreeScene] NDJSON data loaded:', {
+          nodes: Object.keys(ndjsonData.nodesById).length,
+          edges: ndjsonData.edges.length,
+          zones: Object.keys(ndjsonData.byZone).length
+        })
+
+        setNDJSONData(ndjsonData)
+
+        // Build scene graph from NDJSON
+        const sceneGraph = buildSceneGraphFromNDJSON(ndjsonData)
+        console.log('[ThreeScene] Scene graph built:', sceneGraph)
+        setSceneGraph(sceneGraph)
+
+        // Convert positioned nodes to VehicleComponents
+        const positionedNodes = getPositionedNodes(ndjsonData)
+        const components: VehicleComponent[] = positionedNodes
+          .map(ndjsonNodeToComponent)
+          .filter((c): c is VehicleComponent => c !== null)
+
+        console.log(`[ThreeScene] Extracted ${components.length} positioned components`)
+        console.log('[ThreeScene] Sample components:', components.slice(0, 5))
+        setComponents(components)
+      } catch (error) {
+        console.error('[ThreeScene] Failed to load NDJSON data:', error)
+      }
+    }
+
+    loadComponentData()
+  }, [setComponents, setNDJSONData, setSceneGraph])
+
+  return null
+}
+
+// Camera controller that responds to store changes
+function CameraController() {
+  const { cameraView } = useModelStore()
+  const controlsRef = useRef<any>(null)
+
+  useFrame(({ camera }) => {
+    if (controlsRef.current) {
+      const { target, position } = cameraView
+      const targetVector = new THREE.Vector3(...target)
+      const positionVector = new THREE.Vector3(...position)
+
+      // Smoothly move both camera and target
+      camera.position.lerp(positionVector, 0.1)
+      controlsRef.current.target.lerp(targetVector, 0.1)
+      controlsRef.current.update()
     }
   })
 
   return (
-    <mesh ref={meshRef} position={[0, 1, 0]}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#666" wireframe />
-    </mesh>
+    <OrbitControls
+      ref={controlsRef}
+      enablePan={true}
+      enableZoom={true}
+      enableRotate={true}
+      minDistance={1.5}
+      maxDistance={20}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI / 2.2}
+      target={cameraView.target}
+    />
   )
 }
 
 // Main scene setup
 function Scene() {
+  const { cameraView, resetView } = useModelStore()
+
+  // Handle clicking on empty space to deselect
+  const handleCanvasClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.eventObject.type === 'Scene') {
+      resetView()
+    }
+  }
+
   return (
     <>
-      {/* Camera with good default position */}
-      <PerspectiveCamera makeDefault position={[5, 3, 5]} fov={60} />
-      
+      {/* Camera with store-controlled position */}
+      <PerspectiveCamera
+        makeDefault
+        position={cameraView.position}
+        fov={cameraView.fov || 60}
+      />
+
       {/* Lighting setup */}
       <ambientLight intensity={0.4} />
-      <directionalLight 
-        position={[10, 10, 5]} 
+      <directionalLight
+        position={[10, 10, 5]}
         intensity={1}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
       <pointLight position={[-10, -10, -10]} intensity={0.3} color="#4a90e2" />
-      
+
       {/* Environment for reflections */}
       <Environment preset="studio" background={false} />
-      
-      {/* Ground Grid */}
-      <Grid 
-        position={[0, 0, 0]}
-        args={[20, 20]}
-        cellSize={1}
-        cellThickness={0.5}
-        cellColor="#444"
-        sectionSize={5}
-        sectionThickness={1}
-        sectionColor="#666"
-        fadeDistance={30}
-        fadeStrength={1}
-        infiniteGrid={true}
-      />
-      
-      {/* Vehicle model */}
-      <Suspense fallback={<LoadingPlaceholder />}>
-        <VehicleModel url="/models/pajero_pinin_2001_electrical.glb" />
-      </Suspense>
-      
-      {/* Orbit controls for interaction */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={3}
-        maxDistance={20}
-        minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2.2}
-        target={[0, 0, 0]}
-      />
+
+      {/* Load NDJSON data */}
+      <NDJSONLoader />
+
+      {/* Harnesses and wires (from scene config + NDJSON edges) */}
+      <HarnessesAndWires />
+
+      {/* Interactive component meshes with animation */}
+      <ComponentMeshes />
+
+      {/* Smart camera controls */}
+      <CameraController />
     </>
   )
 }
@@ -146,8 +184,8 @@ export function ThreeScene() {
     <div className="w-full h-full">
       <Canvas
         shadows
-        camera={{ position: [5, 3, 5], fov: 60 }}
-        gl={{ 
+        camera={{ position: [2, 1.5, 2], fov: 60 }}
+        gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1
@@ -156,7 +194,7 @@ export function ThreeScene() {
       >
         <Scene />
       </Canvas>
-      
+
     </div>
   )
 }

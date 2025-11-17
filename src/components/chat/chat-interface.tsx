@@ -6,6 +6,8 @@ import { useChatStore } from '@/stores/chat-store'
 import { ChatMessages } from './chat-messages'
 import { ChatInput } from './chat-input'
 import { ChatScene } from '@/components/3d/ChatScene'
+import { SceneExplorer } from '@/components/scene-explorer/scene-explorer'
+import { HoverLabel } from '@/components/3d/HoverLabel'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -155,7 +157,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
         }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="overflow-hidden relative"
           animate={{
             width: (activeConversation && messages.length > 0) || chatId ? "100%" : "60%",
@@ -238,12 +240,15 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
       </div>
 
       {/* Scene Controls Sidebar */}
-      <SceneControlsSidebar 
+      <SceneControlsSidebar
         isOpen={showSceneControls}
         onClose={() => setShowSceneControls(false)}
         isMinimized={isSceneControlsMinimized}
         onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
       />
+
+      {/* Hover label for 3D components */}
+      <HoverLabel />
     </div>
   )
 }
