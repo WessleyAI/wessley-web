@@ -29,22 +29,14 @@ export const ComponentList: FC = () => {
 
   if (components.length === 0) {
     return (
-      <div className="p-3 text-xs">
-        <div className="text-yellow-500 mb-2">DEBUG: No components (count: {components.length})</div>
-        <div className="text-muted-foreground">No components found. Loading model...</div>
+      <div className="p-3 text-xs text-muted-foreground">
+        No components found. Loading model...
       </div>
     )
   }
 
   return (
     <div className="flex flex-col h-full">
-      {/* Debug Info */}
-      <div className="p-2 border-b bg-green-500/10">
-        <div className="text-xs text-green-500">
-          DEBUG: {components.length} components loaded
-        </div>
-      </div>
-
       {/* Search bar */}
       <div className="p-2 border-b">
         <div className="relative">
@@ -67,10 +59,7 @@ export const ComponentList: FC = () => {
             className={`p-2 rounded cursor-pointer hover:bg-accent/50 transition-colors ${
               selectedComponentId === component.id ? 'bg-accent text-accent-foreground' : ''
             }`}
-            onClick={() => {
-              console.log('[ComponentList] Focusing on:', component.name)
-              focusOnComponent(component.id)
-            }}
+            onClick={() => focusOnComponent(component.id)}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs truncate font-medium" title={component.name}>

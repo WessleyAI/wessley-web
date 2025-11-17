@@ -65,15 +65,10 @@ const TreeNode: FC<TreeNodeProps> = ({ node, depth = 0, onNodeClick }) => {
 export const ComponentTree: FC = () => {
   const { sceneGraph, setSelectedComponent, focusOnComponent, components } = useModelStore()
 
-  console.log('[ComponentTree] sceneGraph:', sceneGraph)
-
   const handleNodeClick = (nodeId: string) => {
-    console.log('[ComponentTree] Node clicked:', nodeId)
-
     // Check if this is an actual component (not a zone node)
     const component = components.find(c => c.id === nodeId)
     if (component) {
-      console.log('[ComponentTree] Focusing on component:', component.name)
       focusOnComponent(nodeId)
     } else {
       // Just select it if it's a zone node
@@ -82,21 +77,15 @@ export const ComponentTree: FC = () => {
   }
 
   if (!sceneGraph) {
-    console.log('[ComponentTree] No scene graph yet')
     return (
-      <div className="p-3 text-xs">
-        <div className="text-yellow-500 mb-2">DEBUG: No scene graph</div>
-        <div className="text-muted-foreground">Loading scene graph...</div>
+      <div className="p-3 text-xs text-muted-foreground">
+        Loading scene graph...
       </div>
     )
   }
 
-  console.log('[ComponentTree] Rendering tree with', sceneGraph)
   return (
     <div className="p-2">
-      <div className="text-xs text-green-500 mb-2">
-        DEBUG: Scene graph loaded! Root: {sceneGraph.name} ({sceneGraph.children.length} children)
-      </div>
       <TreeNode node={sceneGraph} onNodeClick={handleNodeClick} />
     </div>
   )

@@ -81,7 +81,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
   return (
     <div className="flex h-full">
-      <div className={`flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative ${className}`}
+      <div className={`flex-1 flex flex-col h-full app-bg-primary app-text-primary relative ${className}`}
         style={{
           marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px',
           transition: 'margin-right 0.3s ease-in-out'
@@ -91,7 +91,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Select defaultValue="chatgpt5">
-            <SelectTrigger className="w-[140px] bg-transparent border-none text-white text-sm">
+            <SelectTrigger className="w-[140px] bg-transparent border-none app-text-primary app-body-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -103,25 +103,34 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
         </div>
         <div className="flex items-center gap-1">
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="User"
           >
             <IconUser className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Settings"
           >
             <IconSettings className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Scene Controls"
             onClick={() => {
               setShowSceneControls(true)
@@ -131,16 +140,22 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
             <IconMenu2 className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+            className="px-3 py-2 rounded-lg app-body-sm app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Share
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             •••
           </motion.button>
@@ -148,7 +163,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
       </div>
 
       {/* 3D Scene - Dynamic size based on conversation state */}
-      <motion.div 
+      <motion.div
         className="flex justify-center"
         animate={{
           height: (activeConversation && messages.length > 0) || chatId ? "40vh" : "35vh",
@@ -166,6 +181,8 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
           transition={{ duration: 0.5 }}
         >
           <ChatScene isExtended={(activeConversation && messages.length > 0) || !!chatId} />
+          {/* Scene Explorer Overlay */}
+          <SceneExplorer />
         </motion.div>
       </motion.div>
 
@@ -175,8 +192,8 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
         <div className="flex-1 flex flex-col items-center max-w-3xl mx-auto w-full px-6 py-6">
           {/* Question Header */}
           <div className="w-full text-center mb-6">
-            <h1 className="text-2xl font-medium mb-2">What are we working on?</h1>
-            <p className="text-gray-400 text-sm">Ask questions about your vehicle's electrical system</p>
+            <h1 className="app-h3 mb-2">What are we working on?</h1>
+            <p className="app-body-sm app-text-muted">Ask questions about your vehicle's electrical system</p>
           </div>
 
           {/* Chat Input - Centered */}
@@ -187,31 +204,41 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
             transition={{ duration: 0.3 }}
           >
             <div className="relative">
-              <motion.div 
-                className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-4 border border-gray-600/20"
-                whileHover={{ backgroundColor: "#404040" }}
+              <motion.div
+                className="flex items-center gap-3 rounded-full p-4"
+                style={{
+                  backgroundColor: 'var(--app-bg-hover)',
+                  border: '1px solid var(--app-border)'
+                }}
+                whileHover={{}}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
                 transition={{ duration: 0.2 }}
               >
-                <motion.button 
+                <motion.button
                   onClick={handleStartChat}
-                  whileHover={{ scale: 1.1 }} 
+                  whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-1 rounded-md hover:bg-gray-600/50 transition-colors"
+                  className="p-1 rounded-md app-text-muted hover:app-text-secondary transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <IconPlus className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                  <IconPlus className="w-5 h-5" />
                 </motion.button>
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask anything"
-                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="flex-1 bg-transparent border-none app-text-primary app-fw-medium focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  style={{ color: 'var(--app-text-primary)' }}
                 />
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                  <IconMicrophone className="w-5 h-5" />
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <IconPlayerRecord className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                  <IconPlayerRecord className="w-5 h-5" />
                 </motion.button>
               </motion.div>
             </div>
