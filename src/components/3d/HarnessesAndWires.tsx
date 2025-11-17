@@ -217,9 +217,21 @@ export function HarnessesAndWires() {
       renderedCount++
     })
 
-    if (highlightedComponentIds.length > 0) {
-      console.log('🔌 WIRES:', wireData.length, 'total,', highlightedWireCount, 'highlighted')
-    }
+    // Log comprehensive wire statistics
+    console.log('⚡ ELECTRICAL SYSTEM:', {
+      totalWires: wireData.length,
+      highlightedWires: highlightedWireCount,
+      skipped: skippedCount,
+      relationships: {
+        'wire_to_fuse': wireData.filter(w => w.color === '#FF0000' && !w.isHighlighted).length,
+        'wire_to_ground': wireData.filter(w => w.color === '#000000' && !w.isHighlighted).length,
+        'has_connector': wireData.filter(w => w.color === '#00FF00' && !w.isHighlighted).length,
+        'has_pin': wireData.filter(w => w.color === '#00BFFF' && !w.isHighlighted).length,
+        'pin_to_wire': wireData.filter(w => w.color === '#FFD700' && !w.isHighlighted).length,
+        'wire_to_relay': wireData.filter(w => w.color === '#FF6600' && !w.isHighlighted).length,
+        'wire_to_splice': wireData.filter(w => w.color === '#FFFF00' && !w.isHighlighted).length
+      }
+    })
 
     return wireData
   }, [ndjsonData, highlightedComponentIds])
@@ -268,10 +280,10 @@ export function HarnessesAndWires() {
                 <meshStandardMaterial
                   color={wire.color}
                   emissive={wire.isHighlighted ? wire.color : '#000000'}
-                  emissiveIntensity={wire.isHighlighted ? 0.15 : 0}
+                  emissiveIntensity={wire.isHighlighted ? 0.6 : 0.2}
                   metalness={wire.isHighlighted ? 0.3 : 0.5}
                   roughness={wire.isHighlighted ? 0.4 : 0.6}
-                  opacity={wire.isHighlighted ? 1 : 0.15}
+                  opacity={wire.opacity || 0.7}
                   transparent={true}
                 />
               </mesh>
