@@ -98,21 +98,45 @@ function NDJSONLoader() {
 
 // Camera controller that responds to store changes
 function CameraController() {
-  const { cameraView } = useModelStore()
+  const { cameraView, setUserControllingCamera } = useModelStore()
   const controlsRef = useRef<any>(null)
+  const isUserControllingRef = useRef(false) // Use ref for immediate check
+  const hasReachedTargetRef = useRef(false)
 
   useFrame(({ camera }) => {
-    if (controlsRef.current) {
+    // Don't lerp if user is controlling OR we've already reached target
+    if (controlsRef.current && !isUserControllingRef.current && !hasReachedTargetRef.current) {
       const { target, position } = cameraView
       const targetVector = new THREE.Vector3(...target)
       const positionVector = new THREE.Vector3(...position)
 
-      // Smoothly move both camera and target
+      // Check if we're close enough to stop animating
+      const positionDistance = camera.position.distanceTo(positionVector)
+      const targetDistance = controlsRef.current.target.distanceTo(targetVector)
+
+      // Stop lerping if we're very close (within 0.01 units)
+      if (positionDistance < 0.01 && targetDistance < 0.01) {
+        hasReachedTargetRef.current = true
+        return
+      }
+
+      // Lerp to target
       camera.position.lerp(positionVector, 0.1)
       controlsRef.current.target.lerp(targetVector, 0.1)
       controlsRef.current.update()
     }
   })
+
+  // Reset flags when camera view changes (new component selected)
+  React.useEffect(() => {
+    isUserControllingRef.current = false
+    hasReachedTargetRef.current = false
+  }, [cameraView])
+
+  const handleControlStart = () => {
+    isUserControllingRef.current = true
+    setUserControllingCamera(true)
+  }
 
   return (
     <OrbitControls
@@ -127,6 +151,8 @@ function CameraController() {
       target={cameraView.target}
       autoRotate={false}
       autoRotateSpeed={0.5}
+      onStart={handleControlStart}
+      onChange={handleControlStart}
     />
   )
 }
@@ -151,24 +177,26 @@ function ChatSceneContent() {
         fov={cameraView.fov || 50}
       />
 
-      {/* Lighting setup */}
-      <ambientLight intensity={0.6} />
+      {/* Extreme fog for maximum visibility */}
+      <fog attach="fog" args={['#666666', 1, 8]} />
+
+      {/* Dramatic lighting for depth */}
+      <ambientLight intensity={0.15} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={0.8}
+        intensity={2}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <pointLight position={[-5, 3, -5]} intensity={0.3} color="#4a90e2" />
+      {/* Strong rim lights for edge definition */}
+      <pointLight position={[-6, 4, -6]} intensity={1.5} color="#ffffff" />
+      <pointLight position={[6, 2, 6]} intensity={1.2} color="#cccccc" />
+      <spotLight position={[0, 12, 0]} intensity={1.5} angle={0.5} penumbra={0.8} castShadow />
+      <pointLight position={[0, -2, -8]} intensity={0.8} color="#666666" />
 
-      {/* Environment for sky and reflections */}
-      <Environment
-        preset="city"
-        background={true}
-        backgroundBlurriness={0.8}
-        backgroundIntensity={0.4}
-      />
+      {/* Environment for reflections */}
+      <Environment preset="studio" background={false} />
 
       {/* Ground Grid */}
       <Grid
@@ -216,7 +244,7 @@ export function ChatScene({ isExtended = false }: ChatSceneProps) {
           toneMappingExposure: 1.2
         }}
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'radial-gradient(circle at center, #2a2a2a 0%, #000000 70%)',
           borderBottomLeftRadius: isExtended ? '8px' : '10rem',
           borderBottomRightRadius: isExtended ? '8px' : '10rem'
         }}

@@ -47,6 +47,7 @@ interface ModelState {
   selectedComponentId: string | null
   hoveredComponentId: string | null
   highlightedComponentIds: string[]
+  isUserControllingCamera: boolean // Track if user is manually moving camera
 
   // AI control
   aiControlEnabled: boolean
@@ -66,6 +67,7 @@ interface ModelState {
   setSelectedComponent: (id: string | null) => void
   setHoveredComponent: (id: string | null) => void
   setHighlightedComponents: (ids: string[]) => void
+  setUserControllingCamera: (controlling: boolean) => void
 
   setAIControlEnabled: (enabled: boolean) => void
   setCurrentFocus: (focus: string | null) => void
@@ -99,6 +101,7 @@ export const useModelStore = create<ModelState>()(
     selectedComponentId: null,
     hoveredComponentId: null,
     highlightedComponentIds: [],
+    isUserControllingCamera: false,
 
     aiControlEnabled: true,
     currentFocus: null,
@@ -134,7 +137,13 @@ export const useModelStore = create<ModelState>()(
 
     setHoveredComponent: (id) => set({ hoveredComponentId: id }),
 
-    setHighlightedComponents: (ids) => set({ highlightedComponentIds: ids }),
+    setHighlightedComponents: (ids) => {
+      console.log('[ModelStore] setHighlightedComponents called with', ids.length, 'IDs')
+      console.log('[ModelStore] IDs:', ids.slice(0, 10)) // Log first 10
+      set({ highlightedComponentIds: ids })
+    },
+
+    setUserControllingCamera: (controlling) => set({ isUserControllingCamera: controlling }),
 
     setAIControlEnabled: (enabled) => set({ aiControlEnabled: enabled }),
 
@@ -193,18 +202,22 @@ export const useModelStore = create<ModelState>()(
           selectedComponentId: componentId,
           cameraView,
           modelRotation,
-          currentFocus: componentId
+          currentFocus: componentId,
+          isUserControllingCamera: false // Reset when focusing on new component
         })
       }
     },
 
-    resetView: () => set({
-      cameraView: DEFAULT_CAMERA_VIEW,
-      modelRotation: DEFAULT_MODEL_ROTATION,
-      selectedComponentId: null,
-      hoveredComponentId: null,
-      highlightedComponentIds: [],
-      currentFocus: null
-    })
+    resetView: () => {
+      console.log('[ModelStore] Resetting view and clearing highlighted path')
+      set({
+        cameraView: DEFAULT_CAMERA_VIEW,
+        modelRotation: DEFAULT_MODEL_ROTATION,
+        selectedComponentId: null,
+        hoveredComponentId: null,
+        highlightedComponentIds: [],
+        currentFocus: null
+      })
+    }
   }))
 )

@@ -1,5 +1,6 @@
 "use client"
 
+import "@/styles/app-design-system.css"
 import { Sidebar } from "@/components/sidebar/sidebar"
 import { Button } from "@/components/ui/button"
 import { Tabs } from "@/components/ui/tabs"
@@ -49,6 +50,14 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   }
   const [showSidebar, setShowSidebar] = useState(true) // Default to open
   const [isMinimized, setIsMinimized] = useState(false) // Add minimized state
+
+  // Auto-minimize sidebar when entering marketplace, explore, or gallery views
+  useEffect(() => {
+    const viewsRequiringMinimizedSidebar = ['marketplace', 'explore', 'gallery']
+    if (viewsRequiringMinimizedSidebar.includes(mainView)) {
+      setIsMinimized(true)
+    }
+  }, [mainView])
   
   // Safely access localStorage after hydration
   useEffect(() => {
@@ -94,7 +103,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
       <motion.div
         className="shrink-0"
         animate={{
-          width: showSidebar ? (isMinimized ? "60px" : `${SIDEBAR_WIDTH}px`) : "0px"
+          width: showSidebar ? (isMinimized ? "72px" : `${SIDEBAR_WIDTH}px`) : "0px"
         }}
         transition={{
           duration: 0.4,

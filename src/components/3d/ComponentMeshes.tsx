@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useFrame, ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useModelStore, type VehicleComponent } from '@/stores/model-store'
+import { traceElectricalPath, getPathSummary, type TracedPaths } from '@/lib/electrical-path-tracer'
 
 interface ComponentMeshProps {
   component: VehicleComponent
@@ -27,11 +28,26 @@ const COMPONENT_COLORS: Record<string, number> = {
 
 export function ComponentMesh({ component }: ComponentMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null)
-  const { selectedComponentId, hoveredComponentId, setSelectedComponent, setHoveredComponent, focusOnComponent } = useModelStore()
+  const {
+    selectedComponentId,
+    hoveredComponentId,
+    highlightedComponentIds,
+    setSelectedComponent,
+    setHoveredComponent,
+    setHighlightedComponents,
+    focusOnComponent,
+    ndjsonData
+  } = useModelStore()
   const [hovered, setHovered] = useState(false)
 
   const isSelected = selectedComponentId === component.id
   const isHovered = hoveredComponentId === component.id || hovered
+  const isHighlighted = highlightedComponentIds.includes(component.id)
+
+  // Debug: Log when highlighting changes
+  if (isHighlighted && component.id !== selectedComponentId) {
+    console.log('[ComponentMesh] Component highlighted:', component.name, component.id)
+  }
 
   // Get bounding box dimensions from specifications
   const bbox = component.specifications?.bbox_m as [number, number, number] | undefined
@@ -39,8 +55,8 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
 
   // Determine color based on type and state
   const baseColor = COMPONENT_COLORS[component.type] || COMPONENT_COLORS.other
-  const emissiveColor = isSelected ? baseColor : 0x000000
-  const emissiveIntensity = isSelected ? 0.5 : isHovered ? 0.2 : 0
+  const emissiveColor = isSelected ? baseColor : isHighlighted ? 0x8BE196 : 0x000000 // Mint green for highlighted
+  const emissiveIntensity = isSelected ? 0.5 : isHighlighted ? 0.4 : isHovered ? 0.2 : 0
 
   // Pulsing animation for selected component
   useFrame((state) => {
@@ -54,9 +70,42 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
-    console.log('[ComponentMesh] Clicked:', component.name)
+    console.log('[ComponentMesh] ===== CLICKED =====')
+    console.log('[ComponentMesh] Component:', component.name, component.id)
+    console.log('[ComponentMesh] NDJSON Data available?', !!ndjsonData)
+
+    if (ndjsonData) {
+      console.log('[ComponentMesh] NDJSON edges:', ndjsonData.edges?.length)
+      console.log('[ComponentMesh] NDJSON nodes:', Object.keys(ndjsonData.nodesById || {}).length)
+    }
+
+    // Clear previous highlights and circuit path FIRST
+    console.log('[ComponentMesh] Clearing previous highlights...')
+    setHighlightedComponents([])
+    ;(window as any).currentCircuitPath = []
+
     setSelectedComponent(component.id)
     focusOnComponent(component.id)
+
+    // Trace and highlight electrical path for NEW component
+    if (ndjsonData) {
+      console.log('[ComponentMesh] Starting path trace...')
+      const tracedPaths = traceElectricalPath(component.id, ndjsonData)
+      console.log('[ComponentMesh] Traced paths:', tracedPaths)
+      console.log('[ComponentMesh] Setting highlighted components:', tracedPaths.allHighlighted.length, 'components')
+      setHighlightedComponents(tracedPaths.allHighlighted)
+
+      // Store the ordered circuit path for wire generation
+      ;(window as any).currentCircuitPath = tracedPaths.completeCircuit
+
+      // Log path summary
+      const summary = getPathSummary(tracedPaths.allHighlighted, ndjsonData)
+      console.log('[ComponentMesh] Path Summary:', summary)
+    } else {
+      console.error('[ComponentMesh] ERROR: No NDJSON data available!')
+      // Still clear if no data
+      setHighlightedComponents([])
+    }
   }
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
@@ -133,7 +182,7 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
         emissiveIntensity={emissiveIntensity}
         metalness={0.6}
         roughness={0.4}
-        opacity={isHovered ? 1 : 0.9}
+        opacity={isHighlighted ? 1 : isHovered ? 1 : 0.75}
         transparent
       />
 
@@ -152,15 +201,25 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
           <lineBasicMaterial color={0xffffff} linewidth={2} />
         </lineSegments>
       )}
+
+      {/* Highlight outline for path components */}
+      {isHighlighted && !isSelected && (
+        <lineSegments>
+          <edgesGeometry args={[meshRef.current?.geometry!]} />
+          <lineBasicMaterial color={0x8BE196} linewidth={1} />
+        </lineSegments>
+      )}
     </mesh>
   )
 }
 
 // Component that renders all components as 3D meshes
 export function ComponentMeshes() {
-  const { components, selectedComponentId, modelRotation } = useModelStore()
+  const { components, selectedComponentId, highlightedComponentIds, modelRotation } = useModelStore()
   const groupRef = useRef<THREE.Group>(null)
   const rotationGroupRef = useRef<THREE.Group>(null)
+
+  console.log('[ComponentMeshes] Rendering with', highlightedComponentIds.length, 'highlighted components')
 
   // Gentle left to right rolling animation (stops when component is selected)
   useFrame((state) => {

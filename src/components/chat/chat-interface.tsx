@@ -83,7 +83,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
     <div className="flex h-full">
       <div className={`flex-1 flex flex-col h-full app-bg-primary app-text-primary relative ${className}`}
         style={{
-          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px',
+          marginRight: showSceneControls ? (isSceneControlsMinimized ? '56px' : '320px') : '0px',
           transition: 'margin-right 0.3s ease-in-out'
         }}
       >

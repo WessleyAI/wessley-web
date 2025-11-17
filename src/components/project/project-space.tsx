@@ -56,10 +56,10 @@ import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
 const ProjectChatSkeleton = () => (
   <div className="flex items-start justify-between p-4 mx-2">
     <div className="flex-1 space-y-2">
-      <Skeleton className="h-4 w-3/4 bg-gray-600/50" />
-      <Skeleton className="h-3 w-1/2 bg-gray-600/30" />
+      <Skeleton className="h-4 w-3/4" style={{ backgroundColor: 'var(--app-bg-tertiary)' }} />
+      <Skeleton className="h-3 w-1/2" style={{ backgroundColor: 'var(--app-bg-tertiary)', opacity: 0.6 }} />
     </div>
-    <Skeleton className="h-3 w-16 bg-gray-600/30" />
+    <Skeleton className="h-3 w-16" style={{ backgroundColor: 'var(--app-bg-tertiary)', opacity: 0.6 }} />
   </div>
 )
 
@@ -133,38 +133,75 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   }, [projectId])
 
   const handleStartChat = async () => {
-    console.log('handleStartChat called', { chatInput: chatInput.trim(), profile: !!profile, projectId })
-    
     if (!chatInput.trim() || !profile) {
-      console.log('Early return: missing input or profile')
       return
     }
-    
+
+    const userMessage = chatInput.trim()
+    setChatInput("") // Clear input immediately for better UX
+
     try {
-      console.log('Creating chat with:', {
-        title: chatInput.trim(),
-        user_id: profile.user_id,
-        workspace_id: projectId,
-        ai_model: "gpt-4"
-      })
-      
+      // Create chat with temporary title
       const newChat = await createChat({
-        title: chatInput.trim(),
+        title: userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''),
         user_id: profile.user_id,
         workspace_id: projectId,
-        ai_model: "gpt-4"
+        ai_model: "gpt-5.1-chat-latest"
       })
-      
-      console.log('Chat created successfully:', newChat)
+
       setChats(prevChats => [...prevChats, newChat])
-      
-      // Set the selected chat in context
       setSelectedChat(newChat)
-      
-      // Set the user input for the chat
-      setGlobalUserInput(chatInput.trim())
-      
-      setChatInput("")
+
+      // Send first message to GPT-5.1 and get response
+      const messageResponse = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId: newChat.id,
+          userMessage: userMessage,
+          vehicle: vehicle ? {
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year
+          } : null
+        })
+      })
+
+      if (!messageResponse.ok) {
+        console.error('Failed to send message')
+        router.push(`/c/${newChat.id}`)
+        return
+      }
+
+      const { assistantMessage } = await messageResponse.json()
+
+      // Generate contextual title based on conversation
+      const titleResponse = await fetch('/api/chat/generate-title', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userMessage: userMessage,
+          assistantMessage: assistantMessage?.content || ''
+        })
+      })
+
+      if (titleResponse.ok) {
+        const { title } = await titleResponse.json()
+
+        // Update chat title
+        await updateChat(newChat.id, { title })
+        setChats(prevChats =>
+          prevChats.map(chat =>
+            chat.id === newChat.id ? { ...chat, title } : chat
+          )
+        )
+      }
+
+      // Navigate to chat
       router.push(`/c/${newChat.id}`)
     } catch (error) {
       console.error('Error creating chat:', error)
@@ -283,8 +320,8 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <motion.div 
-        className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative"
+      <motion.div
+        className="flex-1 flex flex-col h-full app-bg-primary app-text-primary relative"
         animate={{
           marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px'
         }}
@@ -293,54 +330,70 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       {/* Top Bar with Model Selection - Floating above scene */}
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
-          <Select defaultValue="chatgpt5">
-            <SelectTrigger className="w-[140px] bg-transparent border-none text-white text-sm">
+          <Select defaultValue="gpt-5.1">
+            <SelectTrigger className="w-[140px] bg-transparent border-none app-text-primary app-body-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="chatgpt5">ChatGPT 5</SelectItem>
-              <SelectItem value="gpt4">GPT-4</SelectItem>
+              <SelectItem value="gpt-5.1">GPT-5.1</SelectItem>
+              <SelectItem value="gpt-5">GPT-5</SelectItem>
+              <SelectItem value="gpt-4">GPT-4</SelectItem>
               <SelectItem value="claude35">Claude 3.5</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-center gap-1">
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Project Manager"
           >
             <IconUser className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Budget & Expenses"
           >
             <IconCalculator className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Todo List"
           >
             <IconClipboard className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Settings"
           >
             <IconSettings className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Scene Controls"
             onClick={() => {
               setShowSceneControls(true)
@@ -350,16 +403,22 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             <IconMenu2 className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+            className="px-3 py-2 rounded-lg app-body-sm app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Share
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             •••
           </motion.button>
@@ -377,17 +436,20 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         {/* Project Header */}
         <div className="w-full flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <IconFolder className="w-6 h-6 text-gray-400" />
-            <h1 className="font-inter text-[2.074rem] font-semibold">{projectName}</h1>
+            <IconFolder className="w-6 h-6 app-text-muted" />
+            <h1 className="app-h2">{projectName}</h1>
             {isLoadingVehicle ? (
               <div className="flex items-center gap-2 px-2 py-1">
-                <IconCar className="w-4 h-4 text-gray-500" />
-                <Skeleton className="h-4 w-32 bg-gray-600/50" />
+                <IconCar className="w-4 h-4 app-text-muted" />
+                <Skeleton className="h-4 w-32" style={{ backgroundColor: 'var(--app-bg-tertiary)' }} />
               </div>
             ) : (
               <motion.button
                 onClick={handleEditVehicle}
-                className="flex items-center gap-2 font-inter text-[0.833rem] text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
+                className="flex items-center gap-2 app-body-sm app-text-muted hover:app-text-secondary transition-colors duration-200 px-2 py-1 rounded"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -404,7 +466,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           <Button
             variant="outline"
             size="sm"
-            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 font-inter text-[0.833rem]"
+            className="bg-transparent app-text-secondary app-body-sm"
+            style={{ borderColor: 'var(--app-border)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Add files
           </Button>
@@ -418,31 +483,41 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           transition={{ duration: 0.3 }}
         >
           <div className="relative">
-            <motion.div 
-              className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-4 border border-gray-600/20"
-              whileHover={{ backgroundColor: "#404040" }}
+            <motion.div
+              className="flex items-center gap-3 rounded-full p-4"
+              style={{
+                backgroundColor: 'var(--app-bg-hover)',
+                border: '1px solid var(--app-border)'
+              }}
+              whileHover={{}}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
               transition={{ duration: 0.2 }}
             >
-              <motion.button 
+              <motion.button
                 onClick={handleStartChat}
-                whileHover={{ scale: 1.1 }} 
+                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-1 rounded-md hover:bg-gray-600/50 transition-colors"
+                className="p-1 rounded-md app-text-muted hover:app-text-secondary transition-colors"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <IconPlus className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                <IconPlus className="w-5 h-5" />
               </motion.button>
               <Input
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`New chat in ${projectName}`}
-                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 font-inter text-[0.833rem]"
+                className="flex-1 bg-transparent border-none app-text-primary app-body-sm focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                style={{ color: 'var(--app-text-primary)' }}
               />
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                <IconMicrophone className="w-5 h-5" />
               </motion.button>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <IconPlayerRecord className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                <IconPlayerRecord className="w-5 h-5" />
               </motion.button>
             </motion.div>
           </div>
@@ -452,14 +527,14 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         <div className="w-full max-h-96">
           {projectChats.length === 0 ? (
             <div className="flex items-center justify-center h-32">
-              <div className="text-center text-gray-500">
-                <p className="font-body text-[1rem]">No chats yet...</p>
-                <p className="font-body text-[0.833rem] mt-2">Start a conversation above to begin</p>
+              <div className="text-center app-text-muted">
+                <p className="app-body">No chats yet...</p>
+                <p className="app-body-sm mt-2">Start a conversation above to begin</p>
               </div>
             </div>
           ) : (
             <ScrollArea className="h-full project-chat-scroll">
-              <div className="divide-y divide-gray-700/50 pr-4">
+              <div className="divide-y pr-4" style={{ borderColor: 'var(--app-border)' }}>
                 {isLoadingChats ? (
                   // Show skeleton loading states
                   Array.from({ length: 4 }).map((_, index) => (
@@ -469,16 +544,18 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                   projectChats.map((chat, index) => (
                   <ContextMenu key={chat.id}>
                     <ContextMenuTrigger asChild>
-                      <motion.div 
-                        className="flex items-start justify-between p-4 hover:bg-[#3a3a3a]/50 cursor-pointer transition-all duration-200 rounded-lg mx-2"
+                      <motion.div
+                        className="flex items-start justify-between p-4 cursor-pointer transition-all duration-200 rounded-lg mx-2"
+                        style={{ backgroundColor: 'transparent' }}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
-                        whileHover={{ 
-                          backgroundColor: "rgba(58, 58, 58, 0.7)",
+                        whileHover={{
                           x: 4,
                           transition: { duration: 0.2 }
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         whileTap={{ scale: 0.98 }}
                         onClick={(e) => {
                           e.preventDefault()
@@ -487,13 +564,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                         onContextMenu={(e) => e.stopPropagation()}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-inter text-[0.694rem] font-medium mb-1 text-white truncate">{chat.title}</div>
-                          <div className="font-body text-[0.833rem] text-gray-400 line-clamp-2 leading-relaxed">
+                          <div className="app-caption app-fw-medium mb-1 app-text-primary truncate">{chat.title}</div>
+                          <div className="app-body-sm app-text-muted line-clamp-2 leading-relaxed">
                             {/* Show latest message or placeholder */}
                             New conversation
                           </div>
                         </div>
-                        <span className="font-body text-[0.694rem] text-gray-500 ml-4 shrink-0">
+                        <span className="app-caption app-text-muted ml-4 shrink-0">
                           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </motion.div>
@@ -527,23 +604,23 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="demo-typography">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-inter text-[1.44rem] font-medium">Rename Chat</DialogTitle>
-            <DialogDescription className="font-body text-[1rem] text-gray-400">
+            <DialogTitle className="app-h5">Rename Chat</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
               Enter a new name for "{selectedChatForAction?.title}".
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right font-body text-[0.833rem]">
+              <Label htmlFor="name" className="text-right app-body-sm">
                 Name
               </Label>
               <Input
                 id="name"
                 value={newChatName}
                 onChange={(e) => setNewChatName(e.target.value)}
-                className="col-span-3 font-body text-[1rem]"
+                className="col-span-3 app-body"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmRename()
@@ -553,10 +630,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} className="font-inter text-[0.833rem]">
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
-            <Button onClick={confirmRename} disabled={!newChatName.trim()} className="font-inter text-[0.833rem]">
+            <Button onClick={confirmRename} disabled={!newChatName.trim()} className="app-body-sm">
               Rename
             </Button>
           </DialogFooter>
@@ -565,21 +642,21 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="demo-typography">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-inter text-[1.44rem] font-medium">Delete Chat</DialogTitle>
-            <DialogDescription className="font-body text-[1rem] text-gray-400">
+            <DialogTitle className="app-h5">Delete Chat</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
               Are you sure you want to delete "{selectedChatForAction?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="font-inter text-[0.833rem]">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDelete}
-              className="font-inter text-[0.833rem]"
+              className="app-body-sm"
             >
               Delete
             </Button>
@@ -589,10 +666,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Vehicle Dialog */}
       <Dialog open={vehicleDialogOpen} onOpenChange={setVehicleDialogOpen}>
-        <DialogContent className="demo-typography">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-inter text-[1.44rem] font-medium">{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
-            <DialogDescription className="font-body text-[1rem] text-gray-400">
+            <DialogTitle className="app-h5">{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
               {vehicle
                 ? 'Update the vehicle information for this project.'
                 : 'Set the vehicle model for this project to get more accurate assistance.'
@@ -601,7 +678,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="make" className="text-right font-body text-[0.833rem]">
+              <Label htmlFor="make" className="text-right app-body-sm">
                 Make
               </Label>
               <Input
@@ -609,11 +686,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
                 placeholder="e.g., Hyundai"
-                className="col-span-3 font-body text-[1rem]"
+                className="col-span-3 app-body"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="model" className="text-right font-body text-[0.833rem]">
+              <Label htmlFor="model" className="text-right app-body-sm">
                 Model
               </Label>
               <Input
@@ -621,11 +698,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleModel}
                 onChange={(e) => setVehicleModel(e.target.value)}
                 placeholder="e.g., Galloper"
-                className="col-span-3 font-body text-[1rem]"
+                className="col-span-3 app-body"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="year" className="text-right font-body text-[0.833rem]">
+              <Label htmlFor="year" className="text-right app-body-sm">
                 Year
               </Label>
               <Input
@@ -633,7 +710,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleYear}
                 onChange={(e) => setVehicleYear(e.target.value)}
                 placeholder="e.g., 2000"
-                className="col-span-3 font-body text-[1rem]"
+                className="col-span-3 app-body"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmVehicle()
@@ -643,13 +720,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)} className="font-inter text-[0.833rem]">
+            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
             <Button
               onClick={confirmVehicle}
               disabled={!vehicleMake.trim() || !vehicleModel.trim() || !vehicleYear.trim()}
-              className="font-inter text-[0.833rem]"
+              className="app-body-sm"
             >
               {vehicle ? 'Update' : 'Set Vehicle'}
             </Button>

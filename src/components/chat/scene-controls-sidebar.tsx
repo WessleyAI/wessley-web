@@ -55,19 +55,19 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
 
   return (
     <motion.div
-      initial={{ x: '100%' }}
-      animate={{ 
-        x: 0,
-        width: isMinimized ? '60px' : '320px'
+      initial={{ width: 0 }}
+      animate={{
+        width: isMinimized ? '56px' : '320px'
       }}
-      exit={{ x: '100%' }}
-      transition={{ duration: 0.3 }}
+      exit={{ width: 0 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
       className={cn(
-        "fixed top-0 right-0 h-full z-50 flex flex-col",
+        "shrink-0 h-full flex flex-col overflow-hidden",
         className
       )}
       style={{
-        backgroundColor: '#0f0f0f' // Slightly brighter than left sidebar's #090909
+        backgroundColor: 'var(--app-bg-secondary)',
+        borderLeft: '1px solid var(--app-border)'
       }}
     >
       {/* Header */}
@@ -75,14 +75,14 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
         "flex items-center p-4",
         isMinimized ? "justify-center" : "justify-between"
       )}>
-        {!isMinimized && <h2 className="text-lg font-semibold text-white/90">Scene Controls</h2>}
+        {!isMinimized && <h2 className="app-h6 app-text-primary">Scene Controls</h2>}
         <div className="flex items-center gap-1">
           {onToggleMinimized && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggleMinimized}
-              className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
+              className="h-8 w-8 p-0 app-text-muted hover:app-text-primary hover:bg-[var(--app-bg-hover)] transition-all duration-200"
               title={isMinimized ? "Expand" : "Minimize"}
             >
               {isMinimized ? (
@@ -108,9 +108,24 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
                   size="sm"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "h-10 w-10 p-0 text-white/80 hover:bg-white/10 hover:text-white relative z-10 rounded-lg transition-all duration-200",
-                    activeTab === tab.id ? "bg-white/10 text-white" : ""
+                    "h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-200"
                   )}
+                  style={{
+                    color: activeTab === tab.id ? 'var(--app-text-primary)' : 'var(--app-text-secondary)',
+                    backgroundColor: activeTab === tab.id ? 'var(--app-bg-hover)' : 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+                      e.currentTarget.style.color = 'var(--app-text-primary)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== tab.id) {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = 'var(--app-text-secondary)'
+                    }
+                  }}
                   title={tab.label}
                 >
                   <Icon size={20} />
@@ -121,19 +136,31 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
         </div>
       ) : (
         /* Expanded: Horizontal tabs */
-        <div className="flex border-b border-gray-600/20">
+        <div className="flex" style={{ borderBottom: '1px solid var(--app-border)' }}>
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex-1 flex flex-col items-center gap-1 p-3 text-xs font-medium transition-colors",
-                  activeTab === tab.id
-                    ? "text-blue-400 bg-blue-500/10 border-b-2 border-blue-400"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
-                )}
+                className="flex-1 flex flex-col items-center gap-1 p-3 app-caption app-fw-medium transition-colors"
+                style={{
+                  color: activeTab === tab.id ? 'var(--app-accent)' : 'var(--app-text-secondary)',
+                  backgroundColor: activeTab === tab.id ? 'var(--app-accent-subtle)' : 'transparent',
+                  borderBottom: activeTab === tab.id ? '2px solid var(--app-accent)' : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = 'var(--app-text-primary)'
+                    e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = 'var(--app-text-secondary)'
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }
+                }}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
@@ -156,11 +183,19 @@ export function SceneControlsSidebar({ isOpen, onClose, className, isMinimized =
 
       {/* Footer */}
       {!isMinimized && (
-        <div className="p-4 border-t border-gray-600/20">
+        <div className="p-4" style={{ borderTop: '1px solid var(--app-border)' }}>
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
+            className="w-full justify-start h-9 px-3 app-body-sm app-text-secondary transition-all duration-200"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+              e.currentTarget.style.color = 'var(--app-text-primary)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--app-text-secondary)'
+            }}
           >
             <IconSettings size={16} className="mr-3" />
             Scene Settings
