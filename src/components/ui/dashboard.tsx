@@ -35,6 +35,24 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   const { workspaces, selectedWorkspace, setSelectedWorkspace } = useContext(ChatbotUIContext)
 
   const [mainView, setMainView] = useState<ContentType>(mainTabValue as ContentType)
+  const [showEntranceAnimation, setShowEntranceAnimation] = useState(false)
+
+  // Detect if we just navigated from onboarding (check URL param)
+  // Only set entrance animation ONCE on mount if onboarding=complete is present
+  useEffect(() => {
+    const fromOnboarding = searchParams.get('onboarding') === 'complete'
+    if (fromOnboarding && !showEntranceAnimation) {
+      setShowEntranceAnimation(true)
+      // Reset after animation completes
+      setTimeout(() => setShowEntranceAnimation(false), 3500)
+
+      // Clean up URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('onboarding')
+      router.replace(newUrl.pathname + newUrl.search, { scroll: false })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   // Get current workspace - for now use the first one or selected one
   const currentWorkspace = selectedWorkspace || workspaces[0]
@@ -88,10 +106,8 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
       // From expanded: minimize first
       setIsMinimized(true)
     } else if (showSidebar && isMinimized) {
-      // From minimized: expand back to full (unless in bench view)
-      if (!isBenchView) {
-        setIsMinimized(false)
-      }
+      // From minimized: expand back to full (now allowed in bench view too)
+      setIsMinimized(false)
     } else {
       // Hidden: show expanded (or minimized if bench view)
       setShowSidebar(true)
@@ -108,19 +124,23 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   return (
     <div className="flex h-full w-full overflow-hidden">
 
-      {/* Unified Sidebar */}
+      {/* Unified Sidebar - With entrance animation */}
       <motion.div
         className="shrink-0"
+        initial={showEntranceAnimation ? { x: -100, opacity: 0 } : false}
         animate={{
-          width: showSidebar ? (isMinimized ? "72px" : `${SIDEBAR_WIDTH}px`) : "0px"
+          width: showSidebar ? (isMinimized ? "72px" : `${SIDEBAR_WIDTH}px`) : "0px",
+          x: 0,
+          opacity: 1
         }}
         transition={{
           duration: 0.4,
-          ease: [0.25, 0.1, 0.25, 1]
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: showEntranceAnimation ? 0.7 : 0
         }}
       >
-        <Sidebar 
-          showSidebar={showSidebar} 
+        <Sidebar
+          showSidebar={showSidebar}
           onMainViewChange={handleMainViewChange}
           currentView={mainView}
           onToggleSidebar={handleToggleSidebar}
@@ -128,8 +148,17 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
         />
       </motion.div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+      {/* Main Content Area - With entrance animation */}
+      <motion.div
+        className="flex-1 flex flex-col relative min-w-0 overflow-hidden"
+        initial={showEntranceAnimation ? { y: -100, opacity: 0 } : false}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{
+          duration: 0.6,
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: showEntranceAnimation ? 0 : 0
+        }}
+      >
         {mainView === "chat" && (
           <div className="flex-1 bg-background w-full overflow-hidden">
             {children}
@@ -174,7 +203,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
             <AutoTuning />
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Sidebar Toggle Button - Only show when sidebar is hidden */}
       {!showSidebar && (

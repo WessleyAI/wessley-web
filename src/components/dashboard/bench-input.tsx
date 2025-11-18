@@ -26,17 +26,17 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
   const inputRef = useRef<HTMLInputElement>(null)
   const [localInput, setLocalInput] = useState('')
 
-  // Determine if this is first user message (vehicle info)
-  // Count user messages - if this will be the first user message, it's the vehicle info
-  const userMessageCount = messages.filter(m => m.role === 'user').length
-  const isFirstMessage = userMessageCount === 0
-
   const handleSubmit = async () => {
     if (!localInput.trim() || isGenerating || disabled) return
 
     const message = localInput.trim()
     setLocalInput('')
     setIsGenerating(true)
+
+    // Determine if this is first user message (vehicle info)
+    // Count user messages BEFORE adding the current one
+    const userMessageCount = messages.filter(m => m.role === 'user').length
+    const isFirstMessage = userMessageCount === 0
 
     try {
       // Add user message immediately (local only, no conversation_id)
@@ -106,7 +106,10 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
 
       // If onboarding complete, notify parent
       if (data.onboardingComplete && onOnboardingComplete) {
+        console.log('[BenchInput] 🎉 Onboarding complete! Calling parent handler...')
+        console.log('[BenchInput] Vehicle info:', JSON.stringify(data.vehicleInfo, null, 2))
         onOnboardingComplete(data.vehicleInfo)
+        console.log('[BenchInput] ✓ Parent handler called')
       }
 
       setIsGenerating(false)

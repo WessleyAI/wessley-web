@@ -15,7 +15,8 @@ export function AppShell({ children, onDashboardOpen }: AppShellProps) {
   const shouldHideNav = hiddenNavRoutes.includes(pathname) ||
                         pathname.startsWith('/g/') ||
                         pathname.startsWith('/c/') ||
-                        pathname.startsWith('/demo/')
+                        pathname.startsWith('/demo/') ||
+                        pathname.startsWith('/auth/')
 
   return (
     <div className="min-h-screen bg-transparent font-sans antialiased">

@@ -26,11 +26,11 @@ function generatePlaceholder(lastAssistantMessage?: string): string {
 
   // Check for nickname question
   if (lower.includes('nickname') || lower.includes('call')) {
-    return "e.g., Blue Thunder, My Daily, etc..."
+    return "e.g., Blue Thunder, The Beast, Daily Driver..."
   }
 
-  // Check for fault/problem question
-  if (lower.includes('fault') || lower.includes('problem') || lower.includes('issue')) {
+  // Check for fault/problem question (after workspace created)
+  if (lower.includes('fault') || lower.includes('problem') || lower.includes('issue') || lower.includes('not working')) {
     return "e.g., tail lights not working, window stuck..."
   }
 

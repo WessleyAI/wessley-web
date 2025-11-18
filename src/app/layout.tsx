@@ -85,6 +85,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log('🌍🌍🌍 [ROOT LAYOUT] RENDERING ROOT LAYOUT 🌍🌍🌍')
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

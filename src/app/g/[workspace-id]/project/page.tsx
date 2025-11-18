@@ -10,9 +10,21 @@ export default function ProjectPage() {
   const params = useParams()
   const workspaceId = params['workspace-id'] as string
   const { workspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
-  
+
+  console.log('=====================================================')
+  console.log('[ProjectPage] 🎨 Page loading')
+  console.log('[ProjectPage] Workspace ID from URL:', workspaceId)
+  console.log('[ProjectPage] Available workspaces:', workspaces.length)
+  console.log('[ProjectPage] Workspaces:', workspaces.map(w => ({ id: w.id, name: w.name })))
+  console.log('=====================================================')
+
   // Find the workspace by ID
   const workspace = workspaces.find(w => w.id === workspaceId)
+
+  console.log('[ProjectPage] Found workspace?', !!workspace)
+  if (workspace) {
+    console.log('[ProjectPage] Workspace details:', { id: workspace.id, name: workspace.name })
+  }
   
   // Set the selected workspace when the page loads
   useEffect(() => {

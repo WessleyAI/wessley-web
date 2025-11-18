@@ -12,12 +12,12 @@ export async function middleware(request: NextRequest) {
   await supabase.auth.getUser()
 
   // Allow API routes and auth callbacks
-  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/callback')) {
+  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/')) {
     return response
   }
 
-  // Allow access only to /waitlist
-  if (pathname === '/waitlist') {
+  // Allow access to /waitlist and /demo routes (authenticated demo areas)
+  if (pathname === '/waitlist' || pathname.startsWith('/demo/') || pathname.startsWith('/g/') || pathname.startsWith('/c/')) {
     return response
   }
 

@@ -29,16 +29,23 @@ export function useAuth() {
   }, [supabase.auth])
 
   const signInWithGoogle = async () => {
-    console.log('🔐 Starting Google OAuth sign in...')
+    console.log('🔐 Starting Google OAuth sign in - DIRECT REDIRECT')
+
+    // DO NOT call signOut() - it hangs
+    // Just go STRAIGHT to OAuth
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/demo/bench`
+        redirectTo: `${window.location.origin}/auth/callback?next=/demo/bench`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account', // Force Google account picker
+        }
       }
     })
 
     if (error) {
-      console.error('❌ Error signing in with Google:', error)
+      console.error('❌ OAuth error:', error)
     } else {
       console.log('✅ OAuth initiated:', data)
     }
