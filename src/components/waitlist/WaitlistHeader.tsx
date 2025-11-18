@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useAuth } from '@/lib/hooks/use-auth'
+import { useRouter } from 'next/navigation'
 
 export function WaitlistHeader() {
-  const { signInWithGoogle } = useAuth()
+  const router = useRouter()
   const realButtonRef = useRef<HTMLAnchorElement>(null)
   const buttonTextRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
@@ -167,9 +167,9 @@ export function WaitlistHeader() {
           </Link>
         </motion.div>
 
-        {/* Sign In Button */}
+        {/* Demo Button */}
         <motion.button
-          onClick={signInWithGoogle}
+          onClick={() => router.push('/g/cde0ea8e-07aa-4c59-a72b-ba0d56020484/project')}
           whileHover={{
             backgroundColor: 'rgba(250, 250, 250, 0.95)', color: '#1a1a1a',
           }}
@@ -183,7 +183,7 @@ export function WaitlistHeader() {
           transition={{ duration: 0.2 }}
           className="hidden md:block text-[8px] md:text-[12px] font-medium tracking-wider"
         >
-          SIGN IN
+          DEMO
         </motion.button>
 
         {/* Animated Insider Button */}
