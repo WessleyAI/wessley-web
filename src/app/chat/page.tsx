@@ -6,10 +6,10 @@ import { Bench } from '@/components/dashboard/bench'
 
 export default function ChatPage() {
   return (
-    <Dashboard>
-      <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <Dashboard>
         <Bench />
-      </Suspense>
-    </Dashboard>
+      </Dashboard>
+    </Suspense>
   )
 }
