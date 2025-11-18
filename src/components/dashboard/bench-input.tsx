@@ -4,66 +4,67 @@ import React, { useState, useRef, KeyboardEvent } from 'react'
 import { useChatStore } from '@/stores/chat-store'
 import { useModelStore } from '@/stores/model-store'
 import { Button } from '@/components/ui/button'
-import { Send, Loader2, Plus, Mic } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Plus, Mic } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { SceneEvent } from '@/types/scene-events'
 
-interface ChatInputProps {
+interface BenchInputProps {
   disabled?: boolean
-  isWelcomeSetup?: boolean
+  placeholder?: string
+  onOnboardingComplete?: (vehicleInfo: any) => void
 }
 
-export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
+export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardingComplete }: BenchInputProps) {
   const {
-    userInput,
     isGenerating,
-    setUserInput,
     setIsGenerating,
-    activeConversation,
-    addMessage
+    addMessage,
+    messages
   } = useChatStore()
 
   const { dispatchSceneEvent } = useModelStore()
-
   const inputRef = useRef<HTMLInputElement>(null)
+  const [localInput, setLocalInput] = useState('')
+
+  // Determine if this is first user message (vehicle info)
+  // Count user messages - if this will be the first user message, it's the vehicle info
+  const userMessageCount = messages.filter(m => m.role === 'user').length
+  const isFirstMessage = userMessageCount === 0
 
   const handleSubmit = async () => {
-    if (!userInput.trim() || isGenerating || disabled) return
+    if (!localInput.trim() || isGenerating || disabled) return
 
-    const message = userInput.trim()
-    setUserInput('')
+    const message = localInput.trim()
+    setLocalInput('')
     setIsGenerating(true)
 
     try {
-      if (!activeConversation) return
-
-      // Add user message immediately
+      // Add user message immediately (local only, no conversation_id)
       const userMessageId = crypto.randomUUID()
       addMessage({
         id: userMessageId,
-        conversation_id: activeConversation.id,
+        conversation_id: 'bench-local', // Temporary ID for bench mode
         content: message,
         role: 'user',
-        user_id: activeConversation.user_id,
+        user_id: 'demo-user',
         ai_model: null,
         attached_media_ids: null,
-        metadata: null,
+        metadata: { benchMode: true },
         created_at: new Date().toISOString(),
         ai_tokens_used: null,
         ai_confidence_score: null
       })
 
-      // Call API to get assistant response
-      const response = await fetch('/api/chat/messages', {
+      // Call API in bench mode (no database persistence)
+      const response = await fetch('/api/chat/bench', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          chatId: activeConversation.id,
           userMessage: message,
-          vehicle: activeConversation.context_data
+          conversationHistory: messages,
+          isFirstMessage
         })
       })
 
@@ -73,36 +74,56 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
       }
 
       const data = await response.json()
-      console.log('[ChatInput] API response:', data)
+      console.log('[BenchInput] API response:', data)
 
-      // Add assistant message
+      // Add assistant message (local only)
       if (data.assistantMessage) {
-        addMessage(data.assistantMessage)
+        addMessage({
+          id: crypto.randomUUID(),
+          conversation_id: 'bench-local',
+          content: data.assistantMessage,
+          role: 'assistant',
+          user_id: null,
+          ai_model: 'gpt-5.1-chat-latest',
+          attached_media_ids: null,
+          metadata: {
+            benchMode: true,
+            type: data.messageType
+          },
+          created_at: new Date().toISOString(),
+          ai_tokens_used: data.tokensUsed,
+          ai_confidence_score: null
+        })
       }
 
       // Dispatch scene events if any
       if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
-        console.log('[ChatInput] Dispatching scene events:', data.sceneEvents)
+        console.log('[BenchInput] Dispatching scene events:', data.sceneEvents)
         data.sceneEvents.forEach((event: SceneEvent) => {
           dispatchSceneEvent(event)
         })
       }
 
+      // If onboarding complete, notify parent
+      if (data.onboardingComplete && onOnboardingComplete) {
+        onOnboardingComplete(data.vehicleInfo)
+      }
+
       setIsGenerating(false)
     } catch (error) {
-      console.error('[ChatInput] Error sending message:', error)
+      console.error('[BenchInput] Error sending message:', error)
       setIsGenerating(false)
 
       // Add error message
       addMessage({
         id: crypto.randomUUID(),
-        conversation_id: activeConversation!.id,
+        conversation_id: 'bench-local',
         content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         role: 'assistant',
         user_id: null,
-        ai_model: activeConversation!.ai_model,
+        ai_model: 'gpt-5.1-chat-latest',
         attached_media_ids: null,
-        metadata: { error: true },
+        metadata: { error: true, benchMode: true },
         created_at: new Date().toISOString(),
         ai_tokens_used: null,
         ai_confidence_score: null
@@ -118,7 +139,7 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInput(e.target.value)
+    setLocalInput(e.target.value)
   }
 
   return (
@@ -142,10 +163,10 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
 
         <Input
           ref={inputRef}
-          value={userInput}
+          value={localInput}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder={isWelcomeSetup ? "What vehicle model/brand/year are we working with?" : "Ask anything"}
+          placeholder={placeholder}
           disabled={disabled || isGenerating}
           className="flex-1 bg-transparent border-none app-text-primary app-fw-medium focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto py-0"
           style={{

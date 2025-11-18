@@ -51,13 +51,18 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
   const [showSidebar, setShowSidebar] = useState(true) // Default to open
   const [isMinimized, setIsMinimized] = useState(false) // Add minimized state
 
-  // Auto-minimize sidebar when entering marketplace, explore, or gallery views
+  // Auto-minimize sidebar when entering marketplace, explore, gallery, or bench views
   useEffect(() => {
     const viewsRequiringMinimizedSidebar = ['marketplace', 'explore', 'gallery']
-    if (viewsRequiringMinimizedSidebar.includes(mainView)) {
+    const isBenchView = pathname?.includes('/demo/bench')
+
+    if (viewsRequiringMinimizedSidebar.includes(mainView) || isBenchView) {
       setIsMinimized(true)
+    } else if (!isBenchView) {
+      // Don't auto-expand if we're in bench view
+      setIsMinimized(false)
     }
-  }, [mainView])
+  }, [mainView, pathname])
   
   // Safely access localStorage after hydration
   useEffect(() => {
@@ -77,16 +82,20 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
 
 
   const handleToggleSidebar = () => {
+    const isBenchView = pathname?.includes('/demo/bench')
+
     if (showSidebar && !isMinimized) {
       // From expanded: minimize first
       setIsMinimized(true)
     } else if (showSidebar && isMinimized) {
-      // From minimized: expand back to full
-      setIsMinimized(false)
+      // From minimized: expand back to full (unless in bench view)
+      if (!isBenchView) {
+        setIsMinimized(false)
+      }
     } else {
-      // Hidden: show expanded
+      // Hidden: show expanded (or minimized if bench view)
       setShowSidebar(true)
-      setIsMinimized(false)
+      setIsMinimized(isBenchView)
     }
   }
 

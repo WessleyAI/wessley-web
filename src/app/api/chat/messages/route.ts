@@ -110,14 +110,40 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
       .order('created_at', { ascending: true })
       .limit(20) // Last 20 messages for context
 
+    // Get conversation to check if it's welcome setup
+    const { data: conversation } = await supabase
+      .from('chat_conversations')
+      .select('context_data')
+      .eq('id', chatId)
+      .single()
+
+    // Check if we're in welcome setup phase (first user message in welcome setup conversation)
+    const isWelcomeSetup = conversation?.context_data?.isWelcomeSetup === true &&
+                           previousMessages?.length === 0
+
     // Check if we're in onboarding problems collection phase
     const isOnboardingProblems = previousMessages?.some(msg =>
       msg.role === 'assistant' && msg.metadata?.type === 'onboarding_problems'
     )
 
-    // Add special instructions for onboarding problems phase
+    // Add special instructions for welcome setup phase
     let finalSystemPrompt = systemPrompt
-    if (isOnboardingProblems) {
+    if (isWelcomeSetup) {
+      // This is the first user message in welcome setup
+      finalSystemPrompt = `You are Wessley, a friendly automotive electrical assistant.
+
+The user just told you about their vehicle. Your task:
+1. Extract the vehicle information from their message (year, make, model, engine)
+2. Extract the project name if they provided one, otherwise create a simple one
+3. Respond with a friendly confirmation
+
+Respond in this format:
+"Great! I've set up your workspace for the **[Vehicle Info]** - **[Project Name]**.
+
+Now, tell me - what problems are you experiencing with your vehicle? I'll help you diagnose them and identify which components might be faulty."
+
+Keep it short and friendly. Do not include any scene events in this response.`
+    } else if (isOnboardingProblems) {
       finalSystemPrompt += `
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -239,6 +265,13 @@ Are there any other electrical problems you're experiencing, or would you like m
       }
     }
 
+    // Determine metadata for assistant message
+    let assistantMetadata = null
+    if (isWelcomeSetup) {
+      // This is the response to the welcome setup, transition to problems phase
+      assistantMetadata = { type: 'onboarding_problems' }
+    }
+
     // Save assistant message to database using server client (not browser client)
     console.log('[API /chat/messages] Creating assistant message in database...')
     const { data: assistantMessageRecord, error: assistantMessageError } = await supabase
@@ -249,7 +282,8 @@ Are there any other electrical problems you're experiencing, or would you like m
         content: assistantMessage,
         role: 'assistant',
         ai_model: 'gpt-5.1-chat-latest',
-        ai_tokens_used: tokensUsed
+        ai_tokens_used: tokensUsed,
+        metadata: assistantMetadata
       })
       .select('*')
       .single()

@@ -1,18 +1,17 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { ChatMessage } from '@/stores/chat-store'
 import { Button } from '@/components/ui/button'
-import { 
-  Copy, 
-  ThumbsUp, 
-  ThumbsDown, 
-  RotateCcw, 
-  Share, 
+import {
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
   MoreHorizontal,
   Download
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface ChatMessagesProps {
   messages: ChatMessage[]
@@ -44,7 +43,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
     return (
       <div className="flex justify-end">
         <div className="max-w-[70%]">
-          <div className="rounded-lg px-4 py-3 app-body-sm app-text-primary" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
+          <div className="rounded-lg px-4 py-3 app-body app-text-primary" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
             <div className="whitespace-pre-wrap break-words">
               {message.content}
             </div>
@@ -57,14 +56,37 @@ function MessageBubble({ message }: MessageBubbleProps) {
   // Assistant message - left aligned with no bubble, includes toolbar
   return (
     <div className="flex flex-col space-y-3">
-      <div className="app-text-primary app-body-sm leading-relaxed">
-        <div className="whitespace-pre-wrap break-words">
-          {message.content}
+      {/* Avatar and Message */}
+      <div className="flex gap-3">
+        {/* Wessley Avatar */}
+        <div className="flex-shrink-0 mt-1">
+          <div
+            className="rounded-full overflow-hidden flex items-center justify-center"
+            style={{
+              width: 'var(--app-sp-2xl)',
+              height: 'var(--app-sp-2xl)',
+              backgroundColor: 'var(--app-bg-tertiary)'
+            }}
+          >
+            <Image
+              src="/logo-dark.svg"
+              alt="Wessley"
+              width={24}
+              height={24}
+              className="w-4 h-4"
+            />
+          </div>
+        </div>
+        {/* Message Content */}
+        <div className="flex-1 app-text-primary app-body leading-relaxed">
+          <div className="whitespace-pre-wrap break-words">
+            {message.content}
+          </div>
         </div>
       </div>
-      
+
       {/* Feedback Toolbar */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 ml-11">
         <Button
           variant="ghost"
           size="sm"

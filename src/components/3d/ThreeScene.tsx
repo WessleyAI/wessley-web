@@ -158,7 +158,7 @@ function CameraController() {
 
 // Main scene setup
 function Scene() {
-  const { cameraView, resetView } = useModelStore()
+  const { cameraView, resetView, showChassis, showEffects, showModels } = useModelStore()
 
   // Handle clicking on empty space to deselect
   const handleCanvasClick = (e: ThreeEvent<MouseEvent>) => {
@@ -170,10 +170,10 @@ function Scene() {
   return (
     <>
       {/* Dark room environment with reflective walls */}
-      <DarkRoom />
+      <DarkRoom showLamp={false} />
 
       {/* Dark fog for depth without washing out the dark room */}
-      <fog attach="fog" args={['#000000', 15, 30]} />
+      <fog attach="fog" args={['#000000', 8, 18]} />
 
       {/* Minimal lighting - only enough to see shapes */}
       <ambientLight intensity={0.01} />
@@ -181,8 +181,8 @@ function Scene() {
         position={[10, 10, 5]}
         intensity={0.2}
         castShadow
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-far={50}
         shadow-camera-left={-10}
         shadow-camera-right={10}
@@ -195,30 +195,36 @@ function Scene() {
       <pointLight position={[6, 2, 6]} intensity={0.1} color="#cccccc" />
       <pointLight position={[0, -2, -8]} intensity={0.05} color="#666666" />
 
-      {/* Load NDJSON data */}
-      <NDJSONLoader />
+      {/* Load NDJSON data and models only when showModels is true */}
+      {showModels && (
+        <>
+          <NDJSONLoader />
 
-      {/* Vehicle chassis frame */}
-      <Chassis />
+          {/* Vehicle chassis frame */}
+          {showChassis && <Chassis />}
 
-      {/* Harnesses and wires (from scene config + NDJSON edges) */}
-      <HarnessesAndWires />
+          {/* Harnesses and wires (from scene config + NDJSON edges) */}
+          <HarnessesAndWires />
 
-      {/* Interactive component meshes with animation */}
-      <ComponentMeshes />
+          {/* Interactive component meshes with animation */}
+          <ComponentMeshes />
+        </>
+      )}
 
       {/* Smart camera controls */}
       <CameraController />
 
       {/* Production-ready post-processing - Bloom for volumetric light glow */}
-      <EffectComposer>
-        <Bloom
-          intensity={2.0}
-          luminanceThreshold={5.0}
-          luminanceSmoothing={0.025}
-          mipmapBlur
-        />
-      </EffectComposer>
+      {showEffects && (
+        <EffectComposer>
+          <Bloom
+            intensity={2.0}
+            luminanceThreshold={5.0}
+            luminanceSmoothing={0.025}
+            mipmapBlur
+          />
+        </EffectComposer>
+      )}
     </>
   )
 }
@@ -226,18 +232,22 @@ function Scene() {
 export function ThreeScene() {
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Canvas
         shadows
         camera={{ position: [2, 1.5, 2], fov: 60 }}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1
+          toneMappingExposure: 1,
+          powerPreference: 'high-performance', // Use GPU acceleration
+          alpha: false, // Disable alpha for better performance
         }}
+        performance={{ min: 0.5 }} // Reduce quality when FPS drops
+        dpr={[1, 2]} // Limit pixel ratio for performance
         style={{
           background: 'radial-gradient(circle at center, #2a2a2a 0%, #000000 70%)',
-          borderRadius: '0.5rem'
+          borderRadius: 0
         }}
       >
         <Scene />

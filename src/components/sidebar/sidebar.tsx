@@ -885,6 +885,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                     style={{ backgroundColor: 'transparent' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    suppressHydrationWarning
                   >
                     <IconPlus size={16} className="mr-3" />
                     New project
@@ -1131,7 +1132,6 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           </div>
         ) : (
           <>
-            {!isMinimized && <div className="bg-red-500 p-2 text-white font-bold">DEBUG: No profile found</div>}
             <div className={`space-y-2 ${isMinimized ? 'flex flex-col items-center' : ''}`}>
             <div className={`relative ${isMinimized ? 'group' : ''}`}>
               <Button

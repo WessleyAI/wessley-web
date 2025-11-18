@@ -372,3 +372,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

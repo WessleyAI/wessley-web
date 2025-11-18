@@ -51,6 +51,11 @@ interface ModelState {
   highlightedComponentIds: string[]
   isUserControllingCamera: boolean // Track if user is manually moving camera
 
+  // Visibility toggles
+  showChassis: boolean
+  showEffects: boolean
+  showModels: boolean // Controls if electrical models are loaded (false during onboarding)
+
   // AI control
   aiControlEnabled: boolean
   currentFocus: string | null // What the AI is currently explaining/showing
@@ -74,6 +79,10 @@ interface ModelState {
   setHoveredComponent: (id: string | null) => void
   setHighlightedComponents: (ids: string[]) => void
   setUserControllingCamera: (controlling: boolean) => void
+
+  setShowChassis: (show: boolean) => void
+  setShowEffects: (show: boolean) => void
+  setShowModels: (show: boolean) => void
 
   setAIControlEnabled: (enabled: boolean) => void
   setCurrentFocus: (focus: string | null) => void
@@ -114,6 +123,10 @@ export const useModelStore = create<ModelState>()(
     hoveredComponentId: null,
     highlightedComponentIds: [],
     isUserControllingCamera: false,
+
+    showChassis: true,
+    showEffects: true,
+    showModels: true, // Show models by default (hide only in specific onboarding flows)
 
     aiControlEnabled: true,
     currentFocus: null,
@@ -161,6 +174,12 @@ export const useModelStore = create<ModelState>()(
     },
 
     setUserControllingCamera: (controlling) => set({ isUserControllingCamera: controlling }),
+
+    setShowChassis: (show) => set({ showChassis: show }),
+
+    setShowEffects: (show) => set({ showEffects: show }),
+
+    setShowModels: (show) => set({ showModels: show }),
 
     setAIControlEnabled: (enabled) => set({ aiControlEnabled: enabled }),
 

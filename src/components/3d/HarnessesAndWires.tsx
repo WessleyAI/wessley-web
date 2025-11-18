@@ -69,8 +69,8 @@ export function HarnessesAndWires() {
       if (path && path.length > 1) {
         const points = path.map(p => new THREE.Vector3(p[0], p[1], p[2]))
         const curve = new THREE.CatmullRomCurve3(points)
-        // Make harnesses THICKER and more visible
-        const geometry = new THREE.TubeGeometry(curve, 64, thickness, 16, false)
+        // Optimized harness geometry for better performance
+        const geometry = new THREE.TubeGeometry(curve, 16, thickness, 8, false)
 
         // Determine color based on harness ID
         let color = HARNESS_MATERIALS.engine // Default
@@ -262,8 +262,8 @@ export function HarnessesAndWires() {
             // Use tube geometry for ALL wires (visible electrical system)
             const curve = new THREE.LineCurve3(wire.points[0], wire.points[1])
             const radius = wire.thickness || 0.004 // Default 4mm (matches base thickness)
-            // SMOOTHER tubes: increase tubular segments (2→8) and radial segments (8→12) for REALISM
-            const tubeGeometry = new THREE.TubeGeometry(curve, 8, radius, 12, false)
+            // Optimized tubes: reduced segments for better performance
+            const tubeGeometry = new THREE.TubeGeometry(curve, 4, radius, 6, false)
 
             return (
               <mesh key={wire.id} geometry={tubeGeometry} castShadow receiveShadow>
