@@ -54,6 +54,7 @@ import { getVehiclesByWorkspaceId, createVehicle, updateVehicle } from "@/db/veh
 import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
 import { useModelStore } from "@/stores/model-store"
 import { type SceneEvent } from "@/types/scene-events"
+import { isDemoWorkspace, getDemoVehicle } from "@/lib/demo-workspace"
 
 // Chat skeleton component
 const ProjectChatSkeleton = () => (
@@ -84,6 +85,9 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const { executeSceneEvent, queueSceneEvents } = useModelStore()
   const [chatInput, setChatInput] = useState("")
   const [selectedModel, setSelectedModel] = useState('gpt-4o')
+
+  // Check if this is demo mode (no database, no API calls)
+  const isDemo = isDemoWorkspace(projectId)
 
   // Context menu and dialog state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
@@ -160,6 +164,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
     const loadVehicle = async () => {
       try {
         setIsLoadingVehicle(true)
+
+        // Demo mode: use hardcoded vehicle, no database call
+        if (isDemo) {
+          setVehicle(getDemoVehicle())
+          setIsLoadingVehicle(false)
+          return
+        }
+
+        // Regular mode: load from database
         const vehicles = await getVehiclesByWorkspaceId(projectId)
         if (vehicles.length > 0) {
           setVehicle(vehicles[0]) // Get the first vehicle for this workspace
@@ -170,22 +183,20 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         setIsLoadingVehicle(false)
       }
     }
-    
+
     if (projectId) {
       loadVehicle()
     }
-  }, [projectId])
+  }, [projectId, isDemo])
 
   const handleStartChat = async () => {
-    console.log('[ProjectSpace] handleStartChat called', {
-      chatInput: chatInput.trim(),
-      hasProfile: !!profile,
-      profile: profile,
-      projectId
-    })
+    // Demo mode: chat is disabled
+    if (isDemo) {
+      alert('Chat is disabled in demo mode. This is a view-only demonstration.')
+      return
+    }
 
     if (!chatInput.trim() || !profile) {
-      console.log('[ProjectSpace] Early return - missing input or profile')
       return
     }
 
@@ -200,14 +211,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       ai_model: selectedModel
     }
 
-    console.log('[ProjectSpace] Creating chat with params:', chatParams)
-
     try {
       // Create chat with temporary title
       let newChat
       try {
-        console.log('[ProjectSpace] About to call createChat...')
-
         // Add timeout to catch hanging requests
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('createChat timeout after 5s')), 5000)
@@ -217,23 +224,18 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           createChat(chatParams),
           timeoutPromise
         ]) as any
-
-        console.log('[ProjectSpace] Chat created successfully:', newChat)
       } catch (createError) {
-        console.error('[ProjectSpace] createChat threw error:', createError)
         alert(`Error creating chat: ${createError}`)
         throw createError
       }
 
       if (!newChat) {
-        console.error('[ProjectSpace] createChat returned null/undefined')
         return
       }
 
       setChats(prevChats => [...prevChats, newChat])
       setSelectedChat(newChat)
 
-      console.log('[ProjectSpace] Sending message to GPT-5.1...')
       // Send first message to GPT-5.1 and get response
       const messageResponse = await fetch('/api/chat/messages', {
         method: 'POST',
@@ -252,19 +254,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       })
 
       if (!messageResponse.ok) {
-        const errorText = await messageResponse.text()
-        console.error('[ProjectSpace] Failed to send message:', errorText)
         router.push(`/c/${newChat.id}`)
         return
       }
 
       const messageData = await messageResponse.json()
-      console.log('[ProjectSpace] Got GPT response:', messageData)
       const { assistantMessage, sceneEvents } = messageData
 
       // Execute scene events if any were returned
       if (sceneEvents && sceneEvents.length > 0) {
-        console.log('[ProjectSpace] Executing scene events:', sceneEvents)
         // Queue all events and execute them
         queueSceneEvents(sceneEvents)
         // Execute the first event immediately
@@ -273,7 +271,6 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         }
       }
 
-      console.log('[ProjectSpace] Generating title...')
       // Generate contextual title based on conversation
       const titleResponse = await fetch('/api/chat/generate-title', {
         method: 'POST',
@@ -288,7 +285,6 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       if (titleResponse.ok) {
         const { title } = await titleResponse.json()
-        console.log('[ProjectSpace] Generated title:', title)
 
         // Update chat title
         await updateChat(newChat.id, { title })
@@ -299,20 +295,17 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         )
       }
 
-      console.log('[ProjectSpace] Navigating to chat:', newChat.id)
       // Navigate to chat
       router.push(`/c/${newChat.id}`)
     } catch (error) {
-      console.error('[ProjectSpace] Error creating chat:', error)
+      // Error handled silently
     } finally {
       setIsSendingMessage(false) // Clear loading state
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    console.log('[ProjectSpace] Key pressed:', e.key)
     if (e.key === 'Enter') {
-      console.log('[ProjectSpace] Enter key detected, calling handleStartChat')
       handleStartChat()
     }
   }

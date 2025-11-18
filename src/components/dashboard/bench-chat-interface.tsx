@@ -7,6 +7,7 @@ import { ChatMessages } from '@/components/chat/chat-messages'
 import { BenchInput } from './bench-input'
 import { HoverLabel } from '@/components/3d/HoverLabel'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { ChatMessage } from '@/types'
 
 interface BenchChatInterfaceProps {
   className?: string
@@ -88,7 +89,6 @@ export function BenchChatInterface({ className, onOnboardingComplete }: BenchCha
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true
-      console.log('[BenchChatInterface] Initializing bench mode')
 
       // Hide models during onboarding
       setShowModels(false)
@@ -111,13 +111,11 @@ export function BenchChatInterface({ className, onOnboardingComplete }: BenchCha
         ai_confidence_score: null
       }
 
-      console.log('[BenchChatInterface] Adding welcome message:', welcomeMessage)
       addMessage(welcomeMessage)
     }
 
     // Cleanup: restore models when leaving bench
     return () => {
-      console.log('[BenchChatInterface] Cleanup - restoring models')
       setShowModels(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

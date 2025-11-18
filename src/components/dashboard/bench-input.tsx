@@ -74,7 +74,6 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
       }
 
       const data = await response.json()
-      console.log('[BenchInput] API response:', data)
 
       // Add assistant message (local only)
       if (data.assistantMessage) {
@@ -98,7 +97,6 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
 
       // Dispatch scene events if any
       if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
-        console.log('[BenchInput] Dispatching scene events:', data.sceneEvents)
         data.sceneEvents.forEach((event: SceneEvent) => {
           dispatchSceneEvent(event)
         })
@@ -106,10 +104,7 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
 
       // If onboarding complete, notify parent
       if (data.onboardingComplete && onOnboardingComplete) {
-        console.log('[BenchInput] 🎉 Onboarding complete! Calling parent handler...')
-        console.log('[BenchInput] Vehicle info:', JSON.stringify(data.vehicleInfo, null, 2))
         onOnboardingComplete(data.vehicleInfo)
-        console.log('[BenchInput] ✓ Parent handler called')
       }
 
       setIsGenerating(false)

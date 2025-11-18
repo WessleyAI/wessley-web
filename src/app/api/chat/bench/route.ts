@@ -2,25 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSceneComponentsForGPT } from '@/lib/scene-components-loader'
 
 export async function POST(request: NextRequest) {
-  console.log('[API /chat/bench] POST request received - BENCH MODE (no database)')
 
   try {
     const body = await request.json()
-    console.log('[API /chat/bench] Request body:', body)
 
     const { userMessage, conversationHistory, isFirstMessage } = body
 
-    console.log('[API /chat/bench] isFirstMessage:', isFirstMessage)
-    console.log('[API /chat/bench] conversationHistory length:', conversationHistory?.length || 0)
-    console.log('[API /chat/bench] userMessage:', userMessage)
 
     if (!userMessage) {
-      console.log('[API /chat/bench] Missing userMessage')
       return NextResponse.json({ error: 'User message is required' }, { status: 400 })
     }
 
     // Check for OpenAI API key
-    console.log('[API /chat/bench] Checking OpenAI API key...')
     const openaiApiKey = process.env.OPENAI_API_KEY
     if (!openaiApiKey) {
       console.error('[API /chat/bench] OpenAI API key not found')
@@ -28,7 +21,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Load scene component data for GPT context
-    console.log('[API /chat/bench] Loading scene components...')
     const sceneComponentsData = await getSceneComponentsForGPT()
 
     // Build system prompt based on onboarding phase
@@ -241,7 +233,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
     }
 
     // Call OpenAI GPT-5.1 Chat Completions API
-    console.log('[API /chat/bench] Calling OpenAI GPT-5.1...')
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -266,7 +257,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
     let assistantMessage = result.choices?.[0]?.message?.content || 'No response generated'
     const tokensUsed = result.usage?.total_tokens || null
 
-    console.log('[API /chat/bench] GPT response received:', assistantMessage.substring(0, 100))
 
     // Parse scene events from the response
     let sceneEvents: any[] = []
@@ -280,7 +270,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
           ...event,
           timestamp: Date.now()
         }))
-        console.log('[API /chat/bench] Parsed scene events:', sceneEvents)
         // Remove the scene-events block from the message
         assistantMessage = assistantMessage.replace(/```scene-events\n[\s\S]*?\n```/, '').trim()
       } catch (err) {
@@ -290,19 +279,13 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
 
     // Check if onboarding is complete (user has provided nickname - 2nd message)
     const onboardingComplete = messageType === 'onboarding_nickname'
-    console.log('[API /chat/bench] 🎯 Checking onboarding status...')
-    console.log('[API /chat/bench] - messageType:', messageType)
-    console.log('[API /chat/bench] - onboardingComplete:', onboardingComplete)
 
     // Extract vehicle info and nickname for project creation
     let vehicleInfo = null
     if (onboardingComplete && conversationHistory && conversationHistory.length >= 2) {
-      console.log('[API /chat/bench] ✅ Onboarding complete! Extracting vehicle info...')
       const firstUserMessage = conversationHistory.find((m: any) => m.role === 'user')?.content || ''
       const secondUserMessage = userMessage // Current message is the nickname
 
-      console.log('[API /chat/bench] - First user message (vehicle):', firstUserMessage)
-      console.log('[API /chat/bench] - Second user message (nickname):', secondUserMessage)
 
       vehicleInfo = {
         vehicleModel: firstUserMessage, // Raw vehicle description from user
@@ -310,7 +293,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
         extractedFromGPT: true
       }
 
-      console.log('[API /chat/bench] 📦 Vehicle info extracted:', JSON.stringify(vehicleInfo, null, 2))
     }
 
     const responseData = {
@@ -322,11 +304,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
       onboardingComplete,
       vehicleInfo
     }
-
-    console.log('[API /chat/bench] 📤 Sending response:', JSON.stringify({
-      ...responseData,
-      assistantMessage: assistantMessage.substring(0, 100) + '...' // Truncate for log
-    }, null, 2))
 
     return NextResponse.json(responseData)
 

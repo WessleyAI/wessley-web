@@ -16,7 +16,6 @@ interface BenchProps {
 }
 
 export function Bench({ chatId }: BenchProps) {
-  console.log('[Bench Component] 🚀 Mounting/Rendering with chatId:', chatId)
 
   const router = useRouter()
   const {
@@ -31,14 +30,6 @@ export function Bench({ chatId }: BenchProps) {
 
   const { profile, workspaces, setWorkspaces, setSelectedWorkspace } = useContext(ChatbotUIContext)
 
-  console.log('[Bench Component] Context state:', {
-    hasProfile: !!profile,
-    profileUserId: profile?.user_id,
-    workspacesCount: workspaces.length,
-    conversationsCount: conversations.length,
-    activeConversationId: activeConversation?.id
-  })
-
   // Bench mode: no database, local messages only until onboarding completes
   // Messages stay in Zustand store but no activeConversation until user finishes onboarding
   const [isBenchMode, setIsBenchMode] = useState(true)
@@ -47,14 +38,9 @@ export function Bench({ chatId }: BenchProps) {
 
   // AUTH GUARD: Bench is for authenticated users only
   useEffect(() => {
-    console.log('[Bench] 🔐 AUTH GUARD: Checking authentication...')
-    console.log('[Bench] - Has profile?', !!profile)
-    console.log('[Bench] - Profile user_id:', profile?.user_id)
-    console.log('[Bench] - Auth check attempts:', authCheckAttempts)
 
     // If profile loaded, allow access immediately
     if (profile && profile.user_id) {
-      console.log('[Bench] ✅ User authenticated - allowing bench access')
       setIsCheckingAuth(false)
       return
     }
@@ -63,7 +49,6 @@ export function Bench({ chatId }: BenchProps) {
     // Check every 2 seconds, up to 10 times
     if (authCheckAttempts < 10) {
       const timer = setTimeout(() => {
-        console.log('[Bench] ⏳ Still waiting for profile to load... (attempt', authCheckAttempts + 1, '/ 10)')
         setAuthCheckAttempts(prev => prev + 1)
       }, 2000)
 
@@ -71,9 +56,6 @@ export function Bench({ chatId }: BenchProps) {
     }
 
     // After 20 seconds, if still no profile, redirect to home to login
-    console.log('[Bench] ⚠️ Profile not loaded after 20 seconds')
-    console.log('[Bench] ⛔ Bench requires authentication')
-    console.log('[Bench] 🏠 Redirecting to home page to log in...')
 
     // DO NOT trigger OAuth here - creates infinite loop!
     // User should click the Login button on the home page
@@ -84,7 +66,6 @@ export function Bench({ chatId }: BenchProps) {
   // Initialize bench with no active conversation (BenchChatInterface handles messages)
   useEffect(() => {
     if (!chatId && isBenchMode) {
-      console.log('[Bench] Initializing bench mode - no database conversation')
       setActiveConversation(null)
     }
   }, [chatId, isBenchMode, setActiveConversation])
@@ -94,19 +75,16 @@ export function Bench({ chatId }: BenchProps) {
     if (profile?.user_id && typeof window !== 'undefined') {
       const pending = localStorage.getItem('pendingWorkspace')
       if (pending) {
-        console.log('[Bench] 🎯 Found pending workspace after authentication')
         try {
           const { vehicleInfo, timestamp } = JSON.parse(pending)
 
           // Check if data is not too old (within 10 minutes)
           if (Date.now() - timestamp < 10 * 60 * 1000) {
-            console.log('[Bench] ✅ Resuming workspace creation with vehicle info:', vehicleInfo)
             localStorage.removeItem('pendingWorkspace')
 
             // Resume workspace creation
             handleOnboardingComplete(vehicleInfo)
           } else {
-            console.log('[Bench] ⏰ Pending workspace data expired, clearing')
             localStorage.removeItem('pendingWorkspace')
           }
         } catch (err) {
@@ -121,7 +99,6 @@ export function Bench({ chatId }: BenchProps) {
   // Only handle chatId if it's provided (existing conversation from URL)
   useEffect(() => {
     if (chatId) {
-      console.log('[Bench] Loading existing chat:', chatId)
       setIsBenchMode(false) // Exit bench mode, load real conversation
 
       let conversation = conversations.find(c => c.id === chatId)
@@ -152,9 +129,7 @@ export function Bench({ chatId }: BenchProps) {
       const loadMessages = async () => {
         try {
           setMessages([])
-          console.log('[Bench] Loading messages for chat:', chatId)
           const messages = await getMessagesByChatId(chatId)
-          console.log('[Bench] Loaded messages:', messages.length)
           setMessages(messages)
         } catch (error) {
           console.error('[Bench] Error loading messages:', error)
@@ -214,12 +189,6 @@ export function Bench({ chatId }: BenchProps) {
   }
 
   const handleOnboardingComplete = async (vehicleInfo: any) => {
-    console.log('=====================================================')
-    console.log('[Bench] 🎯 ONBOARDING COMPLETE - Starting workspace creation flow')
-    console.log('[Bench] Vehicle info received:', JSON.stringify(vehicleInfo, null, 2))
-    console.log('[Bench] Profile:', JSON.stringify(profile, null, 2))
-    console.log('[Bench] Current workspaces count:', workspaces.length)
-    console.log('=====================================================')
 
     // User must be authenticated to reach this point (auth guard handles redirect)
     if (!profile || !profile.user_id) {
@@ -230,18 +199,12 @@ export function Bench({ chatId }: BenchProps) {
 
     // Exit bench mode
     setIsBenchMode(false)
-    console.log('[Bench] ✓ Exited bench mode')
 
     try {
       // Create the actual workspace in the database
       const workspaceName = vehicleInfo?.nickname || vehicleInfo?.vehicleModel || 'New Vehicle Project'
       const userId = profile.user_id
 
-      console.log('[Bench] 📝 Preparing workspace creation...')
-      console.log('[Bench] - Workspace name:', workspaceName)
-      console.log('[Bench] - User ID:', userId)
-      console.log('[Bench] - Has profile?', !!profile)
-      console.log('[Bench] - Has user_id?', !!profile?.user_id)
 
       const workspaceData = {
         user_id: userId,
@@ -250,20 +213,13 @@ export function Bench({ chatId }: BenchProps) {
         status: "active" as const,
         visibility: "private" as const,
       }
-      console.log('[Bench] - Workspace data:', JSON.stringify(workspaceData, null, 2))
 
-      console.log('[Bench] 🔄 Calling createWorkspace()...')
       const newWorkspace = await createWorkspace(workspaceData)
-      console.log('[Bench] 🔄 createWorkspace() call completed')
 
-      console.log('[Bench] ✅ Workspace created successfully!')
-      console.log('[Bench] Workspace details:', JSON.stringify(newWorkspace, null, 2))
 
       // Update workspaces list in context
-      console.log('[Bench] 📋 Updating workspace context...')
       setWorkspaces([newWorkspace, ...workspaces])
       setSelectedWorkspace(newWorkspace)
-      console.log('[Bench] ✓ Workspace context updated')
 
       // Create new conversation with vehicle info and workspace
       const newConversation = {
@@ -285,37 +241,16 @@ export function Bench({ chatId }: BenchProps) {
         last_message_at: null
       }
 
-      console.log('[Bench] 💬 Creating conversation...')
-      console.log('[Bench] Conversation details:', JSON.stringify(newConversation, null, 2))
       addConversation(newConversation)
       setActiveConversation(newConversation)
-      console.log('[Bench] ✓ Conversation created and set as active')
 
       // Navigate to the workspace/garage PROJECT view with onboarding parameter
       const targetUrl = `/g/${newWorkspace.id}/project?onboarding=complete`
-      console.log('[Bench] 🚀 Navigating to:', targetUrl)
-      console.log('=====================================================')
 
       router.push(targetUrl)
-
-      console.log('[Bench] ✓ Navigation command sent')
-
-      // Also log to window for browser console visibility
-      if (typeof window !== 'undefined') {
-        console.log('%c[Bench] Navigation initiated to:', 'background: #222; color: #bada55', targetUrl)
-      }
     } catch (error: any) {
-      console.error('=====================================================')
-      console.error('[Bench] ❌ ERROR during workspace creation!')
-      console.error('[Bench] Error type:', error?.constructor?.name)
-      console.error('[Bench] Error message:', error?.message)
-      console.error('[Bench] Full error:', error)
-      console.error('[Bench] Stack trace:', error?.stack)
-      console.error('=====================================================')
-
       // If database error, redirect to auth if not authenticated, otherwise show error
       if (!profile || !profile.user_id) {
-        console.log('[Bench] ⚠️ Not authenticated - redirecting to Google OAuth')
         const supabase = createClient()
         await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -324,7 +259,6 @@ export function Bench({ chatId }: BenchProps) {
           }
         })
       } else {
-        console.error('[Bench] ❌ Workspace creation failed with authenticated user')
         alert('Failed to create workspace. Please try again.')
       }
     }

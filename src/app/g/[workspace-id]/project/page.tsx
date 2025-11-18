@@ -5,8 +5,8 @@ import { useContext, useEffect, useState } from 'react'
 import { Dashboard } from "@/components/ui/dashboard"
 import { ProjectSpace } from "@/components/project/project-space"
 import { ChatbotUIContext } from "@/context/context"
-import { getWorkspaceById } from "@/db/workspaces"
 import { Tables } from "@/supabase/types"
+import { isDemoWorkspace, getDemoWorkspace } from "@/lib/demo-workspace"
 
 export default function ProjectPage() {
   const params = useParams()
@@ -15,43 +15,21 @@ export default function ProjectPage() {
   const [loadedWorkspace, setLoadedWorkspace] = useState<Tables<"workspaces"> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  console.log('=====================================================')
-  console.log('[ProjectPage] 🎨 Page loading')
-  console.log('[ProjectPage] Workspace ID from URL:', workspaceId)
-  console.log('[ProjectPage] Available workspaces:', workspaces.length)
-  console.log('[ProjectPage] Workspaces:', workspaces.map(w => ({ id: w.id, name: w.name })))
-  console.log('=====================================================')
-
-  // Find the workspace by ID in context, or load from database (for demo/public access)
+  // Find the workspace by ID in context, or use demo workspace
   const contextWorkspace = workspaces.find(w => w.id === workspaceId)
   const workspace = contextWorkspace || loadedWorkspace
 
-  console.log('[ProjectPage] Found workspace in context?', !!contextWorkspace)
-  console.log('[ProjectPage] Loaded workspace from DB?', !!loadedWorkspace)
-  if (workspace) {
-    console.log('[ProjectPage] Workspace details:', { id: workspace.id, name: workspace.name })
-  }
-
-  // Load workspace from database if not in context (for demo/public access)
+  // Load demo workspace if this is the demo ID (no database call, client-side only)
   useEffect(() => {
-    const loadWorkspace = async () => {
-      if (!contextWorkspace && workspaceId) {
-        console.log('[ProjectPage] 🔍 Workspace not in context, loading from database...')
-        try {
-          const ws = await getWorkspaceById(workspaceId)
-          if (ws) {
-            console.log('[ProjectPage] ✅ Loaded workspace from DB:', ws.name)
-            setLoadedWorkspace(ws)
-          } else {
-            console.log('[ProjectPage] ❌ Workspace not found in DB')
-          }
-        } catch (error) {
-          console.error('[ProjectPage] ❌ Error loading workspace:', error)
-        }
+    if (!contextWorkspace && workspaceId) {
+      if (isDemoWorkspace(workspaceId)) {
+        const demoWs = getDemoWorkspace()
+        setLoadedWorkspace(demoWs)
       }
       setIsLoading(false)
+    } else {
+      setIsLoading(false)
     }
-    loadWorkspace()
   }, [workspaceId, contextWorkspace])
 
   // Set the selected workspace when the page loads
@@ -89,9 +67,9 @@ export default function ProjectPage() {
 
   return (
     <Dashboard>
-      <ProjectSpace 
-        projectName={workspace.name} 
-        projectId={workspace.id} 
+      <ProjectSpace
+        projectName={workspace.name}
+        projectId={workspace.id}
       />
     </Dashboard>
   )

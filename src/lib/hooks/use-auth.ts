@@ -29,7 +29,6 @@ export function useAuth() {
   }, [supabase.auth])
 
   const signInWithGoogle = async () => {
-    console.log('🔐 Starting Google OAuth sign in - DIRECT REDIRECT')
 
     // DO NOT call signOut() - it hangs
     // Just go STRAIGHT to OAuth
@@ -47,7 +46,6 @@ export function useAuth() {
     if (error) {
       console.error('❌ OAuth error:', error)
     } else {
-      console.log('✅ OAuth initiated:', data)
     }
   }
 
