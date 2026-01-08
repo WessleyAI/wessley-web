@@ -1,6 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "deploymentProtection": {
-    "optionsAllowlist": ["/api/waitlist", "/api/*"]
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
