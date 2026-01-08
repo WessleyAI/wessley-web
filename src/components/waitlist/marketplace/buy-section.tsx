@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { PartsMasonryGrid } from './parts-masonry-grid'
 import { CarData } from './car-selector'
 import { ComparisonDrawer } from './comparison-drawer'
-import { toast } from 'sonner'
 import Image from 'next/image'
 
 type UrgencyLevel = 'urgent' | 'soon' | 'optional'
@@ -70,9 +69,6 @@ export function BuySection({ parts, onPartsChange, cars, selectedItems, onToggle
   const handleCompare = (partName: string) => {
     setComparisonPart(partName)
     setShowComparison(true)
-    toast.info('Comparing offers', {
-      description: `Finding best deals for ${partName}`,
-    })
   }
 
   const tools = [

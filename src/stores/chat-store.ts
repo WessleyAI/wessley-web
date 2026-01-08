@@ -67,7 +67,8 @@ export const useChatStore = create<ChatState>()(
     },
 
     setActiveConversation: (conversation) => {
-      set({ activeConversation: conversation, messages: [] })
+      // Don't clear messages here - let the caller manage message loading
+      set({ activeConversation: conversation })
     },
 
     setMessages: (messages) => {

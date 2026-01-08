@@ -23,21 +23,21 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that generates concise, descriptive titles for chat conversations. The title should be 3-6 words long and capture the main topic or intent of the conversation. Return only the title, no quotes or extra text.'
+            content: 'You are a helpful assistant that generates concise, contextual titles for vehicle restoration project chat conversations. The title should be 3-6 words long and capture the main topic or intent related to the vehicle project. Return only the title, no quotes or extra text.'
           },
           {
             role: 'user',
-            content: `Generate a short title for this conversation:
+            content: `Generate a short, contextful title for this vehicle restoration conversation:
 
 User: ${userMessage}
 Assistant: ${assistantMessage || 'No response yet'}`
           }
         ],
-        max_tokens: 20,
+        max_tokens: 25,
         temperature: 0.7
       })
     })
@@ -49,11 +49,14 @@ Assistant: ${assistantMessage || 'No response yet'}`
     }
 
     const result = await openaiResponse.json()
-    const title = result.choices?.[0]?.message?.content?.trim() || userMessage.substring(0, 50)
-    
-    return NextResponse.json({ 
+    let title = result.choices?.[0]?.message?.content?.trim() || userMessage.substring(0, 50)
+
+    // Remove surrounding quotes if present
+    title = title.replace(/^["']|["']$/g, '')
+
+    return NextResponse.json({
       title: title,
-      success: true 
+      success: true
     })
 
   } catch (error) {

@@ -4,11 +4,12 @@ import * as React from "react"
 import { useState, useContext } from "react"
 import { motion } from "framer-motion"
 import { ThreeScene } from "@/components/3d/ThreeScene"
+import { HoverLabel } from "@/components/3d/HoverLabel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  IconClipboard, 
+import {
+  IconClipboard,
   IconCalculator,
   IconPlus,
   IconMicrophone,
@@ -19,7 +20,8 @@ import {
   IconTrash,
   IconPencil,
   IconCar,
-  IconMenu2
+  IconMenu2,
+  IconBuildingWarehouse
 } from "@tabler/icons-react"
 import {
   Select,
@@ -50,15 +52,18 @@ import { Tables } from "@/supabase/types"
 import { createChat, updateChat, deleteChat } from "@/db/chats"
 import { getVehiclesByWorkspaceId, createVehicle, updateVehicle } from "@/db/vehicles"
 import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
+import { useModelStore } from "@/stores/model-store"
+import { type SceneEvent } from "@/types/scene-events"
+import { isDemoWorkspace, getDemoVehicle } from "@/lib/demo-workspace"
 
 // Chat skeleton component
 const ProjectChatSkeleton = () => (
   <div className="flex items-start justify-between p-4 mx-2">
     <div className="flex-1 space-y-2">
-      <Skeleton className="h-4 w-3/4 bg-gray-600/50" />
-      <Skeleton className="h-3 w-1/2 bg-gray-600/30" />
+      <Skeleton className="h-4 w-3/4" style={{ backgroundColor: 'var(--app-bg-tertiary)' }} />
+      <Skeleton className="h-3 w-1/2" style={{ backgroundColor: 'var(--app-bg-tertiary)', opacity: 0.6 }} />
     </div>
-    <Skeleton className="h-3 w-16 bg-gray-600/30" />
+    <Skeleton className="h-3 w-16" style={{ backgroundColor: 'var(--app-bg-tertiary)', opacity: 0.6 }} />
   </div>
 )
 
@@ -77,14 +82,19 @@ interface ChatItem {
 export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const router = useRouter()
   const { chats, profile, setChats, setSelectedChat, setUserInput: setGlobalUserInput } = useContext(ChatbotUIContext)
+  const { executeSceneEvent, queueSceneEvents } = useModelStore()
   const [chatInput, setChatInput] = useState("")
-  
+  const [selectedModel, setSelectedModel] = useState('gpt-4o')
+
+  // Check if this is demo mode (no database, no API calls)
+  const isDemo = isDemoWorkspace(projectId)
+
   // Context menu and dialog state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedChatForAction, setSelectedChatForAction] = useState<Tables<"chat_conversations"> | null>(null)
   const [newChatName, setNewChatName] = useState("")
-  
+
   // Vehicle state
   const [vehicle, setVehicle] = useState<Tables<"vehicles"> | null>(null)
   const [isLoadingVehicle, setIsLoadingVehicle] = useState(true)
@@ -99,7 +109,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   
   // Loading states
   const [isLoadingChats, setIsLoadingChats] = useState(true)
-  
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
+
+  // Store last message for each chat
+  const [chatLastMessages, setChatLastMessages] = useState<Record<string, string>>({})
+
   // Filter chats by workspace/project ID
   const projectChats = chats.filter(chat => chat.workspace_id === projectId)
   
@@ -110,11 +124,55 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
     }
   }, [chats])
 
+  // Fetch last message for each chat
+  React.useEffect(() => {
+    const fetchLastMessages = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase/browser-client')
+
+        for (const chat of projectChats) {
+          try {
+            const { data: messages } = await supabase
+              .from('chat_messages')
+              .select('content')
+              .eq('conversation_id', chat.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+
+            if (messages && messages.length > 0) {
+              setChatLastMessages(prev => ({
+                ...prev,
+                [chat.id]: messages[0].content
+              }))
+            }
+          } catch (err) {
+            console.error(`Error fetching messages for chat ${chat.id}:`, err)
+          }
+        }
+      } catch (err) {
+        console.error('Error loading supabase client:', err)
+      }
+    }
+
+    if (projectChats.length > 0 && !isLoadingChats) {
+      fetchLastMessages()
+    }
+  }, [projectChats.length, isLoadingChats])
+
   // Load vehicle data on component mount
   React.useEffect(() => {
     const loadVehicle = async () => {
       try {
         setIsLoadingVehicle(true)
+
+        // Demo mode: use hardcoded vehicle, no database call
+        if (isDemo) {
+          setVehicle(getDemoVehicle())
+          setIsLoadingVehicle(false)
+          return
+        }
+
+        // Regular mode: load from database
         const vehicles = await getVehiclesByWorkspaceId(projectId)
         if (vehicles.length > 0) {
           setVehicle(vehicles[0]) // Get the first vehicle for this workspace
@@ -125,48 +183,124 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         setIsLoadingVehicle(false)
       }
     }
-    
+
     if (projectId) {
       loadVehicle()
     }
-  }, [projectId])
+  }, [projectId, isDemo])
 
   const handleStartChat = async () => {
-    console.log('handleStartChat called', { chatInput: chatInput.trim(), profile: !!profile, projectId })
-    
-    if (!chatInput.trim() || !profile) {
-      console.log('Early return: missing input or profile')
+    // Demo mode: chat is disabled
+    if (isDemo) {
+      alert('Chat is disabled in demo mode. This is a view-only demonstration.')
       return
     }
-    
+
+    if (!chatInput.trim() || !profile) {
+      return
+    }
+
+    const userMessage = chatInput.trim()
+    setChatInput("") // Clear input immediately for better UX
+    setIsSendingMessage(true) // Show loading state
+
+    const chatParams = {
+      title: userMessage.substring(0, 50) + (userMessage.length > 50 ? '...' : ''),
+      user_id: profile.user_id,
+      workspace_id: projectId,
+      ai_model: selectedModel
+    }
+
     try {
-      console.log('Creating chat with:', {
-        title: chatInput.trim(),
-        user_id: profile.user_id,
-        workspace_id: projectId,
-        ai_model: "gpt-4"
-      })
-      
-      const newChat = await createChat({
-        title: chatInput.trim(),
-        user_id: profile.user_id,
-        workspace_id: projectId,
-        ai_model: "gpt-4"
-      })
-      
-      console.log('Chat created successfully:', newChat)
+      // Create chat with temporary title
+      let newChat
+      try {
+        // Add timeout to catch hanging requests
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('createChat timeout after 5s')), 5000)
+        )
+
+        newChat = await Promise.race([
+          createChat(chatParams),
+          timeoutPromise
+        ]) as any
+      } catch (createError) {
+        alert(`Error creating chat: ${createError}`)
+        throw createError
+      }
+
+      if (!newChat) {
+        return
+      }
+
       setChats(prevChats => [...prevChats, newChat])
-      
-      // Set the selected chat in context
       setSelectedChat(newChat)
-      
-      // Set the user input for the chat
-      setGlobalUserInput(chatInput.trim())
-      
-      setChatInput("")
+
+      // Send first message to GPT-5.1 and get response
+      const messageResponse = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId: newChat.id,
+          userMessage: userMessage,
+          vehicle: vehicle ? {
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year
+          } : null
+        })
+      })
+
+      if (!messageResponse.ok) {
+        router.push(`/c/${newChat.id}`)
+        return
+      }
+
+      const messageData = await messageResponse.json()
+      const { assistantMessage, sceneEvents } = messageData
+
+      // Execute scene events if any were returned
+      if (sceneEvents && sceneEvents.length > 0) {
+        // Queue all events and execute them
+        queueSceneEvents(sceneEvents)
+        // Execute the first event immediately
+        if (sceneEvents[0]) {
+          executeSceneEvent(sceneEvents[0])
+        }
+      }
+
+      // Generate contextual title based on conversation
+      const titleResponse = await fetch('/api/chat/generate-title', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userMessage: userMessage,
+          assistantMessage: assistantMessage?.content || ''
+        })
+      })
+
+      if (titleResponse.ok) {
+        const { title } = await titleResponse.json()
+
+        // Update chat title
+        await updateChat(newChat.id, { title })
+        setChats(prevChats =>
+          prevChats.map(chat =>
+            chat.id === newChat.id ? { ...chat, title } : chat
+          )
+        )
+      }
+
+      // Navigate to chat
       router.push(`/c/${newChat.id}`)
     } catch (error) {
-      console.error('Error creating chat:', error)
+      // Error handled silently
+    } finally {
+      setIsSendingMessage(false) // Clear loading state
     }
   }
 
@@ -276,70 +410,69 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   }
 
   return (
-    <motion.div 
-      className="flex h-full"
+    <motion.div
+      className="flex h-full overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <motion.div 
-        className="flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative"
-        animate={{
-          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px'
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      <motion.div
+        className="flex-1 flex flex-col h-full app-bg-primary app-text-primary relative min-w-0"
       >
-      {/* Top Bar with Model Selection - Floating above scene */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Select defaultValue="chatgpt5">
-            <SelectTrigger className="w-[140px] bg-transparent border-none text-white text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="chatgpt5">ChatGPT 5</SelectItem>
-              <SelectItem value="gpt4">GPT-4</SelectItem>
-              <SelectItem value="claude35">Claude 3.5</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Top Bar - Floating above scene */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end p-4">
         <div className="flex items-center gap-1">
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Project Manager"
           >
             <IconUser className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Budget & Expenses"
           >
             <IconCalculator className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Todo List"
           >
             <IconClipboard className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Settings"
           >
             <IconSettings className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Scene Controls"
             onClick={() => {
               setShowSceneControls(true)
@@ -349,25 +482,38 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             <IconMenu2 className="w-4 h-4" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200 text-sm"
+            className="px-3 py-2 rounded-lg app-body-sm app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Share
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
+            className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             •••
           </motion.button>
         </div>
       </div>
 
-      {/* 3D Scene - Full height with floating toolbar above */}
-      <div className="h-80 relative overflow-hidden">
-        <ThreeScene />
+      {/* 3D Scene - Full height */}
+      <div className="px-6 pt-6 pb-4">
+        <div
+          className="h-[448px] relative overflow-hidden rounded-lg"
+          style={{
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.4)'
+          }}
+        >
+          <ThreeScene />
+        </div>
       </div>
 
       {/* Main Content Container - Centered */}
@@ -376,34 +522,40 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         {/* Project Header */}
         <div className="w-full flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <IconFolder className="w-6 h-6 text-gray-400" />
-            <h1 className="text-xl font-medium">{projectName}</h1>
+            <IconBuildingWarehouse className="w-6 h-6 app-text-muted" />
+            <h1 className="app-h2">{projectName}</h1>
             {isLoadingVehicle ? (
-              <div className="flex items-center gap-2 text-sm px-2 py-1">
-                <IconCar className="w-4 h-4 text-gray-500" />
-                <Skeleton className="h-4 w-32 bg-gray-600/50" />
+              <div className="flex items-center gap-2 px-2 py-1">
+                <IconCar className="w-4 h-4 app-text-muted" />
+                <Skeleton className="h-4 w-32" style={{ backgroundColor: 'var(--app-bg-tertiary)' }} />
               </div>
             ) : (
               <motion.button
                 onClick={handleEditVehicle}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-700/50"
+                className="flex items-center gap-2 app-body-sm app-text-muted hover:app-text-secondary transition-colors duration-200 px-2 py-1 rounded"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <IconCar className="w-4 h-4" />
                 <span>
-                  {vehicle 
-                    ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` 
+                  {vehicle
+                    ? `${vehicle.make} ${vehicle.model} ${vehicle.year}`
                     : 'Set vehicle model'
                   }
                 </span>
               </motion.button>
             )}
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700"
+            className="bg-transparent app-text-secondary app-body-sm"
+            style={{ borderColor: 'var(--app-border)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             Add files
           </Button>
@@ -417,31 +569,41 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           transition={{ duration: 0.3 }}
         >
           <div className="relative">
-            <motion.div 
-              className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-4 border border-gray-600/20"
-              whileHover={{ backgroundColor: "#404040" }}
+            <motion.div
+              className="flex items-center gap-3 rounded-lg p-4"
+              style={{
+                backgroundColor: 'var(--app-bg-hover)',
+                border: '1px solid var(--app-border)'
+              }}
+              whileHover={{}}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
               transition={{ duration: 0.2 }}
             >
-              <motion.button 
+              <motion.button
                 onClick={handleStartChat}
-                whileHover={{ scale: 1.1 }} 
+                whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-1 rounded-md hover:bg-gray-600/50 transition-colors"
+                className="p-1 rounded-lg app-text-muted hover:app-text-secondary transition-colors"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <IconPlus className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                <IconPlus className="w-5 h-5" />
               </motion.button>
               <Input
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`New chat in ${projectName}`}
-                className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-transparent border-none app-text-primary app-body-sm focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                style={{ color: 'var(--app-text-primary)' }}
               />
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                <IconMicrophone className="w-5 h-5" />
               </motion.button>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <IconPlayerRecord className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                <IconPlayerRecord className="w-5 h-5" />
               </motion.button>
             </motion.div>
           </div>
@@ -451,14 +613,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
         <div className="w-full max-h-96">
           {projectChats.length === 0 ? (
             <div className="flex items-center justify-center h-32">
-              <div className="text-center text-gray-500">
-                <p>No chats yet...</p>
-                <p className="text-sm mt-2">Start a conversation above to begin</p>
+              <div className="text-center app-text-muted">
+                <p className="app-body">No chats yet...</p>
+                <p className="app-body-sm mt-2">Start a conversation above to begin</p>
               </div>
             </div>
           ) : (
             <ScrollArea className="h-full project-chat-scroll">
-              <div className="divide-y divide-gray-700/50 pr-4">
+              <div className="divide-y pr-4" style={{ borderColor: 'var(--app-border)' }}>
+                {isSendingMessage && <ProjectChatSkeleton />}
                 {isLoadingChats ? (
                   // Show skeleton loading states
                   Array.from({ length: 4 }).map((_, index) => (
@@ -468,16 +631,18 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                   projectChats.map((chat, index) => (
                   <ContextMenu key={chat.id}>
                     <ContextMenuTrigger asChild>
-                      <motion.div 
-                        className="flex items-start justify-between p-4 hover:bg-[#3a3a3a]/50 cursor-pointer transition-all duration-200 rounded-lg mx-2"
+                      <motion.div
+                        className="flex items-start justify-between p-4 cursor-pointer transition-all duration-200 rounded-lg mx-2"
+                        style={{ backgroundColor: 'transparent' }}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
-                        whileHover={{ 
-                          backgroundColor: "rgba(58, 58, 58, 0.7)",
+                        whileHover={{
                           x: 4,
                           transition: { duration: 0.2 }
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         whileTap={{ scale: 0.98 }}
                         onClick={(e) => {
                           e.preventDefault()
@@ -486,13 +651,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                         onContextMenu={(e) => e.stopPropagation()}
                       >
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium mb-1 text-white truncate">{chat.title}</h3>
-                          <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-                            {/* Show latest message or placeholder */}
-                            New conversation
-                          </p>
+                          <div className="app-caption app-fw-medium mb-1 app-text-primary truncate">{chat.title}</div>
+                          <div className="app-body-sm app-text-muted line-clamp-2 leading-relaxed">
+                            {/* Show last message (last 100 chars) or placeholder */}
+                            {chatLastMessages[chat.id]
+                              ? chatLastMessages[chat.id].substring(0, 100) + (chatLastMessages[chat.id].length > 100 ? '...' : '')
+                              : 'New conversation'}
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500 ml-4 shrink-0">
+                        <span className="app-caption app-text-muted ml-4 shrink-0">
                           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </motion.div>
@@ -528,21 +695,21 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Chat</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="app-h5">Rename Chat</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
               Enter a new name for "{selectedChatForAction?.title}".
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="name" className="text-right app-body-sm">
                 Name
               </Label>
               <Input
                 id="name"
                 value={newChatName}
                 onChange={(e) => setNewChatName(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 app-body"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmRename()
@@ -552,10 +719,10 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
-            <Button onClick={confirmRename} disabled={!newChatName.trim()}>
+            <Button onClick={confirmRename} disabled={!newChatName.trim()} className="app-body-sm">
               Rename
             </Button>
           </DialogFooter>
@@ -566,18 +733,19 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Chat</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="app-h5">Delete Chat</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
               Are you sure you want to delete "{selectedChatForAction?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
+              className="app-body-sm"
             >
               Delete
             </Button>
@@ -589,9 +757,9 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       <Dialog open={vehicleDialogOpen} onOpenChange={setVehicleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
-            <DialogDescription>
-              {vehicle 
+            <DialogTitle className="app-h5">{vehicle ? 'Edit Vehicle' : 'Set Vehicle Model'}</DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
+              {vehicle
                 ? 'Update the vehicle information for this project.'
                 : 'Set the vehicle model for this project to get more accurate assistance.'
               }
@@ -599,7 +767,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="make" className="text-right">
+              <Label htmlFor="make" className="text-right app-body-sm">
                 Make
               </Label>
               <Input
@@ -607,11 +775,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleMake}
                 onChange={(e) => setVehicleMake(e.target.value)}
                 placeholder="e.g., Hyundai"
-                className="col-span-3"
+                className="col-span-3 app-body"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="model" className="text-right">
+              <Label htmlFor="model" className="text-right app-body-sm">
                 Model
               </Label>
               <Input
@@ -619,11 +787,11 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleModel}
                 onChange={(e) => setVehicleModel(e.target.value)}
                 placeholder="e.g., Galloper"
-                className="col-span-3"
+                className="col-span-3 app-body"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="year" className="text-right">
+              <Label htmlFor="year" className="text-right app-body-sm">
                 Year
               </Label>
               <Input
@@ -631,7 +799,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
                 value={vehicleYear}
                 onChange={(e) => setVehicleYear(e.target.value)}
                 placeholder="e.g., 2000"
-                className="col-span-3"
+                className="col-span-3 app-body"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     confirmVehicle()
@@ -641,12 +809,13 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setVehicleDialogOpen(false)} className="app-body-sm">
               Cancel
             </Button>
-            <Button 
-              onClick={confirmVehicle} 
+            <Button
+              onClick={confirmVehicle}
               disabled={!vehicleMake.trim() || !vehicleModel.trim() || !vehicleYear.trim()}
+              className="app-body-sm"
             >
               {vehicle ? 'Update' : 'Set Vehicle'}
             </Button>
@@ -657,12 +826,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
       </motion.div>
 
       {/* Scene Controls Sidebar */}
-      <SceneControlsSidebar 
+      <SceneControlsSidebar
         isOpen={showSceneControls}
         onClose={() => setShowSceneControls(false)}
         isMinimized={isSceneControlsMinimized}
         onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
       />
+
+      {/* Hover label for 3D components */}
+      <HoverLabel />
     </motion.div>
   )
 }

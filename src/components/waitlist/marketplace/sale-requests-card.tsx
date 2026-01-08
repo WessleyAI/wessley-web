@@ -26,21 +26,21 @@ export function SaleRequestsCard() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2, delay: index * 0.05 }}
           whileHover={{ x: -2 }}
-          className="bg-[#3D3541] border border-[#564B5C] rounded-lg p-2.5 hover:border-[#9D7B52]/50 transition-all"
+          className="bg-[#161616] border border-[#808080]/30 rounded-lg p-2.5 hover:border-[#8BE196]/50 transition-all"
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-7 w-7 flex-shrink-0">
-              <AvatarFallback className="bg-[#9D7B52] text-white text-xs">
+              <AvatarFallback className="bg-[#8BE196] text-[#000000] text-xs font-['DM_Sans'] font-semibold">
                 {request.buyerInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <div className="text-white text-sm truncate">{request.buyerName}</div>
-              <div className="text-gray-400 text-xs truncate">{request.partName}</div>
+              <div className="text-white text-sm truncate font-['DM_Sans']">{request.buyerName}</div>
+              <div className="text-[#C4C4C4]/70 text-xs truncate font-['DM_Sans']">{request.partName}</div>
             </div>
-            <div className="text-[#B5E4D3] text-sm flex-shrink-0">{request.offerPrice}</div>
+            <div className="text-[#8BE196] text-sm flex-shrink-0 font-['DM_Sans'] font-semibold">{request.offerPrice}</div>
             <div className="flex gap-1 flex-shrink-0">
-              <button className="p-1 rounded hover:bg-[#B5E4D3]/20 text-[#B5E4D3] transition-colors">
+              <button className="p-1 rounded hover:bg-[#8BE196]/20 text-[#8BE196] transition-colors">
                 <Check className="w-3.5 h-3.5" />
               </button>
               <button className="p-1 rounded hover:bg-red-500/20 text-red-400 transition-colors">

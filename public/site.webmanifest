@@ -1,0 +1,26 @@
+{
+  "name": "Wessley - Automotive Intelligence",
+  "short_name": "Wessley",
+  "description": "The world's first AI-powered automotive platform",
+  "start_url": "/waitlist",
+  "display": "standalone",
+  "background_color": "#161616",
+  "theme_color": "#8BE196",
+  "icons": [
+    {
+      "src": "/header/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/header/logo.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/header/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

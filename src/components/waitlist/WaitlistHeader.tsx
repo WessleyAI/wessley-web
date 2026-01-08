@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 export function WaitlistHeader() {
+  const router = useRouter()
   const realButtonRef = useRef<HTMLAnchorElement>(null)
   const buttonTextRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLElement>(null)
@@ -42,8 +44,8 @@ export function WaitlistHeader() {
       // Calculate progress (0 to 1)
       const progress = Math.min(scrollY / maxScroll, 1)
 
-      // Animate font size from 15px to 12px (50% smaller, scaled by sizer for start only)
-      const startFontSize = 15 * sizer
+      // Animate font size from 24px to 12px (scaled by sizer for start only)
+      const startFontSize = 24 * sizer
       const endFontSize = 12 // Keep end size fixed at 12px for readability
       const fontSize = startFontSize - ((startFontSize - endFontSize) * progress)
       buttonTextRef.current.style.fontSize = `${fontSize}px`
@@ -135,7 +137,9 @@ export function WaitlistHeader() {
           className="hidden md:block"
         >
           <Link
-            href="/about"
+            href="https://github.com/wessleyai"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[8px] md:text-[12px] font-medium tracking-wider"
           >
             ABOUT
@@ -154,12 +158,33 @@ export function WaitlistHeader() {
           className="hidden md:block"
         >
           <Link
-            href="/contact"
+            href="https://linkedin.com/in/saharbarak"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[8px] md:text-[12px] font-medium tracking-wider"
           >
             CONTACT
           </Link>
         </motion.div>
+
+        {/* Demo Button */}
+        <motion.button
+          onClick={() => router.push('/g/cde0ea8e-07aa-4c59-a72b-ba0d56020484/project')}
+          whileHover={{
+            backgroundColor: 'rgba(250, 250, 250, 0.95)', color: '#1a1a1a',
+          }}
+          style={{
+            border: '1px solid rgba(250, 250, 250, 0.3)',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            backgroundColor: 'transparent',
+            cursor: 'pointer',
+          }}
+          transition={{ duration: 0.2 }}
+          className="hidden md:block text-[8px] md:text-[12px] font-medium tracking-wider"
+        >
+          DEMO
+        </motion.button>
 
         {/* Animated Insider Button */}
         <motion.a
@@ -195,7 +220,6 @@ export function WaitlistHeader() {
           <div
             ref={buttonTextRef}
             style={{
-              fontSize: 'calc(var(--sizer) * 0.9375rem)',
               fontWeight: 500,
               textTransform: 'capitalize',
               transition: 'font-size 0.1s ease',

@@ -29,15 +29,23 @@ export function useAuth() {
   }, [supabase.auth])
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+
+    // DO NOT call signOut() - it hangs
+    // Just go STRAIGHT to OAuth
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/chat`
+        redirectTo: `${window.location.origin}/auth/callback?next=/demo/bench`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account', // Force Google account picker
+        }
       }
     })
-    
+
     if (error) {
-      console.error('Error signing in with Google:', error)
+      console.error('❌ OAuth error:', error)
+    } else {
     }
   }
 

@@ -28,10 +28,10 @@ interface AddPartDialogProps {
 export function AddPartDialog({ open, onOpenChange, partName }: AddPartDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2E3135] border-[#4A4E52] text-white sm:max-w-md">
+      <DialogContent className="bg-[#1a1a1a] border-[#808080]/30 text-white sm:max-w-md">
         <DialogHeader>
           <DialogTitle>List a New Part</DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription className="text-[#C4C4C4]/70">
             Add photos and details to list your part for sale
           </DialogDescription>
         </DialogHeader>
@@ -44,27 +44,27 @@ export function AddPartDialog({ open, onOpenChange, partName }: AddPartDialogPro
         >
           {/* Part Name */}
           <div className="space-y-2">
-            <Label htmlFor="part-name" className="text-gray-300">
+            <Label htmlFor="part-name" className="text-[#C4C4C4] font-['DM_Sans']">
               Part Name
             </Label>
             <Input
               id="part-name"
               defaultValue={partName}
               placeholder="e.g., Alternator"
-              className="bg-[#3A3E42] border-[#4A4E52] text-white placeholder:text-gray-500"
+              className="bg-[#161616] border-[#808080]/30 text-white placeholder:text-gray-500 font-['DM_Sans']"
             />
           </div>
 
           {/* Condition */}
           <div className="space-y-2">
-            <Label htmlFor="condition" className="text-gray-300">
+            <Label htmlFor="condition" className="text-[#C4C4C4] font-['DM_Sans']">
               Condition
             </Label>
             <Select>
-              <SelectTrigger className="bg-[#3A3E42] border-[#4A4E52] text-white">
+              <SelectTrigger className="bg-[#161616] border-[#808080]/30 text-white font-['DM_Sans']">
                 <SelectValue placeholder="Select condition" />
               </SelectTrigger>
-              <SelectContent className="bg-[#3A3E42] border-[#4A4E52] text-white">
+              <SelectContent className="bg-[#161616] border-[#808080]/30 text-white font-['DM_Sans']">
                 <SelectItem value="excellent">Excellent</SelectItem>
                 <SelectItem value="very-good">Very Good</SelectItem>
                 <SelectItem value="good">Good</SelectItem>
@@ -76,42 +76,42 @@ export function AddPartDialog({ open, onOpenChange, partName }: AddPartDialogPro
 
           {/* Price */}
           <div className="space-y-2">
-            <Label htmlFor="price" className="text-gray-300">
+            <Label htmlFor="price" className="text-[#C4C4C4] font-['DM_Sans']">
               Price
             </Label>
             <Input
               id="price"
               type="number"
               placeholder="150"
-              className="bg-[#3A3E42] border-[#4A4E52] text-white placeholder:text-gray-500"
+              className="bg-[#161616] border-[#808080]/30 text-white placeholder:text-gray-500 font-['DM_Sans']"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-300">
+            <Label htmlFor="description" className="text-[#C4C4C4] font-['DM_Sans']">
               Description
             </Label>
             <Textarea
               id="description"
               placeholder="Describe the part's condition, mileage, any known issues..."
-              className="bg-[#3A3E42] border-[#4A4E52] text-white placeholder:text-gray-500 min-h-[100px]"
+              className="bg-[#161616] border-[#808080]/30 text-white placeholder:text-gray-500 min-h-[100px] font-['DM_Sans']"
             />
           </div>
 
           {/* Photo Upload */}
           <div className="space-y-2">
-            <Label className="text-gray-300">Photos</Label>
+            <Label className="text-[#C4C4C4] font-['DM_Sans']">Photos</Label>
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="border-2 border-dashed border-[#4A4E52] rounded-lg p-8 text-center cursor-pointer hover:border-[#9D7B52] transition-colors"
+              className="border-2 border-dashed border-[#808080]/30 rounded-lg p-8 text-center cursor-pointer hover:border-[#8BE196] transition-colors"
             >
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">
+              <Upload className="w-8 h-8 text-[#C4C4C4]/70 mx-auto mb-2" />
+              <p className="text-[#C4C4C4]/70 text-sm font-['DM_Sans']">
                 Click to upload or drag and drop
               </p>
-              <p className="text-gray-500 text-xs mt-1">
+              <p className="text-[#C4C4C4]/50 text-xs mt-1 font-['DM_Sans']">
                 PNG, JPG up to 10MB
               </p>
             </motion.div>
@@ -122,11 +122,11 @@ export function AddPartDialog({ open, onOpenChange, partName }: AddPartDialogPro
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+              className="flex-1 border-[#808080]/30 text-[#C4C4C4] hover:bg-[#161616] font-['DM_Sans']"
             >
               Cancel
             </Button>
-            <Button className="flex-1 bg-[#B5E4D3] hover:bg-[#A0D4C3] text-[#2E3135]">
+            <Button className="flex-1 bg-[#8BE196] hover:bg-[#9DF4A8] text-[#000000] font-['DM_Sans'] font-semibold">
               List Part
             </Button>
           </div>

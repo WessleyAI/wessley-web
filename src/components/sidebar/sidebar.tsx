@@ -27,7 +27,7 @@ import { updateChat, deleteChat } from "@/db/chats"
 // Chat skeleton component
 const ChatSkeleton = ({ className }: { className?: string }) => (
   <div className={className}>
-    <Skeleton className="h-8 w-full bg-gray-700/50" />
+    <Skeleton className="h-8 w-full" style={{ backgroundColor: 'var(--app-bg-tertiary)' }} />
   </div>
 )
 
@@ -61,7 +61,7 @@ const DroppableSection = ({ id, children }: { id: string, children: React.ReactN
   })
 
   const style = {
-    backgroundColor: isOver ? 'rgba(255, 255, 255, 0.1)' : undefined,
+    backgroundColor: isOver ? 'var(--app-sidebar-hover)' : undefined,
   }
 
   return (
@@ -72,11 +72,11 @@ const DroppableSection = ({ id, children }: { id: string, children: React.ReactN
 }
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  IconEdit, 
-  IconSearch, 
+import {
+  IconEdit,
+  IconSearch,
   IconPlus,
-  IconLibrary, 
+  IconLibrary,
   IconShoppingCart,
   IconSettings,
   IconCompass,
@@ -87,8 +87,29 @@ import {
   IconLayoutSidebarLeftExpand,
   IconBrandGoogle,
   IconTrash,
-  IconPencil
+  IconPencil,
+  IconBuildingWarehouse,
+  IconCar
 } from "@tabler/icons-react"
+
+// Keyboard shortcut component for Mac
+const KeyboardShortcut = ({ keys }: { keys: string[] }) => (
+  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-auto">
+    {keys.map((key, index) => (
+      <kbd
+        key={index}
+        className="app-caption px-1.5 py-0.5 rounded app-text-muted"
+        style={{
+          backgroundColor: 'var(--app-bg-tertiary)',
+          fontFamily: 'SF Mono, Monaco, monospace',
+          fontSize: '11px'
+        }}
+      >
+        {key}
+      </kbd>
+    ))}
+  </div>
+)
 import Image from "next/image"
 import { ProfileSettings } from "../utility/profile-settings"
 import { createClient } from "@/lib/supabase/client"
@@ -181,7 +202,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   const handleProjectClick = (projectId: string) => {
     // Find the workspace by ID
     const workspace = workspaces.find(w => w.id === projectId)
-    
+
     if (expandedProjects.has(projectId)) {
       const newExpanded = new Set(expandedProjects)
       newExpanded.delete(projectId)
@@ -189,13 +210,13 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     } else {
       setExpandedProjects(new Set([...expandedProjects, projectId]))
     }
-    
+
     setSelectedProject(projectId)
-    
-    // Navigate to the project page using the new URL pattern
+
+    // Set the selected workspace and change to project view
     if (workspace) {
       setSelectedWorkspace(workspace)
-      router.push(`/g/${projectId}/project`)
+      onMainViewChange?.('project')
     }
   }
 
@@ -222,7 +243,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/chat`
+        redirectTo: `${window.location.origin}/auth/callback?next=/chat`
       }
     })
   }
@@ -402,9 +423,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     >
       <div
         className={`flex flex-col h-screen ${isMinimized ? 'cursor-pointer' : ''}`}
-        style={{ 
-          width: isMinimized ? '60px' : `${SIDEBAR_WIDTH}px`,
-          backgroundColor: '#090909'
+        style={{
+          width: isMinimized ? '72px' : `${SIDEBAR_WIDTH}px`,
+          backgroundColor: 'var(--app-bg-secondary)'
         }}
         onMouseEnter={() => isMinimized && setIsHovering(true)}
         onMouseLeave={() => isMinimized && setIsHovering(false)}
@@ -426,9 +447,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
-                  <IconLayoutSidebarLeftExpand 
+                  <IconLayoutSidebarLeftExpand
                     size={24}
-                    className="text-white/80 hover:text-white transition-colors duration-200"
+                    className="app-text-secondary hover:app-text-primary transition-colors duration-200"
                   />
                 </motion.div>
               ) : (
@@ -437,17 +458,20 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(139, 225, 150, 0.6))'
+                  }}
                 >
-                  <Image 
-                    src="/wessley_thumb_chat.svg" 
-                    alt="Wessley" 
+                  <Image
+                    src="/wessley_thumb_chat_accent.svg"
+                    alt="Wessley"
                     width={24}
                     height={24}
                   />
                 </motion.div>
               )}
               {isHovering && (
-                <div className="absolute left-10 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                <div className="absolute left-10 top-1/2 transform -translate-y-1/2 app-text-primary app-caption px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
                   Open Sidebar
                 </div>
               )}
@@ -458,10 +482,13 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
+              style={{
+                filter: 'drop-shadow(0 0 8px rgba(139, 225, 150, 0.6))'
+              }}
             >
-              <Image 
-                src="/wessley_thumb_chat.svg" 
-                alt="Wessley" 
+              <Image
+                src="/wessley_thumb_chat_accent.svg"
+                alt="Wessley"
                 width={24}
                 height={24}
               />
@@ -473,7 +500,10 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             variant="ghost"
             size="sm"
             onClick={handleToggleSidebar}
-            className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+            className="h-8 w-8 p-0 app-text-secondary hover:app-text-primary"
+            style={{ backgroundColor: 'transparent' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <IconLayoutSidebar size={16} />
           </Button>
@@ -498,9 +528,14 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                     const rect = e.currentTarget.getBoundingClientRect()
                     setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('newchat')
+                    e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
                   }}
-                  onMouseLeave={() => setHoveredIcon(null)}
-                  className="h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200"
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                  className="h-10 w-10 p-0 app-text-secondary hover:app-text-primary relative z-10 rounded-lg transition-all duration-200"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   <IconPlus size={20} />
                 </Button>
@@ -518,9 +553,14 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                     const rect = e.currentTarget.getBoundingClientRect()
                     setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('search')
+                    e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
                   }}
-                  onMouseLeave={() => setHoveredIcon(null)}
-                  className="h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200"
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                  className="h-10 w-10 p-0 app-text-secondary hover:app-text-primary relative z-10 rounded-lg transition-all duration-200"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   <IconSearch size={20} />
                 </Button>
@@ -538,29 +578,180 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                     const rect = e.currentTarget.getBoundingClientRect()
                     setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
                     setHoveredIcon('explore')
+                    if (currentView !== 'explore') {
+                      e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
+                    }
                   }}
-                  onMouseLeave={() => setHoveredIcon(null)}
-                  className={`h-10 w-10 p-0 text-white/80 hover:bg-gray-600/50 hover:text-white relative z-10 rounded-lg transition-all duration-200 ${
-                    currentView === 'explore' ? 'bg-white/10 text-white' : ''
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    if (currentView !== 'explore') {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }
+                  }}
+                  className={`h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-500 ${
+                    currentView === 'explore' ? 'app-text-primary' : 'app-text-secondary hover:app-text-primary'
                   }`}
+                  style={{
+                    backgroundColor: currentView === 'explore' ? 'var(--app-accent)' : 'transparent',
+                    color: currentView === 'explore' ? '#000000' : undefined,
+                    boxShadow: currentView === 'explore' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+                  }}
                 >
                   <IconCompass size={20} />
+                </Button>
+              </div>
+
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('library')
+                    e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                  }}
+                  className="h-10 w-10 p-0 app-text-secondary hover:app-text-primary relative z-10 rounded-lg transition-all duration-200"
+                  style={{ backgroundColor: 'transparent' }}
+                >
+                  <IconLibrary size={20} />
+                </Button>
+              </div>
+
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleViewChange('marketplace')
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('marketplace')
+                    if (currentView !== 'marketplace') {
+                      e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    if (currentView !== 'marketplace') {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }
+                  }}
+                  className={`h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-500 ${
+                    currentView === 'marketplace' ? 'app-text-primary' : 'app-text-secondary hover:app-text-primary'
+                  }`}
+                  style={{
+                    backgroundColor: currentView === 'marketplace' ? 'var(--app-accent)' : 'transparent',
+                    color: currentView === 'marketplace' ? '#000000' : undefined,
+                    boxShadow: currentView === 'marketplace' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+                  }}
+                >
+                  <IconShoppingCart size={20} />
+                </Button>
+              </div>
+
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleViewChange('auto-tuning')
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltipPosition({ x: rect.right + 12, y: rect.top + rect.height / 2 })
+                    setHoveredIcon('autotuning')
+                    if (currentView !== 'auto-tuning') {
+                      e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredIcon(null)
+                    if (currentView !== 'auto-tuning') {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }
+                  }}
+                  className={`h-10 w-10 p-0 relative z-10 rounded-lg transition-all duration-500 ${
+                    currentView === 'auto-tuning' ? 'app-text-primary' : 'app-text-secondary hover:app-text-primary'
+                  }`}
+                  style={{
+                    backgroundColor: currentView === 'auto-tuning' ? 'var(--app-accent)' : 'transparent',
+                    color: currentView === 'auto-tuning' ? '#000000' : undefined,
+                    boxShadow: currentView === 'auto-tuning' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+                  }}
+                >
+                  <IconSettings size={20} />
                 </Button>
               </div>
             </div>
             
             {/* Dynamic tooltip positioned next to hovered icon */}
             {hoveredIcon && (
-              <div 
-                className="fixed bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-[9999] pointer-events-none transform -translate-y-1/2"
-                style={{ 
-                  left: tooltipPosition.x, 
-                  top: tooltipPosition.y 
+              <div
+                className="fixed app-text-primary app-caption px-2 py-1 rounded whitespace-nowrap z-[9999] pointer-events-none transform -translate-y-1/2 flex items-center gap-2"
+                style={{
+                  left: tooltipPosition.x,
+                  top: tooltipPosition.y,
+                  backgroundColor: 'var(--app-bg-tertiary)'
                 }}
               >
-                {hoveredIcon === 'newchat' && 'New chat'}
-                {hoveredIcon === 'search' && 'Search'}
-                {hoveredIcon === 'explore' && 'Explore'}
+                <span>
+                  {hoveredIcon === 'newchat' && 'New chat'}
+                  {hoveredIcon === 'search' && 'Search'}
+                  {hoveredIcon === 'explore' && 'Explore'}
+                  {hoveredIcon === 'library' && 'Library'}
+                  {hoveredIcon === 'marketplace' && 'Marketplace'}
+                  {hoveredIcon === 'autotuning' && 'Auto-tune'}
+                </span>
+                <span className="flex gap-0.5 app-text-muted">
+                  {hoveredIcon === 'newchat' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>N</kbd>
+                    </>
+                  )}
+                  {hoveredIcon === 'search' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>K</kbd>
+                    </>
+                  )}
+                  {hoveredIcon === 'explore' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>E</kbd>
+                    </>
+                  )}
+                  {hoveredIcon === 'library' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>L</kbd>
+                    </>
+                  )}
+                  {hoveredIcon === 'marketplace' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>M</kbd>
+                    </>
+                  )}
+                  {hoveredIcon === 'autotuning' && (
+                    <>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>⌘</kbd>
+                      <kbd style={{ fontFamily: 'SF Mono, Monaco, monospace', fontSize: '10px' }}>,</kbd>
+                    </>
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -571,20 +762,28 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 app-body-sm app-text-secondary hover:app-text-primary group"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={handleNewChat}
             >
               <IconEdit size={16} className="mr-3" />
               New chat
+              <KeyboardShortcut keys={['⌘', 'N']} />
             </Button>
-            
+
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 app-body-sm app-text-secondary hover:app-text-primary group"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={open}
             >
               <IconSearch size={16} className="mr-3" />
               Search
+              <KeyboardShortcut keys={['⌘', 'K']} />
             </Button>
           </div>
 
@@ -592,43 +791,71 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+              className="w-full justify-start h-9 px-3 app-body-sm app-text-secondary hover:app-text-primary group"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <IconLibrary size={16} className="mr-3" />
               Library
+              <KeyboardShortcut keys={['⌘', 'L']} />
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
-                currentView === 'marketplace' ? 'bg-white/10 text-white' : ''
+              className={`w-full justify-start h-9 px-3 app-body-sm transition-all duration-500 group ${
+                currentView === 'marketplace' ? '' : 'app-text-secondary hover:app-text-primary'
               }`}
+              style={{
+                backgroundColor: currentView === 'marketplace' ? 'var(--app-accent)' : 'transparent',
+                color: currentView === 'marketplace' ? '#000000' : undefined,
+                boxShadow: currentView === 'marketplace' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+              }}
+              onMouseEnter={(e) => currentView !== 'marketplace' && (e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)')}
+              onMouseLeave={(e) => currentView !== 'marketplace' && (e.currentTarget.style.backgroundColor = 'transparent')}
               onClick={() => handleViewChange('marketplace')}
             >
               <IconShoppingCart size={16} className="mr-3" />
               Marketplace
+              <KeyboardShortcut keys={['⌘', 'M']} />
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
-                currentView === 'auto-tuning' ? 'bg-white/10 text-white' : ''
+              className={`w-full justify-start h-9 px-3 app-body-sm transition-all duration-500 group ${
+                currentView === 'auto-tuning' ? '' : 'app-text-secondary hover:app-text-primary'
               }`}
+              style={{
+                backgroundColor: currentView === 'auto-tuning' ? 'var(--app-accent)' : 'transparent',
+                color: currentView === 'auto-tuning' ? '#000000' : undefined,
+                boxShadow: currentView === 'auto-tuning' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+              }}
+              onMouseEnter={(e) => currentView !== 'auto-tuning' && (e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)')}
+              onMouseLeave={(e) => currentView !== 'auto-tuning' && (e.currentTarget.style.backgroundColor = 'transparent')}
               onClick={() => handleViewChange('auto-tuning')}
             >
               <IconSettings size={16} className="mr-3" />
               Auto-tune
+              <KeyboardShortcut keys={['⌘', ',']} />
             </Button>
-            
+
             <Button
               variant="ghost"
-              className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
-                currentView === 'explore' ? 'bg-white/10 text-white' : ''
+              className={`w-full justify-start h-9 px-3 app-body-sm transition-all duration-500 group ${
+                currentView === 'explore' ? '' : 'app-text-secondary hover:app-text-primary'
               }`}
+              style={{
+                backgroundColor: currentView === 'explore' ? 'var(--app-accent)' : 'transparent',
+                color: currentView === 'explore' ? '#000000' : undefined,
+                boxShadow: currentView === 'explore' ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+              }}
+              onMouseEnter={(e) => currentView !== 'explore' && (e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)')}
+              onMouseLeave={(e) => currentView !== 'explore' && (e.currentTarget.style.backgroundColor = 'transparent')}
               onClick={() => handleViewChange('explore')}
             >
               <IconCompass size={16} className="mr-3" />
               Explore
+              <KeyboardShortcut keys={['⌘', 'E']} />
             </Button>
           </div>
 
@@ -636,7 +863,8 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <button
               onClick={() => handleSectionToggle('projects')}
-              className="w-full flex items-center justify-between px-3 py-1 text-xs font-medium text-white/40 tracking-wider hover:text-white/60 group"
+              className="w-full flex items-center justify-between px-3 py-1 app-caption app-text-muted tracking-wider hover:app-text-secondary group app-fw-medium"
+              style={{ textTransform: 'uppercase' }}
             >
               <span>Projects</span>
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -653,7 +881,11 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                 <NewWorkspaceDialog>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white"
+                    className="w-full justify-start h-9 px-3 app-body-sm app-text-secondary hover:app-text-primary"
+                    style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    suppressHydrationWarning
                   >
                     <IconPlus size={16} className="mr-3" />
                     New project
@@ -672,9 +904,16 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                           <ContextMenuTrigger asChild>
                             <Button
                             variant="ghost"
-                            className={`w-full justify-start h-9 px-3 text-white/80 hover:bg-white/10 hover:text-white ${
-                              selectedProject === workspace.id ? 'bg-white/10 text-white' : ''
+                            className={`w-full justify-start h-9 px-3 app-body-sm transition-all duration-500 ${
+                              selectedProject === workspace.id ? '' : 'app-text-secondary hover:app-text-primary'
                             }`}
+                            style={{
+                              backgroundColor: selectedProject === workspace.id ? 'var(--app-accent)' : 'transparent',
+                              color: selectedProject === workspace.id ? '#000000' : undefined,
+                              boxShadow: selectedProject === workspace.id ? '0 0 15px rgba(139, 225, 150, 0.4), inset 0 0 10px rgba(139, 225, 150, 0.2)' : undefined
+                            }}
+                            onMouseEnter={(e) => selectedProject !== workspace.id && (e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)')}
+                            onMouseLeave={(e) => selectedProject !== workspace.id && (e.currentTarget.style.backgroundColor = 'transparent')}
                             onClick={() => handleProjectClick(workspace.id)}
                           >
                             {expandedProjects.has(workspace.id) ? (
@@ -682,9 +921,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                             ) : (
                               <IconChevronRight size={12} className="mr-1" />
                             )}
-                            <IconFolder size={16} className="mr-2" />
+                            <IconBuildingWarehouse size={16} className="mr-2" />
                             <span className="flex-1 text-left">{workspace.name}</span>
-                            <span className="text-xs text-white/40">{workspaceChats.length}</span>
+                            <span className="app-caption app-text-muted">{workspaceChats.length}</span>
                           </Button>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
@@ -716,7 +955,10 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                                   <ContextMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
-                                      className="w-full justify-start h-8 px-2 text-xs text-white/60 hover:bg-white/10 hover:text-white/80"
+                                      className="w-full justify-start h-8 px-2 app-body-sm app-text-muted hover:app-text-secondary"
+                                      style={{ backgroundColor: 'transparent' }}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                       onClick={() => router.push(`/c/${chat.id}`)}
                                     >
                                       <span className="truncate">{chat.title || 'New Chat'}</span>
@@ -759,7 +1001,8 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
           <div className="space-y-1">
             <button
               onClick={() => handleSectionToggle('chats')}
-              className="w-full flex items-center justify-between px-3 py-1 text-xs font-medium text-white/40 tracking-wider hover:text-white/60 group"
+              className="w-full flex items-center justify-between px-3 py-1 app-caption app-text-muted tracking-wider hover:app-text-secondary group app-fw-medium"
+              style={{ textTransform: 'uppercase' }}
             >
               <span>Chats</span>
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -791,10 +1034,13 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                         <ContextMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            className="w-full justify-start h-8 px-3 text-white/60 hover:bg-white/10 hover:text-white/80"
+                            className="w-full justify-start h-8 px-3 app-body-sm app-text-muted hover:app-text-secondary"
+                            style={{ backgroundColor: 'transparent' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-sidebar-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             onClick={() => router.push(`/c/${chat.id}`)}
                           >
-                            <span className="truncate text-sm">{chat.title || 'New Chat'}</span>
+                            <span className="truncate">{chat.title || 'New Chat'}</span>
                           </Button>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
@@ -833,10 +1079,21 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
         {profile ? (
           <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3'}`}>
             <div className={`relative ${isMinimized ? 'group' : ''}`}>
-              <div 
-                className={`h-8 w-8 rounded-full overflow-hidden relative z-10 ${isMinimized ? 'hover:ring-2 hover:ring-gray-600/50 transition-all duration-200' : ''}`}
-                onMouseEnter={(e) => isMinimized && e.stopPropagation()}
-                onMouseLeave={(e) => isMinimized && e.stopPropagation()}
+              <div
+                className={`h-8 w-8 rounded-full overflow-hidden relative z-10 ${isMinimized ? 'transition-all duration-200' : ''}`}
+                style={{ outline: isMinimized ? 'none' : undefined }}
+                onMouseEnter={(e) => {
+                  isMinimized && e.stopPropagation()
+                  if (isMinimized) {
+                    e.currentTarget.style.outline = '2px solid var(--app-border-focus)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  isMinimized && e.stopPropagation()
+                  if (isMinimized) {
+                    e.currentTarget.style.outline = 'none'
+                  }
+                }}
               >
               {(authUser?.user_metadata?.avatar_url || profile.avatar_url || profile.image_url) ? (
                 <Image
@@ -855,27 +1112,26 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
               )}
               </div>
               {isMinimized && (
-                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 app-text-primary app-caption px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
                   Profile
                 </div>
               )}
             </div>
             {!isMinimized && (
               <div className="flex-1 min-w-0">
-                <h3 className="text-xs font-medium text-foreground truncate">
+                <div className="app-body-sm app-fw-medium app-text-primary truncate">
                   {authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || profile.display_name || profile.full_name || profile.username || 'User'}
-                </h3>
-                <p className="text-xs font-normal text-gray-500">
-                  {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' : 
-                   profile.subscription_tier === 'pro' ? 'Pro' : 
+                </div>
+                <div className="app-body-sm app-text-muted">
+                  {profile.subscription_tier === 'insiders' || !profile.subscription_tier ? 'Insider' :
+                   profile.subscription_tier === 'pro' ? 'Pro' :
                    profile.subscription_tier === 'enterprise' ? 'Enterprise' : 'Free'}
-                </p>
+                </div>
               </div>
             )}
           </div>
         ) : (
           <>
-            {!isMinimized && <div className="bg-red-500 p-2 text-white font-bold">DEBUG: No profile found</div>}
             <div className={`space-y-2 ${isMinimized ? 'flex flex-col items-center' : ''}`}>
             <div className={`relative ${isMinimized ? 'group' : ''}`}>
               <Button
@@ -891,12 +1147,12 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
                 {!isMinimized && 'Sign in with Google'}
               </Button>
               {isMinimized && (
-                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2">
+                <div className="absolute left-12 top-1/2 transform -translate-y-1/2 app-text-primary app-caption px-2 py-1 rounded whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none ml-2" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
                   Sign in with Google
                 </div>
               )}
             </div>
-            {!isMinimized && <p className="text-xs text-white/60 text-center">Sign in to access your projects and chat history</p>}
+            {!isMinimized && <p className="app-caption app-text-muted text-center">Sign in to access your projects and chat history</p>}
             </div>
           </>
         )}
@@ -1030,7 +1286,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
 
       <DragOverlay>
         {draggedItem ? (
-          <div className="bg-white/20 p-2 rounded text-white text-sm">
+          <div className="p-2 rounded app-text-primary app-body-sm" style={{ backgroundColor: 'var(--app-sidebar-active)' }}>
             {draggedItem.title || 'Chat'}
           </div>
         ) : null}

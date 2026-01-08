@@ -6,6 +6,8 @@ import { useChatStore } from '@/stores/chat-store'
 import { ChatMessages } from './chat-messages'
 import { ChatInput } from './chat-input'
 import { ChatScene } from '@/components/3d/ChatScene'
+import { SceneExplorer } from '@/components/scene-explorer/scene-explorer'
+import { HoverLabel } from '@/components/3d/HoverLabel'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -28,33 +30,42 @@ import { SceneControlsSidebar } from './scene-controls-sidebar'
 
 interface ChatInterfaceProps {
   className?: string
-  onNewChat?: () => void
-  onQuickStart?: (prompt: string) => void
+  onNewChat?: (aiModel?: string) => void
+  onQuickStart?: (prompt: string, aiModel?: string) => void
   chatId?: string
+  hideSceneControls?: boolean
+  isBench?: boolean
 }
 
-export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: ChatInterfaceProps) {
-  const { 
-    activeConversation, 
-    messages, 
+export function ChatInterface({ className, onNewChat, onQuickStart, chatId, hideSceneControls, isBench }: ChatInterfaceProps) {
+  const {
+    activeConversation,
+    messages,
     isGenerating,
     setUserInput,
     userInput
   } = useChatStore()
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [chatInput, setChatInput] = useState('')
   const [showSceneControls, setShowSceneControls] = useState(false)
   const [isSceneControlsMinimized, setIsSceneControlsMinimized] = useState(true)
-  
-  // Auto-show scene controls in extended view
+  const [selectedModel, setSelectedModel] = useState('gpt-4o')
+
+  // Check if this is a welcome setup conversation (only if no messages yet)
+  const isWelcomeSetup = activeConversation?.context_data?.isWelcomeSetup === true && messages.length === 0
+
+  // Auto-show scene controls in extended view (unless hidden)
   const isExtendedView = (activeConversation && messages.length > 0) || !!chatId
-  
+
   useEffect(() => {
-    if (isExtendedView) {
+    if (isExtendedView && !hideSceneControls) {
       setShowSceneControls(true)
+      setIsSceneControlsMinimized(false)
+    } else if (hideSceneControls) {
+      setShowSceneControls(false) // Completely hidden in bench
     }
-  }, [isExtendedView])
+  }, [isExtendedView, hideSceneControls])
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -67,7 +78,7 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
   const handleStartChat = () => {
     if (!chatInput.trim() || !onQuickStart) return
-    onQuickStart(chatInput.trim())
+    onQuickStart(chatInput.trim(), selectedModel)
     setChatInput('')
   }
 
@@ -79,91 +90,98 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
   return (
     <div className="flex h-full">
-      <div className={`flex-1 flex flex-col h-full bg-[#2a2a2a] text-white relative ${className}`}
+      <div className={`flex-1 flex flex-col h-full app-bg-primary app-text-primary relative ${className}`}
         style={{
-          marginRight: showSceneControls ? (isSceneControlsMinimized ? '60px' : '320px') : '0px',
+          marginRight: hideSceneControls ? '0px' : (showSceneControls ? (isSceneControlsMinimized ? '56px' : '320px') : '0px'),
           transition: 'margin-right 0.3s ease-in-out'
         }}
       >
-      {/* Top Bar with Model Selection - Floating above scene */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <Select defaultValue="chatgpt5">
-            <SelectTrigger className="w-[140px] bg-transparent border-none text-white text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="chatgpt5">ChatGPT 5</SelectItem>
-              <SelectItem value="gpt4">GPT-4</SelectItem>
-              <SelectItem value="claude35">Claude 3.5</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Top Bar - Floating above scene */}
+      {!hideSceneControls && (
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end p-4">
+          <div className="flex items-center gap-1">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="User"
+            >
+              <IconUser className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Settings"
+            >
+              <IconSettings className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Scene Controls"
+              onClick={() => {
+                setShowSceneControls(true)
+                setIsSceneControlsMinimized(false)
+              }}
+            >
+              <IconMenu2 className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-3 py-2 rounded-lg app-body-sm app-text-secondary hover:app-text-primary transition-colors duration-200"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              Share
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+              style={{ backgroundColor: 'transparent' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              •••
+            </motion.button>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
-            title="User"
-          >
-            <IconUser className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
-            title="Settings"
-          >
-            <IconSettings className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
-            title="Scene Controls"
-            onClick={() => {
-              setShowSceneControls(true)
-              setIsSceneControlsMinimized(false)
-            }}
-          >
-            <IconMenu2 className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200 text-sm"
-          >
-            Share
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg text-gray-300 hover:text-white transition-colors duration-200"
-          >
-            •••
-          </motion.button>
-        </div>
-      </div>
+      )}
 
       {/* 3D Scene - Dynamic size based on conversation state */}
-      <motion.div 
-        className="flex justify-center"
+      <motion.div
+        className="flex justify-center px-6"
         animate={{
-          height: (activeConversation && messages.length > 0) || chatId ? "40vh" : "35vh",
-          paddingTop: (activeConversation && messages.length > 0) || chatId ? "0px" : "16px",
-          paddingBottom: (activeConversation && messages.length > 0) || chatId ? "0px" : "16px"
+          height: (activeConversation && messages.length > 0) || chatId ? "56vh" : "49vh",
+          paddingTop: (activeConversation && messages.length > 0) || chatId ? "24px" : "24px",
+          paddingBottom: (activeConversation && messages.length > 0) || chatId ? "16px" : "16px"
         }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="overflow-hidden relative"
           animate={{
             width: (activeConversation && messages.length > 0) || chatId ? "100%" : "60%",
-            borderRadius: (activeConversation && messages.length > 0) || chatId ? "8px" : "50%"
+            borderRadius: 0
           }}
           transition={{ duration: 0.5 }}
         >
           <ChatScene isExtended={(activeConversation && messages.length > 0) || !!chatId} />
+          {/* Scene Explorer Overlay - Hidden in bench */}
+          {!hideSceneControls && <SceneExplorer />}
         </motion.div>
       </motion.div>
 
@@ -173,43 +191,57 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
         <div className="flex-1 flex flex-col items-center max-w-3xl mx-auto w-full px-6 py-6">
           {/* Question Header */}
           <div className="w-full text-center mb-6">
-            <h1 className="text-2xl font-medium mb-2">What are we working on?</h1>
-            <p className="text-gray-400 text-sm">Ask questions about your vehicle's electrical system</p>
+            <h1 className={isBench ? "app-h2 mb-2" : "app-h3 mb-2"}>
+              {isBench ? "Welcome to your virtual garage" : "What are we working on?"}
+            </h1>
+            {!isBench && (
+              <p className="app-body-sm app-text-muted">Ask questions about your vehicle's electrical system</p>
+            )}
           </div>
 
           {/* Chat Input - Centered */}
-          <motion.div 
+          <motion.div
             className="w-full mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             <div className="relative">
-              <motion.div 
-                className="flex items-center gap-3 bg-[#3a3a3a] rounded-full p-4 border border-gray-600/20"
-                whileHover={{ backgroundColor: "#404040" }}
+              <motion.div
+                className="flex items-center gap-3 rounded-lg p-4"
+                style={{
+                  backgroundColor: 'var(--app-bg-hover)',
+                  border: '1px solid var(--app-border)'
+                }}
+                whileHover={{}}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
                 transition={{ duration: 0.2 }}
               >
-                <motion.button 
+                <motion.button
                   onClick={handleStartChat}
-                  whileHover={{ scale: 1.1 }} 
+                  whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-1 rounded-md hover:bg-gray-600/50 transition-colors"
+                  className="p-1 rounded-lg app-text-muted hover:app-text-secondary transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <IconPlus className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                  <IconPlus className="w-5 h-5" />
                 </motion.button>
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask anything"
-                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:border-none font-medium focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder={isBench ? "What vehicle model/brand/year are we working with?" : "Ask anything"}
+                  className="flex-1 bg-transparent border-none app-text-primary app-body-sm focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  style={{ color: 'var(--app-text-primary)' }}
                 />
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <IconMicrophone className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                  <IconMicrophone className="w-5 h-5" />
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <IconPlayerRecord className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="app-text-muted hover:app-text-secondary transition-colors">
+                  <IconPlayerRecord className="w-5 h-5" />
                 </motion.button>
               </motion.div>
             </div>
@@ -219,17 +251,17 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
         /* Active Chat State - Full layout */
         <div className="flex-1 flex flex-col">
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="max-w-4xl mx-auto">
+          <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar">
+            <div className="max-w-3xl mx-auto">
               <ChatMessages messages={messages} />
               <div ref={messagesEndRef} />
             </div>
           </div>
-          
+
           {/* Chat Input - Bottom of page */}
           <div className="px-6 py-4">
-            <div className="max-w-4xl mx-auto">
-              <ChatInput disabled={isGenerating} />
+            <div className="max-w-3xl mx-auto">
+              <ChatInput disabled={isGenerating} isWelcomeSetup={isWelcomeSetup} />
             </div>
           </div>
         </div>
@@ -237,13 +269,18 @@ export function ChatInterface({ className, onNewChat, onQuickStart, chatId }: Ch
 
       </div>
 
-      {/* Scene Controls Sidebar */}
-      <SceneControlsSidebar 
-        isOpen={showSceneControls}
-        onClose={() => setShowSceneControls(false)}
-        isMinimized={isSceneControlsMinimized}
-        onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
-      />
+      {/* Scene Controls Sidebar - Hidden in bench */}
+      {!hideSceneControls && (
+        <SceneControlsSidebar
+          isOpen={showSceneControls}
+          onClose={() => setShowSceneControls(false)}
+          isMinimized={isSceneControlsMinimized}
+          onToggleMinimized={() => setIsSceneControlsMinimized(!isSceneControlsMinimized)}
+        />
+      )}
+
+      {/* Hover label for 3D components */}
+      <HoverLabel />
     </div>
   )
 }

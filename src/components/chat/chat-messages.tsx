@@ -1,18 +1,17 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { ChatMessage } from '@/stores/chat-store'
 import { Button } from '@/components/ui/button'
-import { 
-  Copy, 
-  ThumbsUp, 
-  ThumbsDown, 
-  RotateCcw, 
-  Share, 
+import {
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
   MoreHorizontal,
   Download
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface ChatMessagesProps {
   messages: ChatMessage[]
@@ -38,13 +37,13 @@ interface MessageBubbleProps {
 
 function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user'
-  
+
   if (isUser) {
     // User message - right aligned with rounded bubble
     return (
       <div className="flex justify-end">
         <div className="max-w-[70%]">
-          <div className="bg-[#2f2f2f] text-white rounded-2xl px-4 py-3 text-sm">
+          <div className="rounded-lg px-4 py-3 app-body app-text-primary" style={{ backgroundColor: 'var(--app-bg-tertiary)' }}>
             <div className="whitespace-pre-wrap break-words">
               {message.content}
             </div>
@@ -53,67 +52,138 @@ function MessageBubble({ message }: MessageBubbleProps) {
       </div>
     )
   }
-  
+
   // Assistant message - left aligned with no bubble, includes toolbar
   return (
     <div className="flex flex-col space-y-3">
-      <div className="text-white text-sm leading-relaxed">
-        <div className="whitespace-pre-wrap break-words">
-          {message.content}
+      {/* Avatar and Message */}
+      <div className="flex gap-3">
+        {/* Wessley Avatar */}
+        <div className="flex-shrink-0 mt-1">
+          <div
+            className="rounded-full overflow-hidden flex items-center justify-center"
+            style={{
+              width: 'var(--app-sp-2xl)',
+              height: 'var(--app-sp-2xl)',
+              backgroundColor: 'var(--app-bg-tertiary)'
+            }}
+          >
+            <Image
+              src="/logo-dark.svg"
+              alt="Wessley"
+              width={24}
+              height={24}
+              className="w-4 h-4"
+            />
+          </div>
+        </div>
+        {/* Message Content */}
+        <div className="flex-1 app-text-primary app-body leading-relaxed">
+          <div className="whitespace-pre-wrap break-words">
+            {message.content}
+          </div>
         </div>
       </div>
-      
+
       {/* Feedback Toolbar */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 ml-11">
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="Copy"
         >
           <Copy className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="Good response"
         >
           <ThumbsUp className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="Bad response"
         >
           <ThumbsDown className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="Download"
         >
           <Download className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="Regenerate"
         >
           <RotateCcw className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="h-8 w-8 p-0 rounded-lg transition-colors app-text-muted"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-primary)'
+            e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--app-text-muted)'
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
           title="More options"
         >
           <MoreHorizontal className="h-4 w-4" />

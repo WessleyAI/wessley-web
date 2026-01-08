@@ -29,19 +29,20 @@ import {
 } from "@/types"
 import { AssistantImage } from "@/types/images/assistant-image"
 import { VALID_ENV_KEYS } from "@/types/valid-keys"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { FC, useEffect, useState } from "react"
+import { DEMO_WORKSPACE_ID } from "@/lib/demo-workspace"
 
 interface GlobalStateProps {
   children: React.ReactNode
 }
 
 export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
-  console.log('🔴 GlobalState - Component mounted!')
-  if (typeof window !== 'undefined') {
-    console.log('🔴 GlobalState - Running on client side')
-  }
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Check if we're on the demo workspace path - skip all auth redirects
+  const isDemoPath = pathname?.includes(DEMO_WORKSPACE_ID)
 
   // PROFILE STORE
   const [profile, setProfile] = useState<Tables<"profiles"> | null>(null)
@@ -132,17 +133,12 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [toolInUse, setToolInUse] = useState<string>("none")
 
   useEffect(() => {
-    console.log('🟢 GlobalState - useEffect running')
-    
-    // Listen for auth state changes
-    console.log('🟡 Setting up auth state listener')
     const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🟠 GlobalState - Auth state changed:', event, session)
-      
+
       if (event === 'SIGNED_IN' || (event === 'INITIAL_SESSION' && session)) {
         const profile = await fetchStartingData()
-        
+
         if (profile) {
           try {
             const hostedModelRes = await fetchHostedModels(profile)
@@ -161,8 +157,11 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
               }
             }
           } catch (error) {
-            console.log("fetchHostedModels failed, continuing without hosted models:", error)
+            console.error('[GlobalState] ❌ fetchHostedModels failed:', error)
+            // fetchHostedModels failed, continuing without hosted models
           }
+        } else {
+          console.error('[GlobalState] ❌ No profile returned from fetchStartingData')
         }
       } else if (event === 'SIGNED_OUT') {
         setProfile(null)
@@ -171,10 +170,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       }
     })
 
-    // Initial fetch
-    console.log('🔆 Starting initial data fetch')
+    // Initial fetch on mount
     ;(async () => {
-      console.log('🔆 About to call fetchStartingData directly')
       const profile = await fetchStartingData()
 
       if (profile) {
@@ -195,8 +192,10 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
             }
           }
         } catch (error) {
-          console.log("fetchHostedModels failed, continuing without hosted models:", error)
+          console.error('[GlobalState] ❌ fetchHostedModels failed:', error)
+          // fetchHostedModels failed, continuing without hosted models
         }
+      } else {
       }
 
       if (process.env.NEXT_PUBLIC_OLLAMA_URL) {
@@ -212,16 +211,56 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   }, [])
 
   const fetchStartingData = async () => {
-    console.log('🟪 GlobalState - fetchStartingData called')
-    
     try {
+
       const supabase = createClient()
-      const session = (await supabase.auth.getSession()).data.session
-      console.log('🟪 GlobalState - Session:', session)
+
+      let sessionResponse
+      let session = null
+
+      try {
+        // Add timeout to prevent hanging indefinitely (increased to 15 seconds to allow slow connections)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('getSession() timed out after 15 seconds')), 15000)
+        )
+
+        const sessionPromise = supabase.auth.getSession()
+
+        sessionResponse = await Promise.race([sessionPromise, timeoutPromise]) as any
+        session = sessionResponse?.data?.session
+      } catch (sessionError: any) {
+        console.error('[GlobalState] ❌ ERROR getting session:', sessionError)
+        console.error('[GlobalState] Error message:', sessionError?.message)
+        console.error('[GlobalState] Error details:', JSON.stringify(sessionError))
+
+        // If getSession times out or fails, try getUser as fallback
+        try {
+          const userTimeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('getUser() timed out after 5 seconds')), 5000)
+          )
+          const userPromise = supabase.auth.getUser()
+
+          const { data: userData, error: userError } = await Promise.race([userPromise, userTimeoutPromise]) as any
+
+
+          if (userData?.user && !userError) {
+            // Create a minimal session object
+            session = { user: userData.user } as any
+          } else {
+            console.error('[GlobalState] ❌ getUser() also failed:', userError)
+          }
+        } catch (userFallbackError: any) {
+          console.error('[GlobalState] ❌ getUser() threw exception:', userFallbackError?.message)
+          console.error('[GlobalState] ⚠️ Both auth methods timed out - user may not be authenticated')
+          console.error('[GlobalState] 💡 NOT clearing session - let user re-authenticate via Login button if needed')
+          // DO NOT call signOut() - this creates an infinite loop!
+          // The session might be valid but just slow to load
+        }
+      }
+
 
     if (session) {
       const user = session.user
-      console.log('GlobalState - User:', user)
 
       try {
         // Fetch all user data in parallel
@@ -232,58 +271,62 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
           getUserSocialLinks(user.id)
         ])
 
-        console.log('GlobalState - Fetched profile:', profile)
-        console.log('GlobalState - Fetched onboarding:', onboarding)
-        console.log('GlobalState - Profile avatar_url:', profile?.avatar_url)
-        console.log('GlobalState - Profile image_url:', profile?.image_url)
-        console.log('GlobalState - User avatar_url:', user.user_metadata?.avatar_url)
 
         // If profile exists but doesn't have avatar, update it with Google avatar
         if (profile && !profile.avatar_url && user.user_metadata?.avatar_url) {
           const { error: updateError } = await supabase
             .from('profiles')
-            .update({ 
+            .update({
               avatar_url: user.user_metadata.avatar_url,
               full_name: user.user_metadata.full_name || profile.full_name
             })
             .eq('user_id', user.id)
-          
+
           if (!updateError) {
-            const updatedProfile = { 
-              ...profile, 
+            const updatedProfile = {
+              ...profile,
               avatar_url: user.user_metadata.avatar_url,
               full_name: user.user_metadata.full_name || profile.full_name
             }
-            console.log('GlobalState - Setting updated profile:', updatedProfile)
             setProfile(updatedProfile)
           } else {
-            console.log('GlobalState - Setting profile (update failed):', profile)
             setProfile(profile)
           }
         } else {
-          console.log('GlobalState - Setting profile (no update needed):', profile)
           setProfile(profile)
         }
-        
+
         // Check if user has completed onboarding
+        // SKIP THIS CHECK IF RETURNING TO BENCH (has pendingWorkspace in localStorage)
+        const hasPendingWorkspace = typeof window !== 'undefined' && localStorage.getItem('pendingWorkspace')
+
         if (!onboarding || !onboarding.has_completed) {
+          if (hasPendingWorkspace || isDemoPath) {
+            // Don't redirect - let them continue to bench or demo
+          } else {
+            return router.push("/setup")
+          }
+        } else {
+        }
+
+      } catch (error) {
+        console.error('[GlobalState] ❌ Error fetching user data:', error)
+        // If there's an error, it might mean the trigger didn't work
+        // Check for pending workspace or demo path before redirecting to setup
+        const hasPendingWorkspace = typeof window !== 'undefined' && localStorage.getItem('pendingWorkspace')
+        if (hasPendingWorkspace || isDemoPath) {
+          // Don't redirect - let them continue to bench/demo where the error will be handled
+        } else {
+          // In this case, we should redirect to setup to create missing data
           return router.push("/setup")
         }
-        
-      } catch (error) {
-        console.error("Error loading user data:", error)
-        // If there's an error, it might mean the trigger didn't work
-        // In this case, we should redirect to setup to create missing data
-        return router.push("/setup")
       }
 
       const workspaces = await getWorkspacesByUserId(user.id)
-      console.log('GlobalState - Fetched workspaces:', workspaces)
       setWorkspaces(workspaces)
 
       // Load user's chats
       const userChats = await getChatsByUserId(user.id)
-      console.log('GlobalState - Fetched chats:', userChats)
       setChats(userChats)
 
       for (const workspace of workspaces) {
@@ -313,16 +356,15 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
 
       return profile
     } else {
-      console.log('🟪 GlobalState - No session found')
+      // No session found
     }
     } catch (error) {
-      console.error('🔴 GlobalState - Error in fetchStartingData:', error)
+      console.error('[GlobalState] ❌ Error in fetchStartingData:', error)
+      // Error in fetchStartingData
       return null
     }
   }
 
-  console.log('🔵 GlobalState - About to render')
-  
   return (
     <ChatbotUIContext.Provider
       value={{

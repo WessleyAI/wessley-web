@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  IconPlus, 
-  IconCheck, 
-  IconX, 
-  IconAlertTriangle, 
-  IconSettings, 
+import {
+  IconPlus,
+  IconCheck,
+  IconX,
+  IconAlertTriangle,
+  IconSettings,
   IconCurrency,
   IconTool,
   IconChevronRight,
@@ -18,7 +18,8 @@ import {
   IconTrash,
   IconClipboard,
   IconCalculator,
-  IconExclamationCircle
+  IconExclamationCircle,
+  IconBuildingWarehouse
 } from "@tabler/icons-react"
 
 interface ProjectViewProps {
@@ -111,17 +112,17 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0a0a0a]">
+    <div className="flex-1 flex flex-col h-full app-bg-primary">
       {/* 3D Scene Header */}
-      <div className="h-64 bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
+      <div className="h-64 relative overflow-hidden" style={{ background: 'linear-gradient(to bottom right, var(--app-bg-secondary), var(--app-bg-tertiary))' }}>
         <div className="absolute inset-0 bg-grid-pattern opacity-10" />
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <IconTool className="w-16 h-16 text-white" />
+            <div className="w-32 h-32 mx-auto mb-4 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, var(--app-accent), #7BC785)', boxShadow: '0 0 20px rgba(139, 225, 150, 0.4)' }}>
+              <IconBuildingWarehouse className="w-16 h-16 app-text-emphasis" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">{projectName}</h1>
-            <p className="text-gray-300">Vehicle Project Dashboard</p>
+            <h1 className="app-h1 mb-2">{projectName}</h1>
+            <p className="app-body app-text-secondary">Vehicle Project Dashboard</p>
           </div>
         </div>
       </div>
@@ -131,13 +132,13 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           
           {/* To-Do List Section */}
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="app-bg-secondary" style={{ border: '1px solid var(--app-border)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-2">
-                <IconClipboard className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">To-Do List</CardTitle>
+                <IconClipboard className="w-5 h-5 app-text-accent" />
+                <CardTitle className="app-text-primary app-h6">To-Do List</CardTitle>
               </div>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <Button size="sm" className="app-button app-button-primary">
                 <IconPlus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
@@ -148,22 +149,31 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
                   {todos.map((todo) => (
                     <div
                       key={todo.id}
-                      className={`flex items-center space-x-3 p-3 border-l-4 ${getPriorityColor(todo.priority)} bg-gray-800 rounded-r-lg hover:bg-gray-750 transition-colors`}
+                      className={`flex items-center space-x-3 p-3 border-l-4 ${getPriorityColor(todo.priority)} app-bg-tertiary rounded-r-lg transition-colors`}
+                      style={{ backgroundColor: 'var(--app-bg-tertiary)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
                     >
                       <button
                         onClick={() => toggleTodo(todo.id)}
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          todo.completed 
-                            ? 'bg-green-500 border-green-500' 
-                            : 'border-gray-400 hover:border-white'
+                          todo.completed
+                            ? ''
+                            : ''
                         }`}
+                        style={{
+                          backgroundColor: todo.completed ? 'var(--app-accent)' : 'transparent',
+                          borderColor: todo.completed ? 'var(--app-accent)' : 'var(--app-text-muted)'
+                        }}
+                        onMouseEnter={(e) => !todo.completed && (e.currentTarget.style.borderColor = 'var(--app-text-primary)')}
+                        onMouseLeave={(e) => !todo.completed && (e.currentTarget.style.borderColor = 'var(--app-text-muted)')}
                       >
-                        {todo.completed && <IconCheck className="w-3 h-3 text-white" />}
+                        {todo.completed && <IconCheck className="w-3 h-3" style={{ color: '#000000' }} />}
                       </button>
-                      <span className={`flex-1 ${todo.completed ? 'line-through text-gray-500' : 'text-white'}`}>
+                      <span className={`flex-1 app-body-sm ${todo.completed ? 'line-through app-text-muted' : 'app-text-primary'}`}>
                         {todo.title}
                       </span>
-                      <Badge variant={todo.priority === 'high' ? 'destructive' : 'secondary'} className="text-xs">
+                      <Badge variant={todo.priority === 'high' ? 'destructive' : 'secondary'} className="app-caption">
                         {todo.priority}
                       </Badge>
                     </div>
@@ -174,13 +184,13 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
           </Card>
 
           {/* Faults Section */}
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="app-bg-secondary" style={{ border: '1px solid var(--app-border)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-2">
-                <IconExclamationCircle className="w-5 h-5 text-red-400" />
-                <CardTitle className="text-white">Faults</CardTitle>
+                <IconExclamationCircle className="w-5 h-5" style={{ color: 'var(--app-status-error)' }} />
+                <CardTitle className="app-text-primary app-h6">Faults</CardTitle>
               </div>
-              <Button size="sm" className="bg-red-600 hover:bg-red-700">
+              <Button size="sm" style={{ backgroundColor: 'var(--app-status-error)' }} className="hover:opacity-90">
                 <IconPlus className="w-4 h-4 mr-2" />
                 Report Issue
               </Button>
@@ -189,17 +199,22 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
               <ScrollArea className="h-80">
                 <div className="space-y-3">
                   {faults.map((fault) => (
-                    <div key={fault.id} className="p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors">
+                    <div
+                      key={fault.id}
+                      className="p-3 app-bg-tertiary rounded-lg transition-colors"
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                    >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-white text-sm">{fault.title}</h4>
-                        <Badge className={`${getSeverityColor(fault.severity)} text-white text-xs`}>
+                        <h4 className="app-fw-medium app-text-primary app-body-sm">{fault.title}</h4>
+                        <Badge className={`${getSeverityColor(fault.severity)} app-caption`} style={{ color: 'var(--app-text-emphasis)' }}>
                           {fault.severity}
                         </Badge>
                       </div>
-                      <p className="text-gray-400 text-xs mb-2 line-clamp-2">{fault.description}</p>
+                      <p className="app-text-muted app-caption mb-2 line-clamp-2">{fault.description}</p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{fault.createdAt}</span>
-                        <Badge variant="outline" className="border-gray-600 text-xs">
+                        <span className="app-caption app-text-muted">{fault.createdAt}</span>
+                        <Badge variant="outline" className="app-caption" style={{ borderColor: 'var(--app-border)' }}>
                           {fault.status.replace('_', ' ')}
                         </Badge>
                       </div>
@@ -211,13 +226,13 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
           </Card>
 
           {/* Manage Section */}
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="app-bg-secondary" style={{ border: '1px solid var(--app-border)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-2">
-                <IconTool className="w-5 h-5 text-green-400" />
-                <CardTitle className="text-white">Manage</CardTitle>
+                <IconTool className="w-5 h-5 app-text-accent" />
+                <CardTitle className="app-text-primary app-h6">Manage</CardTitle>
               </div>
-              <Button size="sm" variant="outline" className="border-gray-600">
+              <Button size="sm" variant="outline" className="app-body-sm" style={{ borderColor: 'var(--app-border)' }}>
                 <IconSettings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
@@ -226,30 +241,30 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
               <div className="space-y-4">
                 {/* Project Stats */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-800 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-white">{todos.length}</div>
-                    <div className="text-xs text-gray-400">Total Tasks</div>
+                  <div className="app-bg-tertiary p-3 rounded-lg text-center">
+                    <div className="app-h3 app-text-primary">{todos.length}</div>
+                    <div className="app-caption app-text-muted">Total Tasks</div>
                   </div>
-                  <div className="bg-gray-800 p-3 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-white">
+                  <div className="app-bg-tertiary p-3 rounded-lg text-center">
+                    <div className="app-h3 app-text-primary">
                       {faults.filter(f => f.status !== "resolved").length}
                     </div>
-                    <div className="text-xs text-gray-400">Open Issues</div>
+                    <div className="app-caption app-text-muted">Open Issues</div>
                   </div>
                 </div>
 
                 {/* Quick Actions */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300 mb-3">Quick Actions</h4>
-                  <Button className="w-full justify-start text-sm h-9" variant="ghost">
+                  <h4 className="app-body-sm app-fw-medium app-text-secondary mb-3">Quick Actions</h4>
+                  <Button className="w-full justify-start app-body-sm h-9 app-text-secondary" variant="ghost">
                     <IconEdit className="w-4 h-4 mr-2" />
                     Edit Project Details
                   </Button>
-                  <Button className="w-full justify-start text-sm h-9" variant="ghost">
-                    <IconTrash className="w-4 h-4 mr-2 text-red-400" />
-                    <span className="text-red-400">Archive Project</span>
+                  <Button className="w-full justify-start app-body-sm h-9" variant="ghost" style={{ color: 'var(--app-status-error)' }}>
+                    <IconTrash className="w-4 h-4 mr-2" />
+                    <span>Archive Project</span>
                   </Button>
-                  <Button className="w-full justify-start text-sm h-9" variant="ghost">
+                  <Button className="w-full justify-start app-body-sm h-9 app-text-secondary" variant="ghost">
                     <IconAlertTriangle className="w-4 h-4 mr-2" />
                     Export Report
                   </Button>
@@ -257,14 +272,17 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
 
                 {/* Project Progress */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Project Progress</h4>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
-                      style={{ width: `${(todos.filter(t => t.completed).length / todos.length) * 100}%` }}
+                  <h4 className="app-body-sm app-fw-medium app-text-secondary">Project Progress</h4>
+                  <div className="w-full app-bg-tertiary rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${(todos.filter(t => t.completed).length / todos.length) * 100}%`,
+                        backgroundColor: 'var(--app-accent)'
+                      }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="app-caption app-text-muted">
                     {todos.filter(t => t.completed).length} of {todos.length} tasks completed
                   </p>
                 </div>
@@ -273,13 +291,13 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
           </Card>
 
           {/* Budget & Expenses Section */}
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="app-bg-secondary" style={{ border: '1px solid var(--app-border)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="flex items-center space-x-2">
-                <IconCalculator className="w-5 h-5 text-yellow-400" />
-                <CardTitle className="text-white">Budget & Expenses</CardTitle>
+                <IconCalculator className="w-5 h-5" style={{ color: 'var(--app-status-warning)' }} />
+                <CardTitle className="app-text-primary app-h6">Budget & Expenses</CardTitle>
               </div>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+              <Button size="sm" className="app-button-primary">
                 <IconPlus className="w-4 h-4 mr-2" />
                 Add Expense
               </Button>
@@ -287,20 +305,23 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
             <CardContent>
               <div className="space-y-4">
                 {/* Budget Overview */}
-                <div className="bg-gray-800 p-4 rounded-lg">
+                <div className="app-bg-tertiary p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-400">Budget Used</span>
-                    <span className="text-lg font-semibold text-white">
+                    <span className="app-body-sm app-text-muted">Budget Used</span>
+                    <span className="app-h5 app-text-primary">
                       {((totalExpenses / budget) * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min((totalExpenses / budget) * 100, 100)}%` }}
+                  <div className="w-full app-bg-hover rounded-full h-2 mb-2">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${Math.min((totalExpenses / budget) * 100, 100)}%`,
+                        backgroundColor: 'var(--app-accent)'
+                      }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between app-caption app-text-muted">
                     <span>${totalExpenses.toFixed(2)} spent</span>
                     <span>${budget.toFixed(2)} total</span>
                   </div>
@@ -308,16 +329,21 @@ export function ProjectView({ projectName, projectId }: ProjectViewProps) {
 
                 {/* Recent Expenses */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-3">Recent Expenses</h4>
+                  <h4 className="app-body-sm app-fw-medium app-text-secondary mb-3">Recent Expenses</h4>
                   <ScrollArea className="h-48">
                     <div className="space-y-2">
                       {expenses.map((expense) => (
-                        <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-800 rounded hover:bg-gray-750 transition-colors">
+                        <div
+                          key={expense.id}
+                          className="flex items-center justify-between p-2 app-bg-tertiary rounded transition-colors"
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                        >
                           <div>
-                            <div className="text-sm text-white">{expense.description}</div>
-                            <div className="text-xs text-gray-500">{expense.category} • {expense.date}</div>
+                            <div className="app-body-sm app-text-primary">{expense.description}</div>
+                            <div className="app-caption app-text-muted">{expense.category} • {expense.date}</div>
                           </div>
-                          <div className="text-sm font-medium text-white">${expense.amount.toFixed(2)}</div>
+                          <div className="app-body-sm app-fw-medium app-text-primary">${expense.amount.toFixed(2)}</div>
                         </div>
                       ))}
                     </div>
