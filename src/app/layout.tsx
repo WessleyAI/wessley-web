@@ -9,6 +9,7 @@ import { SearchProvider } from "@/components/search/search-provider";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Toaster } from "@/components/ui/sonner";
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { Analytics } from '@vercel/analytics/next';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -105,6 +106,7 @@ export default function RootLayout({
           <Toaster position="bottom-right" />
         </ThemeProvider>
         <GoogleAnalytics gaId="G-95HGMDBT28" />
+        <Analytics />
       </body>
     </html>
   );
