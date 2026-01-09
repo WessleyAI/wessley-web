@@ -11,8 +11,8 @@ export async function middleware(request: NextRequest) {
   // Refresh session if expired - required for RLS policies
   await supabase.auth.getUser()
 
-  // Allow API routes and auth callbacks
-  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/')) {
+  // Allow API routes, auth callbacks, and PostHog ingest
+  if (pathname.startsWith('/api/') || pathname.startsWith('/auth/') || pathname.startsWith('/ingest')) {
     return response
   }
 
