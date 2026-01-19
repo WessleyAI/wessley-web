@@ -24,7 +24,7 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
     addMessage
   } = useChatStore()
 
-  const { dispatchSceneEvent } = useModelStore()
+  const { executeSceneEvent } = useModelStore()
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -84,7 +84,7 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
       if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
         console.log('[ChatInput] Dispatching scene events:', data.sceneEvents)
         data.sceneEvents.forEach((event: SceneEvent) => {
-          dispatchSceneEvent(event)
+          executeSceneEvent(event)
         })
       }
 

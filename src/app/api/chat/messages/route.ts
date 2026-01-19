@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSceneComponentsForGPT } from '@/lib/scene-components-loader'
+import { getPostHogClient } from '@/lib/posthog-server'
+
+// Demo workspace ID for unauthenticated access
+const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
 
 export async function POST(request: NextRequest) {
   console.log('[API /chat/messages] POST request received')
@@ -9,39 +13,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('[API /chat/messages] Request body:', body)
 
-    const { chatId, userMessage, vehicle } = body
+    const { chatId, userMessage, vehicle, workspaceId } = body
 
     if (!chatId || !userMessage) {
       console.log('[API /chat/messages] Missing chatId or userMessage')
       return NextResponse.json({ error: 'Chat ID and user message are required' }, { status: 400 })
     }
 
-    // Get authenticated user (or use demo mode)
-    console.log('[API /chat/messages] Getting authenticated user...')
+    // Get authenticated user
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    console.log('[API /chat/messages] Auth result:', { user: !!user, error: authError })
+    // Only allow unauthenticated requests for demo workspace
+    const isDemoWorkspace = workspaceId === DEMO_WORKSPACE_ID
 
-    // For demo mode, allow unauthenticated requests
-    const isDemoMode = !user || authError
-    const userId = user?.id || 'demo-user'
-
-    if (!isDemoMode && authError) {
-      console.log('[API /chat/messages] Auth failed:', authError)
+    if (!user && !isDemoWorkspace) {
+      console.log('[API /chat/messages] Auth required for non-demo requests')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('[API /chat/messages] User ID:', userId, 'Demo mode:', isDemoMode)
+    const userId = user?.id || 'demo-user'
+    const isDemoMode = !user
 
     // Check for OpenAI API key
-    console.log('[API /chat/messages] Checking OpenAI API key...')
     const openaiApiKey = process.env.OPENAI_API_KEY
     if (!openaiApiKey) {
       console.error('[API /chat/messages] OpenAI API key not found')
       return NextResponse.json({ error: 'Configuration error' }, { status: 500 })
     }
-    console.log('[API /chat/messages] OpenAI API key found:', openaiApiKey.substring(0, 10) + '...')
 
     // Save user message to database using server client (not browser client)
     console.log('[API /chat/messages] Creating user message in database...')
@@ -301,6 +300,25 @@ Are there any other electrical problems you're experiencing, or would you like m
       .update({ last_message_at: new Date().toISOString() })
       .eq('id', chatId)
 
+    // Track chat message with PostHog (server-side)
+    const posthog = getPostHogClient()
+    posthog.capture({
+      distinctId: userId,
+      event: 'chat_message_sent',
+      properties: {
+        chat_id: chatId,
+        message_length: userMessage.length,
+        has_vehicle_context: !!vehicle,
+        vehicle_make: vehicle?.make,
+        vehicle_model: vehicle?.model,
+        vehicle_year: vehicle?.year,
+        tokens_used: tokensUsed,
+        has_scene_events: sceneEvents.length > 0,
+        scene_events_count: sceneEvents.length,
+        is_demo_mode: isDemoMode,
+      }
+    })
+
     return NextResponse.json({
       success: true,
       userMessage: userMessageRecord,
@@ -312,6 +330,19 @@ Are there any other electrical problems you're experiencing, or would you like m
   } catch (error) {
     console.error('[API /chat/messages] Unhandled error:', error)
     console.error('[API /chat/messages] Error stack:', error instanceof Error ? error.stack : 'No stack')
+
+    // Track API error with PostHog
+    const posthog = getPostHogClient()
+    posthog.capture({
+      distinctId: 'system',
+      event: 'api_error_occurred',
+      properties: {
+        endpoint: '/api/chat/messages',
+        error_message: error instanceof Error ? error.message : String(error),
+        error_type: error instanceof Error ? error.name : 'UnknownError',
+      }
+    })
+
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : String(error)

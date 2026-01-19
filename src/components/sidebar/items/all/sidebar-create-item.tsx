@@ -28,6 +28,7 @@ import { Tables, TablesInsert } from "@/supabase/types"
 import { ContentType } from "@/types"
 import { FC, useContext, useRef, useState } from "react"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 
 interface SidebarCreateItemProps {
   isOpen: boolean
@@ -200,10 +201,30 @@ export const SidebarCreateItem: FC<SidebarCreateItemProps> = ({
 
       setStateFunction((prevItems: any) => [...prevItems, newItem])
 
+      // Track item creation with PostHog
+      if (contentType === 'assistants') {
+        posthog.capture('assistant_created', {
+          assistant_id: newItem.id,
+          assistant_name: createState.name,
+          model: createState.model,
+          has_image: !!createState.image,
+          files_count: createState.files?.length || 0,
+          tools_count: createState.tools?.length || 0,
+        })
+      } else if (contentType === 'files') {
+        posthog.capture('file_uploaded', {
+          file_id: newItem.id,
+          file_name: createState.name,
+          file_type: createState.type,
+          file_size: createState.size,
+        })
+      }
+
       onOpenChange(false)
       setCreating(false)
     } catch (error) {
       toast.error(`Error creating ${contentType.slice(0, -1)}. ${error}.`)
+      posthog.captureException(error)
       setCreating(false)
     }
   }

@@ -10,6 +10,7 @@ import { getMessagesByChatId } from '@/db/messages'
 import { createWorkspace } from '@/db/workspaces'
 import { ChatbotUIContext } from '@/context/context'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 interface BenchProps {
   chatId?: string
@@ -108,7 +109,7 @@ export function Bench({ chatId }: BenchProps) {
         conversation = {
           id: chatId,
           title: 'Vehicle Assistant Chat',
-          user_id: 'demo-user',
+          user_id: profile?.user_id ?? 'anonymous',
           workspace_id: null,
           ai_model: 'gpt-4',
           system_prompt: 'You are an expert vehicle electrical assistant.',
@@ -145,7 +146,7 @@ export function Bench({ chatId }: BenchProps) {
     const newConversation = {
       id: crypto.randomUUID(),
       title: 'New Vehicle Chat',
-      user_id: 'demo-user', // TODO: Get from auth
+      user_id: profile?.user_id ?? 'anonymous',
       workspace_id: null,
       ai_model: aiModel,
       system_prompt: 'You are an expert vehicle electrical assistant.',
@@ -168,7 +169,7 @@ export function Bench({ chatId }: BenchProps) {
     const newConversation = {
       id: crypto.randomUUID(),
       title: 'New Vehicle Chat',
-      user_id: 'demo-user', // TODO: Get from auth
+      user_id: profile?.user_id ?? 'anonymous',
       workspace_id: null,
       ai_model: aiModel,
       system_prompt: 'You are an expert vehicle electrical assistant.',
@@ -259,7 +260,7 @@ export function Bench({ chatId }: BenchProps) {
           }
         })
       } else {
-        alert('Failed to create workspace. Please try again.')
+        toast.error('Failed to create workspace. Please try again.')
       }
     }
   }

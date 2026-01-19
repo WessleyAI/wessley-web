@@ -22,6 +22,7 @@ import {
 import React from "react"
 import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
+import posthog from "posthog-js"
 
 export const generateChatTitle = async (
   userMessage: string,
@@ -390,6 +391,17 @@ export const handleCreateChat = async (
 
   setSelectedChat(createdChat)
   setChats(chats => [createdChat, ...chats])
+
+  // Track chat creation with PostHog
+  posthog.capture('chat_created', {
+    chat_id: createdChat.id,
+    model: chatSettings.model,
+    has_assistant: !!selectedAssistant,
+    assistant_id: selectedAssistant?.id,
+    has_workspace: !!selectedWorkspace,
+    has_files: newMessageFiles.length > 0,
+    file_count: newMessageFiles.length,
+  })
 
   if (newMessageFiles && newMessageFiles.length > 0) {
     await createChatFiles(

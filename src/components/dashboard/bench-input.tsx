@@ -3,6 +3,7 @@
 import React, { useState, useRef, KeyboardEvent } from 'react'
 import { useChatStore } from '@/stores/chat-store'
 import { useModelStore } from '@/stores/model-store'
+import { useAuth } from '@/lib/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Plus, Mic } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -22,7 +23,8 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
     messages
   } = useChatStore()
 
-  const { dispatchSceneEvent } = useModelStore()
+  const { executeSceneEvent } = useModelStore()
+  const { user } = useAuth()
   const inputRef = useRef<HTMLInputElement>(null)
   const [localInput, setLocalInput] = useState('')
 
@@ -46,7 +48,7 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
         conversation_id: 'bench-local', // Temporary ID for bench mode
         content: message,
         role: 'user',
-        user_id: 'demo-user',
+        user_id: user?.id ?? 'anonymous',
         ai_model: null,
         attached_media_ids: null,
         metadata: { benchMode: true },
@@ -98,7 +100,7 @@ export function BenchInput({ disabled, placeholder = "Ask anything", onOnboardin
       // Dispatch scene events if any
       if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
         data.sceneEvents.forEach((event: SceneEvent) => {
-          dispatchSceneEvent(event)
+          executeSceneEvent(event)
         })
       }
 

@@ -55,6 +55,7 @@ import { SceneControlsSidebar } from "@/components/chat/scene-controls-sidebar"
 import { useModelStore } from "@/stores/model-store"
 import { type SceneEvent } from "@/types/scene-events"
 import { isDemoWorkspace, getDemoVehicle } from "@/lib/demo-workspace"
+import { toast } from "sonner"
 
 // Chat skeleton component
 const ProjectChatSkeleton = () => (
@@ -192,7 +193,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const handleStartChat = async () => {
     // Demo mode: chat is disabled
     if (isDemo) {
-      alert('Chat is disabled in demo mode. This is a view-only demonstration.')
+      toast.info('Chat is disabled in demo mode. This is a view-only demonstration.')
       return
     }
 
@@ -225,7 +226,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
           timeoutPromise
         ]) as any
       } catch (createError) {
-        alert(`Error creating chat: ${createError}`)
+        toast.error(`Error creating chat: ${createError}`)
         throw createError
       }
 

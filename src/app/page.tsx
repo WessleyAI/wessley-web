@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { Moon } from 'lucide-react'
+import posthog from 'posthog-js'
 import { WaitlistHeader } from '@/components/waitlist/WaitlistHeader'
 import { TwitterIcon } from '@/components/ui/twitter-icon'
 import { ExploreSection } from '@/components/waitlist/explore/ExploreSection'
@@ -412,6 +413,11 @@ export default function Home() {
         setEmail('')
         toast.success('Successfully joined!', {
           description: 'Check your email for confirmation. We\'ll be in touch soon!',
+        })
+        // Track waitlist signup with PostHog
+        posthog.capture('waitlist_joined', {
+          source: 'homepage_form',
+          email_domain: email.split('@')[1],
         })
       } else {
         setSubmitMessage(data.error || 'Something went wrong. Please try again.')

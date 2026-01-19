@@ -64,6 +64,9 @@ interface ModelState {
   eventQueue: SceneEventQueue
   lastExecutedEvent: SceneEvent | null
 
+  // Circuit path tracking (moved from window global)
+  currentCircuitPath: string[]
+
   // Actions
   setModelPath: (path: string) => void
   setComponents: (components: VehicleComponent[]) => void
@@ -92,6 +95,9 @@ interface ModelState {
   queueSceneEvents: (events: SceneEvent[]) => void
   playNextEvent: () => void
   clearEventQueue: () => void
+
+  // Circuit path actions
+  setCurrentCircuitPath: (path: string[]) => void
 
   // Helper actions
   focusOnComponent: (componentId: string) => void
@@ -137,6 +143,7 @@ export const useModelStore = create<ModelState>()(
       isPlaying: false
     },
     lastExecutedEvent: null,
+    currentCircuitPath: [],
 
     setModelPath: (path) => set({ modelPath: path }),
 
@@ -244,8 +251,8 @@ export const useModelStore = create<ModelState>()(
     },
 
     resetView: () => {
-      ;(window as any).currentCircuitPath = []
       set({
+        currentCircuitPath: [],
         cameraView: DEFAULT_CAMERA_VIEW,
         modelRotation: DEFAULT_MODEL_ROTATION,
         selectedComponentId: null,
@@ -254,6 +261,8 @@ export const useModelStore = create<ModelState>()(
         currentFocus: null
       })
     },
+
+    setCurrentCircuitPath: (path) => set({ currentCircuitPath: path }),
 
     // Scene event execution
     executeSceneEvent: (event) => {

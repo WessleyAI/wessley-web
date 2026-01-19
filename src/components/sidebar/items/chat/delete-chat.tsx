@@ -15,6 +15,7 @@ import useHotkey from "@/lib/hooks/use-hotkey"
 import { Tables } from "@/supabase/types"
 import { IconTrash } from "@tabler/icons-react"
 import { FC, useRef, useState } from "react"
+import posthog from "posthog-js"
 
 interface DeleteChatProps {
   chat: Tables<"chats">
@@ -34,6 +35,12 @@ export const DeleteChat: FC<DeleteChatProps> = ({ chat }) => {
     await deleteChat(chat.id)
 
     removeConversation(chat.id)
+
+    // Track chat deletion with PostHog
+    posthog.capture('chat_deleted', {
+      chat_id: chat.id,
+      chat_name: chat.name,
+    })
 
     setShowChatDialog(false)
 

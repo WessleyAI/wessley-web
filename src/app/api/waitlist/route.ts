@@ -9,12 +9,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get Beehiiv API key and publication ID from environment
-    const beehiivApiKey = process.env.NEXT_PUBLIC_BEEHIIV_KEY
-    const publicationId = process.env.NEXT_PUBLIC_BEEHIIV_PUBLICATION_ID
+    // Server-only env vars - never use NEXT_PUBLIC_ for API keys
+    const beehiivApiKey = process.env.BEEHIIV_API_KEY
+    const publicationId = process.env.BEEHIIV_PUBLICATION_ID
 
     if (!beehiivApiKey || !publicationId) {
-      console.error('Beehiiv configuration not found')
-      return NextResponse.json({ error: 'Configuration error' }, { status: 500 })
+      console.error('Missing Beehiiv configuration - ensure BEEHIIV_API_KEY and BEEHIIV_PUBLICATION_ID are set')
+      return NextResponse.json({ error: 'Service unavailable' }, { status: 503 })
     }
 
     // Beehiiv API endpoint for adding subscribers
@@ -41,11 +42,13 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await beehiivResponse.json()
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    console.log('Beehiiv subscription result:', JSON.stringify(result, null, 2))
+
+    return NextResponse.json({
+      success: true,
       message: 'Successfully subscribed to waitlist',
-      data: result 
+      data: result
     })
 
   } catch (error) {

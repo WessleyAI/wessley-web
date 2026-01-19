@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSceneComponentsForGPT } from '@/lib/scene-components-loader'
+import { createClient } from '@/lib/supabase/server'
+
+// Demo workspace ID for unauthenticated access
+const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
 
 export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
 
-    const { userMessage, conversationHistory, isFirstMessage } = body
+    const { userMessage, conversationHistory, isFirstMessage, workspaceId } = body
 
+    // Authentication check - allow demo workspace without auth
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    const isDemoWorkspace = workspaceId === DEMO_WORKSPACE_ID
+
+    if (!user && !isDemoWorkspace) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     if (!userMessage) {
       return NextResponse.json({ error: 'User message is required' }, { status: 400 })

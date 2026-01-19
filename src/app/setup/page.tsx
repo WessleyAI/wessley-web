@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import posthog from "posthog-js"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -174,9 +175,33 @@ export default function SetupPage() {
 
       console.log("✅ Onboarding completion result:", onboardingResult)
       console.log("🔄 Redirecting to chat page")
+
+      // Track onboarding completion with PostHog
+      posthog.capture('onboarding_completed', {
+        vehicle_expertise: vehicleExpertise,
+        electrical_experience: electricalExperience,
+        primary_goals: primaryGoals,
+        vehicle_types: vehicleTypes,
+        preferred_units: preferredUnits,
+        share_projects: shareProjects,
+        allow_community_help: allowCommunityHelp,
+        has_github: !!githubUrl,
+        has_instagram: !!instagramUrl,
+      })
+
+      // Identify user with profile data
+      posthog.identify(userId, {
+        display_name: displayName,
+        vehicle_expertise: vehicleExpertise,
+        primary_goals: primaryGoals,
+        vehicle_types: vehicleTypes,
+        onboarding_completed: true,
+      })
+
       router.push("/chat")
     } catch (error) {
       console.error("Error completing setup:", error)
+      posthog.captureException(error)
     } finally {
       setLoading(false)
     }

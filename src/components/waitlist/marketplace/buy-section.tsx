@@ -10,6 +10,7 @@ import { PartsMasonryGrid } from './parts-masonry-grid'
 import { CarData } from './car-selector'
 import { ComparisonDrawer } from './comparison-drawer'
 import Image from 'next/image'
+import posthog from 'posthog-js'
 
 type UrgencyLevel = 'urgent' | 'soon' | 'optional'
 type Priority = 'high' | 'medium' | 'low'
@@ -69,6 +70,32 @@ export function BuySection({ parts, onPartsChange, cars, selectedItems, onToggle
   const handleCompare = (partName: string) => {
     setComparisonPart(partName)
     setShowComparison(true)
+    // Track comparison drawer opened with PostHog
+    posthog.capture('marketplace_comparison_opened', {
+      part_name: partName,
+      selected_items_count: selectedItems.size,
+      cart_total: cartTotal,
+    })
+  }
+
+  // Track part selection
+  const handlePartToggle = (itemId: string) => {
+    const part = parts.find(p => p.id === itemId)
+    const isSelecting = !selectedItems.has(itemId)
+
+    if (part && isSelecting) {
+      posthog.capture('marketplace_part_selected', {
+        part_id: itemId,
+        part_name: part.name,
+        urgency: part.urgency,
+        priority: part.priority,
+        price: part.topPrice,
+        seller_name: part.sellerName,
+        seller_rating: part.sellerRating,
+      })
+    }
+
+    onToggleItem(itemId)
   }
 
   const tools = [
@@ -223,7 +250,7 @@ export function BuySection({ parts, onPartsChange, cars, selectedItems, onToggle
                 onPartsChange={onPartsChange}
                 onCompare={handleCompare}
                 selectedItems={selectedItems}
-                onToggleItem={onToggleItem}
+                onToggleItem={handlePartToggle}
                 hoveredDiagnosis={hoveredDiagnosis}
               />
             </div>

@@ -35,6 +35,7 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
     setSelectedComponent,
     setHoveredComponent,
     setHighlightedComponents,
+    setCurrentCircuitPath,
     focusOnComponent,
     ndjsonData
   } = useModelStore()
@@ -76,7 +77,7 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
 
     // Clear previous state
     setHighlightedComponents([])
-    ;(window as any).currentCircuitPath = []
+    setCurrentCircuitPath([])
 
     setSelectedComponent(component.id)
     focusOnComponent(component.id) // Snap camera to component
@@ -91,7 +92,7 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
       console.log('   🔌 Fuses:', summary.fuseCount)
 
       setHighlightedComponents(tracedPaths.allHighlighted)
-      ;(window as any).currentCircuitPath = tracedPaths.completeCircuit
+      setCurrentCircuitPath(tracedPaths.completeCircuit)
     } else {
       console.error('❌ NO NDJSON DATA!')
     }

@@ -11,6 +11,7 @@ import { useParams, useRouter } from "next/navigation"
 import { FC, useContext, useRef } from "react"
 import { DeleteChat } from "./delete-chat"
 import { UpdateChat } from "./update-chat"
+import posthog from "posthog-js"
 
 interface ChatItemProps {
   chat: Tables<"chats">
@@ -33,6 +34,15 @@ export const ChatItem: FC<ChatItemProps> = ({ chat }) => {
 
   const handleClick = () => {
     if (!selectedWorkspace) return
+
+    // Track chat navigation with PostHog
+    posthog.capture('chat_item_clicked', {
+      chat_id: chat.id,
+      chat_name: chat.name,
+      model: chat.model,
+      has_assistant: !!chat.assistant_id,
+    })
+
     return router.push(`/c/${chat.id}`)
   }
 

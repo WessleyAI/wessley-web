@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(/tmp/npm-install.log)",
+      "Bash(git add:*)",
+      "WebSearch",
+      "Bash(curl -L \"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Porsche_911_Carrera_RS_2.7_1973_%2815521126459%29.jpg/800px-Porsche_911_Carrera_RS_2.7_1973_%2815521126459%29.jpg\" -o porsche-911-1973.jpg)",
+      "Bash(curl -L \"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Austin_Mini_Cooper_S_1964.jpg/800px-Austin_Mini_Cooper_S_1964.jpg\" -o mini-cooper-1965.jpg)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "WebFetch(domain:www.pexels.com)",
+      "WebFetch(domain:www.wallpaperflare.com)",
+      "WebFetch(domain:hdqwalls.com)",
+      "mcp__context7__resolve-library-id",
+      "Bash(find:*)",
+      "WebFetch(domain:cookbook.openai.com)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai/web diff --stat HEAD -- package-lock.json pnpm-lock.yaml yarn.lock)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai status package-lock.json)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai/web status package.json --short)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai/web branch:*)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai diff --stat package-lock.json)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai/web status --short)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai log -1 --format='%s')",
+      "Bash(git -C /Users/moon/workspace/wessley.ai add package-lock.json)",
+      "Bash(git -C /Users/moon/workspace/wessley.ai commit -m \"$\\(cat <<''EOF''\nsecurity: Update lockfile for CVE-2025-55182 patch\n\nUpdate package-lock.json to reflect security upgrades in web workspace:\n- next: 15.5.7 \\(patched for React2Shell\\)\n- react: 19.1.2\n- react-dom: 19.1.2\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(ls:*)",
+      "mcp__context7__query-docs",
+      "mcp__plugin_playwright_playwright__browser_network_requests"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
