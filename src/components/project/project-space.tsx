@@ -21,7 +21,11 @@ import {
   IconPencil,
   IconCar,
   IconMenu2,
-  IconBuildingWarehouse
+  IconBuildingWarehouse,
+  IconUpload,
+  IconPhoto,
+  IconLoader2,
+  IconCircuitCapacitor
 } from "@tabler/icons-react"
 import {
   Select,
@@ -107,10 +111,17 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   // Scene controls sidebar state
   const [showSceneControls, setShowSceneControls] = useState(true)
   const [isSceneControlsMinimized, setIsSceneControlsMinimized] = useState(true)
-  
+
   // Loading states
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [isSendingMessage, setIsSendingMessage] = useState(false)
+
+  // ML Analysis state
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   // Store last message for each chat
   const [chatLastMessages, setChatLastMessages] = useState<Record<string, string>>({})
@@ -410,6 +421,192 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
     setVehicleYear("")
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (JPEG, PNG, WebP, or GIF)')
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB')
+      return
+    }
+
+    setSelectedImage(file)
+    setAnalysisError(null)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleAnalyzeImage = async () => {
+    if (!selectedImage || !imagePreview) return
+
+    // Demo mode: analysis is disabled
+    if (isDemo) {
+      toast.info('Image analysis is disabled in demo mode. This is a view-only demonstration.')
+      return
+    }
+
+    setIsAnalyzing(true)
+    setAnalysisError(null)
+
+    try {
+      // Extract base64 data from data URL
+      const base64Data = imagePreview.split(',')[1]
+
+      const response = await fetch('/api/netlistify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze',
+          image: base64Data,
+          workspaceId: projectId,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+
+        if (response.status === 402) {
+          toast.error('Subscription required for image analysis', {
+            action: {
+              label: 'Upgrade',
+              onClick: () => router.push('/pricing'),
+            },
+          })
+          return
+        }
+
+        if (response.status === 429) {
+          toast.error('Rate limit exceeded. Please try again later.')
+          return
+        }
+
+        throw new Error(error.message || 'Analysis failed')
+      }
+
+      const result = await response.json()
+
+      // Process analysis results
+      if (result.components && result.components.length > 0) {
+        toast.success(`Detected ${result.components.length} components with ${(result.confidence * 100).toFixed(1)}% confidence`)
+
+        // Create scene events for detected components
+        const sceneEvents: SceneEvent[] = result.components.map((component: { id: string; type: string; label?: string }) => ({
+          type: 'highlight' as const,
+          target: component.id,
+          label: component.label || component.type,
+          color: '#8BE196',
+        }))
+
+        // Queue scene events to visualize results
+        if (sceneEvents.length > 0) {
+          queueSceneEvents(sceneEvents)
+          executeSceneEvent(sceneEvents[0])
+        }
+
+        // Show warnings if any
+        if (result.warnings && result.warnings.length > 0) {
+          result.warnings.forEach((warning: string) => {
+            toast.warning(warning)
+          })
+        }
+
+        // Close dialog
+        setUploadDialogOpen(false)
+        setSelectedImage(null)
+        setImagePreview(null)
+      } else {
+        toast.info('No components detected in the image. Try a clearer schematic image.')
+      }
+    } catch (error) {
+      console.error('Analysis error:', error)
+      const message = error instanceof Error ? error.message : 'Failed to analyze image'
+      setAnalysisError(message)
+      toast.error(message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleGenerateSchematic = async () => {
+    // Demo mode: generation is disabled
+    if (isDemo) {
+      toast.info('Schematic generation is disabled in demo mode. This is a view-only demonstration.')
+      return
+    }
+
+    setIsAnalyzing(true)
+    setAnalysisError(null)
+
+    try {
+      const response = await fetch('/api/netlistify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          workspaceId: projectId,
+          // Default parameters for a basic schematic
+          min_connectors: 2,
+          max_connectors: 4,
+          min_wires: 3,
+          max_wires: 10,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+
+        if (response.status === 402) {
+          toast.error('Subscription required for schematic generation', {
+            action: {
+              label: 'Upgrade',
+              onClick: () => router.push('/pricing'),
+            },
+          })
+          return
+        }
+
+        throw new Error(error.message || 'Generation failed')
+      }
+
+      const result = await response.json()
+
+      if (result.components && result.components.length > 0) {
+        toast.success(`Generated schematic with ${result.components.length} components`)
+
+        // Close dialog
+        setUploadDialogOpen(false)
+        setSelectedImage(null)
+        setImagePreview(null)
+      }
+    } catch (error) {
+      console.error('Generation error:', error)
+      const message = error instanceof Error ? error.message : 'Failed to generate schematic'
+      setAnalysisError(message)
+      toast.error(message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const clearImageSelection = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    setAnalysisError(null)
+  }
+
   return (
     <motion.div
       className="flex h-full overflow-hidden"
@@ -557,7 +754,9 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             style={{ borderColor: 'var(--app-border)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            onClick={() => setUploadDialogOpen(true)}
           >
+            <IconUpload className="w-4 h-4 mr-2" />
             Add files
           </Button>
         </div>
@@ -819,6 +1018,158 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
               className="app-body-sm"
             >
               {vehicle ? 'Update' : 'Set Vehicle'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Upload & Analysis Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
+        setUploadDialogOpen(open)
+        if (!open) {
+          clearImageSelection()
+        }
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="app-h5 flex items-center gap-2">
+              <IconCircuitCapacitor className="w-5 h-5" />
+              Analyze Schematic
+            </DialogTitle>
+            <DialogDescription className="app-body app-text-muted">
+              Upload a wiring diagram or schematic image for AI-powered component detection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            {/* Upload Area */}
+            {!imagePreview ? (
+              <label
+                htmlFor="image-upload"
+                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 hover:border-[var(--app-accent)]"
+                style={{
+                  borderColor: 'var(--app-border)',
+                  backgroundColor: 'var(--app-bg-secondary)',
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.style.borderColor = 'var(--app-accent)'
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--app-border)'
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.style.borderColor = 'var(--app-border)'
+                  const file = e.dataTransfer.files?.[0]
+                  if (file) {
+                    const input = document.getElementById('image-upload') as HTMLInputElement
+                    if (input) {
+                      const dataTransfer = new DataTransfer()
+                      dataTransfer.items.add(file)
+                      input.files = dataTransfer.files
+                      handleFileSelect({ target: input } as React.ChangeEvent<HTMLInputElement>)
+                    }
+                  }
+                }}
+              >
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <IconPhoto className="w-10 h-10 mb-3 app-text-muted" />
+                  <p className="mb-2 app-body-sm app-text-secondary">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="app-caption app-text-muted">
+                    PNG, JPG, WebP (max 10MB)
+                  </p>
+                </div>
+                <input
+                  id="image-upload"
+                  type="file"
+                  className="hidden"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleFileSelect}
+                />
+              </label>
+            ) : (
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Selected schematic"
+                  className="w-full h-48 object-contain rounded-lg"
+                  style={{ backgroundColor: 'var(--app-bg-secondary)' }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={clearImageSelection}
+                  disabled={isAnalyzing}
+                >
+                  <IconTrash className="w-4 h-4" />
+                </Button>
+                {selectedImage && (
+                  <p className="mt-2 app-caption app-text-muted text-center">
+                    {selectedImage.name} ({(selectedImage.size / 1024).toFixed(1)} KB)
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {analysisError && (
+              <div
+                className="p-3 rounded-lg app-body-sm"
+                style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+              >
+                {analysisError}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 app-body-sm"
+                onClick={handleGenerateSchematic}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing && !selectedImage ? (
+                  <>
+                    <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <IconCircuitCapacitor className="w-4 h-4 mr-2" />
+                    Generate Sample
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUploadDialogOpen(false)}
+              className="app-body-sm"
+              disabled={isAnalyzing}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAnalyzeImage}
+              disabled={!selectedImage || isAnalyzing}
+              className="app-body-sm"
+            >
+              {isAnalyzing && selectedImage ? (
+                <>
+                  <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Analyze Image'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
