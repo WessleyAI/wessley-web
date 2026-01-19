@@ -38,7 +38,8 @@ interface ChatState {
   messages: ChatMessage[]
   isGenerating: boolean
   userInput: string
-  
+  abortController: AbortController | null
+
   // Actions
   setConversations: (conversations: ChatConversation[]) => void
   setActiveConversation: (conversation: ChatConversation | null) => void
@@ -47,6 +48,8 @@ interface ChatState {
   updateMessage: (messageId: string, content: string) => void
   setUserInput: (input: string) => void
   setIsGenerating: (generating: boolean) => void
+  setAbortController: (controller: AbortController | null) => void
+  stopGeneration: () => void
   clearMessages: () => void
   updateConversationTitle: (conversationId: string, title: string) => void
   updateConversationWorkspace: (conversationId: string, workspaceId: string | null) => void
@@ -61,6 +64,7 @@ export const useChatStore = create<ChatState>()(
     messages: [],
     isGenerating: false,
     userInput: '',
+    abortController: null,
 
     setConversations: (conversations) => {
       set({ conversations })
@@ -95,6 +99,18 @@ export const useChatStore = create<ChatState>()(
 
     setIsGenerating: (generating) => {
       set({ isGenerating: generating })
+    },
+
+    setAbortController: (controller) => {
+      set({ abortController: controller })
+    },
+
+    stopGeneration: () => {
+      const { abortController } = get()
+      if (abortController) {
+        abortController.abort()
+        set({ abortController: null, isGenerating: false })
+      }
     },
 
     clearMessages: () => {

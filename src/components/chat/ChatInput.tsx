@@ -8,10 +8,11 @@ import { cn } from '@/lib/utils'
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
+  onStop?: () => void
   isLoading: boolean
 }
 
-export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onStop, isLoading }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -32,7 +33,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   }
 
   const handleStop = () => {
-    // TODO: Implement stop generation - cancel the API call
+    onStop?.()
   }
 
   return (
