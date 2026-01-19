@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSceneComponentsForGPT } from '@/lib/scene-components-loader'
 import { getPostHogClient } from '@/lib/posthog-server'
+import {
+  chatRatelimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+  createRateLimitResponse,
+} from '@/lib/rate-limit'
 
 // Demo workspace ID for unauthenticated access
 const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
@@ -34,6 +40,15 @@ export async function POST(request: NextRequest) {
 
     const userId = user?.id || 'demo-user'
     const isDemoMode = !user
+
+    // Apply rate limiting (60 requests per minute for chat endpoints)
+    const rateLimitIdentifier = getRateLimitIdentifier(user?.id, request)
+    const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
+
+    if (!rateLimitResult.success) {
+      console.log('[API /chat/messages] Rate limit exceeded for:', rateLimitIdentifier)
+      return createRateLimitResponse(rateLimitResult)
+    }
 
     // Check for OpenAI API key
     const openaiApiKey = process.env.OPENAI_API_KEY

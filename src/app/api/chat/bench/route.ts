@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSceneComponentsForGPT } from '@/lib/scene-components-loader'
 import { createClient } from '@/lib/supabase/server'
+import {
+  chatRatelimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+  createRateLimitResponse,
+} from '@/lib/rate-limit'
 
 // Demo workspace ID for unauthenticated access
 const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
@@ -20,6 +26,15 @@ export async function POST(request: NextRequest) {
 
     if (!user && !isDemoWorkspace) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Apply rate limiting (60 requests per minute for chat endpoints)
+    const rateLimitIdentifier = getRateLimitIdentifier(user?.id, request)
+    const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
+
+    if (!rateLimitResult.success) {
+      console.log('[API /chat/bench] Rate limit exceeded for:', rateLimitIdentifier)
+      return createRateLimitResponse(rateLimitResult)
     }
 
     if (!userMessage) {

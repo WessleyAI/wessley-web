@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import {
+  chatRatelimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+  createRateLimitResponse,
+} from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +15,15 @@ export async function POST(request: NextRequest) {
 
     if (!user || authError) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Apply rate limiting (60 requests per minute for chat endpoints)
+    const rateLimitIdentifier = getRateLimitIdentifier(user.id, request)
+    const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
+
+    if (!rateLimitResult.success) {
+      console.log('[API /chat/generate-title] Rate limit exceeded for:', rateLimitIdentifier)
+      return createRateLimitResponse(rateLimitResult)
     }
 
     const { userMessage, assistantMessage } = await request.json()

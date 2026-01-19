@@ -54,6 +54,8 @@
     "@tabler/icons-react": "^3.35.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/three": "^0.180.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.1",
     "@vercel/analytics": "^1.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  waitlistRatelimit,
+  checkRateLimit,
+  getRateLimitIdentifier,
+  createRateLimitResponse,
+} from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting (5 requests per minute to prevent spam)
+    const rateLimitIdentifier = getRateLimitIdentifier(undefined, request)
+    const rateLimitResult = await checkRateLimit(waitlistRatelimit, rateLimitIdentifier)
+
+    if (!rateLimitResult.success) {
+      console.log('[API /waitlist] Rate limit exceeded for:', rateLimitIdentifier)
+      return createRateLimitResponse(rateLimitResult)
+    }
+
     const { email } = await request.json()
 
     if (!email) {
