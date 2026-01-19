@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
 
     if (!rateLimitResult.success) {
-      console.log('[API /chat/bench] Rate limit exceeded for:', rateLimitIdentifier)
       return createRateLimitResponse(rateLimitResult)
     }
 
@@ -313,7 +312,6 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
     if (onboardingComplete && conversationHistory && conversationHistory.length >= 2) {
       const firstUserMessage = conversationHistory.find((m: any) => m.role === 'user')?.content || ''
       const secondUserMessage = userMessage // Current message is the nickname
-
 
       vehicleInfo = {
         vehicleModel: firstUserMessage, // Raw vehicle description from user

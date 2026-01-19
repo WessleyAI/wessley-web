@@ -73,7 +73,6 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
       }
 
       const data = await response.json()
-      console.log('[ChatInput] API response:', data)
 
       // Add assistant message
       if (data.assistantMessage) {
@@ -82,7 +81,6 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
 
       // Dispatch scene events if any
       if (data.sceneEvents && Array.isArray(data.sceneEvents)) {
-        console.log('[ChatInput] Dispatching scene events:', data.sceneEvents)
         data.sceneEvents.forEach((event: SceneEvent) => {
           executeSceneEvent(event)
         })

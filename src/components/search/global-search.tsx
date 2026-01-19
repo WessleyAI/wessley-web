@@ -182,7 +182,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     onOpenChange(false)
     if (result.url) {
       // Navigate to the result - you'll implement navigation logic here
-      console.log("Navigate to:", result.url)
       // router.push(result.url)
     }
   }
@@ -200,22 +199,22 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
     {
       id: "browse-people",
-      title: "Browse People", 
+      title: "Browse People",
       icon: <IconUsers className="h-4 w-4" />,
       shortcut: "⌘P",
       action: () => {
         onOpenChange(false)
-        console.log("Browse people")
+        // TODO: Implement browse people navigation
       }
     },
     {
       id: "find-workspaces",
       title: "Find Workspaces",
       icon: <IconMap className="h-4 w-4" />,
-      shortcut: "⌘W", 
+      shortcut: "⌘W",
       action: () => {
         onOpenChange(false)
-        console.log("Find workspaces")
+        // TODO: Implement find workspaces navigation
       }
     }
   ]

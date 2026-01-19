@@ -84,7 +84,7 @@ export default function Home() {
     transition: {
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   }
 
@@ -103,7 +103,7 @@ export default function Home() {
         lerp: 0.1,
         wheelMultiplier: 0.9,
         gestureOrientation: 'vertical',
-        smoothTouch: false
+        touchMultiplier: 0 // Disable smooth scrolling on touch devices
       })
 
       // Sync Lenis with GSAP ScrollTrigger

@@ -87,10 +87,6 @@ export function ComponentMesh({ component }: ComponentMeshProps) {
       const tracedPaths = traceElectricalPath(component.id, ndjsonData)
       const summary = getPathSummary(tracedPaths.allHighlighted, ndjsonData)
 
-      console.log('🎯 CLICKED:', component.name)
-      console.log('   Circuit path nodes:', tracedPaths.allHighlighted.length)
-      console.log('   🔌 Fuses:', summary.fuseCount)
-
       setHighlightedComponents(tracedPaths.allHighlighted)
       setCurrentCircuitPath(tracedPaths.completeCircuit)
     } else {

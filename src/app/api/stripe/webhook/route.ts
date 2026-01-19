@@ -68,8 +68,6 @@ export async function POST(request: NextRequest) {
           break
         }
 
-        console.log(`[Stripe Webhook] Activating subscription for user ${userId}, tier: ${tier}`)
-
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -86,7 +84,6 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
-        console.log(`[Stripe Webhook] Subscription activated for user ${userId}`)
         break
       }
 
@@ -155,7 +152,6 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
-        console.log(`[Stripe Webhook] Subscription updated for user ${profile.id}: ${status}`)
         break
       }
 
@@ -191,7 +187,6 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
-        console.log(`[Stripe Webhook] Subscription cancelled for user ${profile.id}`)
         break
       }
 
@@ -222,13 +217,13 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
-        console.log(`[Stripe Webhook] Payment failed for user ${profile.id}`)
         // TODO: Send dunning email via Beehiiv or Resend
         break
       }
 
       default:
-        console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+        // Unhandled event type - no action needed
+        break
     }
 
     return NextResponse.json({ received: true })

@@ -55,13 +55,8 @@ export const getOrphanedChatsByUserId = async (userId: string) => {
 }
 
 export const createChat = async (chat: TablesInsert<"chat_conversations">) => {
-  console.log('[DB] createChat called with:', chat)
-  console.log('[DB] Supabase client initialized:', !!supabase)
-  console.log('[DB] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-
   try {
     // First, test the connection by querying the table
-    console.log('[DB] Testing Supabase connection...')
     const testQuery = supabase
       .from("chat_conversations")
       .select("id")
@@ -72,7 +67,6 @@ export const createChat = async (chat: TablesInsert<"chat_conversations">) => {
     )
 
     const testResult = await Promise.race([testQuery, testTimeout]) as any
-    console.log('[DB] Connection test result:', testResult)
 
     if (testResult.error) {
       console.error('[DB] Connection test failed:', testResult.error)
@@ -90,10 +84,7 @@ export const createChat = async (chat: TablesInsert<"chat_conversations">) => {
       setTimeout(() => reject(new Error('Supabase insert timeout after 10s')), 10000)
     )
 
-    console.log('[DB] Starting Supabase insert operation...')
     const { data: createdChat, error } = await Promise.race([insertPromise, timeoutPromise]) as any
-
-    console.log('[DB] Supabase response:', { data: createdChat, error })
 
     if (error) {
       console.error('[DB] Supabase error details:', {
@@ -110,12 +101,9 @@ export const createChat = async (chat: TablesInsert<"chat_conversations">) => {
       throw new Error('Failed to create chat - no data returned')
     }
 
-    console.log('[DB] Chat created successfully:', createdChat)
     return createdChat
   } catch (err) {
     console.error('[DB] createChat exception:', err)
-    console.error('[DB] Exception type:', err instanceof Error ? 'Error' : typeof err)
-    console.error('[DB] Exception details:', err)
     throw err
   }
 }

@@ -176,8 +176,6 @@ export function traceElectricalPath(
   componentId: string,
   ndjsonData: ParsedNDJSON
 ): TracedPaths {
-  console.log('🔍 TRACE:', componentId)
-
   const { forward, backward } = buildAdjacencyList(ndjsonData.edges)
   const bidirectional = mergeAdjacency(forward, backward)
 
@@ -201,8 +199,6 @@ export function traceElectricalPath(
       }
     }
   }
-
-  console.log('   💚 CONNECTED:', allConnected.length, 'nodes')
 
   return {
     allHighlighted: allConnected,

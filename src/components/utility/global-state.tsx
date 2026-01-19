@@ -158,10 +158,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
             }
           } catch (error) {
             console.error('[GlobalState] ❌ fetchHostedModels failed:', error)
-            // fetchHostedModels failed, continuing without hosted models
           }
-        } else {
-          console.error('[GlobalState] ❌ No profile returned from fetchStartingData')
         }
       } else if (event === 'SIGNED_OUT') {
         setProfile(null)
@@ -193,9 +190,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
           }
         } catch (error) {
           console.error('[GlobalState] ❌ fetchHostedModels failed:', error)
-          // fetchHostedModels failed, continuing without hosted models
         }
-      } else {
       }
 
       if (process.env.NEXT_PUBLIC_OLLAMA_URL) {
@@ -306,7 +301,6 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
           } else {
             return router.push("/setup")
           }
-        } else {
         }
 
       } catch (error) {
@@ -355,12 +349,9 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       }
 
       return profile
-    } else {
-      // No session found
     }
     } catch (error) {
       console.error('[GlobalState] ❌ Error in fetchStartingData:', error)
-      // Error in fetchStartingData
       return null
     }
   }

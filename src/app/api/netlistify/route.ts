@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(netlistifyRatelimit, rateLimitIdentifier)
 
     if (!rateLimitResult.success) {
-      console.log('[API /netlistify] Rate limit exceeded for:', rateLimitIdentifier)
       return createRateLimitResponse(rateLimitResult)
     }
 

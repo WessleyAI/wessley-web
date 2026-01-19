@@ -86,13 +86,10 @@ export function HarnessesAndWires() {
         else if (harnessId.includes('trans')) color = HARNESS_MATERIALS.trans
         else if (harnessId.includes('engine')) color = HARNESS_MATERIALS.engine
 
-        console.log('🔌 Harness:', harnessId, 'at', points[0], 'color:', color)
-
         harnessData.push({ id: harnessId, geometry, color })
       }
     }
 
-    console.log('✅ Built', harnessData.length, 'harnesses')
     return harnessData
   }, [sceneConfig])
 
@@ -216,11 +213,6 @@ export function HarnessesAndWires() {
       if (isHighlighted) highlightedWireCount++
       renderedCount++
     })
-
-    // Log circuit path wire statistics
-    if (highlightedComponentIds.length > 0) {
-      console.log('🔌 CIRCUIT PATH:', highlightedWireCount, 'wires highlighted (out of', wireData.length, 'total)')
-    }
 
     return wireData
   }, [ndjsonData, highlightedComponentIds])

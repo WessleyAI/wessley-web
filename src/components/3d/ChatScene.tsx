@@ -78,7 +78,6 @@ function NDJSONLoader() {
           .filter((c): c is VehicleComponent => c !== null)
 
         setComponents(components)
-        console.log('✅ Scene loaded:', components.length, 'components')
       } catch (error) {
         console.error('❌ Failed to load NDJSON data:', error)
       }

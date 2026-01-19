@@ -30,8 +30,6 @@ export const getMessagesByChatId = async (chatId: string) => {
 }
 
 export const createMessage = async (message: TablesInsert<"chat_messages">) => {
-  console.log('[DB messages] createMessage called with:', message)
-
   try {
     const { data: createdMessage, error } = await supabase
       .from("chat_messages")
@@ -39,14 +37,11 @@ export const createMessage = async (message: TablesInsert<"chat_messages">) => {
       .select("*")
       .single()
 
-    console.log('[DB messages] Supabase response:', { data: createdMessage, error })
-
     if (error) {
       console.error('[DB messages] Supabase error:', error)
       throw new Error(error.message)
     }
 
-    console.log('[DB messages] Message created successfully')
     return createdMessage
   } catch (err) {
     console.error('[DB messages] createMessage exception:', err)

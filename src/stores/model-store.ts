@@ -266,7 +266,6 @@ export const useModelStore = create<ModelState>()(
 
     // Scene event execution
     executeSceneEvent: (event) => {
-      console.log('[ModelStore] Executing scene event:', event.type, event.data)
       const state = get()
 
       switch (event.type) {
@@ -363,7 +362,6 @@ export const useModelStore = create<ModelState>()(
           })
           // Optionally highlight the faulty components
           state.setHighlightedComponents(data.componentIds)
-          console.log('[ModelStore] Marked components as faulty:', data.componentIds, data.reason)
           break
         }
 
@@ -373,7 +371,6 @@ export const useModelStore = create<ModelState>()(
           data.componentIds.forEach(componentId => {
             state.updateComponent(componentId, { faulty: false })
           })
-          console.log('[ModelStore] Marked components as healthy:', data.componentIds)
           break
         }
 
@@ -385,7 +382,6 @@ export const useModelStore = create<ModelState>()(
     },
 
     queueSceneEvents: (events) => {
-      console.log('[ModelStore] Queueing', events.length, 'scene events')
       set({
         eventQueue: {
           events,

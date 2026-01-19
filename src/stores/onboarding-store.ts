@@ -67,7 +67,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
     // Complete welcome step and move to workspace creation
     completeWelcome: (carModel, nickname) => {
-      console.log('[Onboarding] Welcome complete:', { carModel, nickname })
       set({
         carModel,
         projectNickname: nickname,
@@ -78,7 +77,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
     // Start collecting problems (after workspace is created)
     startProblemsCollection: (workspaceId) => {
-      console.log('[Onboarding] Starting problems collection for workspace:', workspaceId)
       set({
         workspaceId,
         currentStep: 'problems',
@@ -88,7 +86,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
     // Add a problem and tag components as faulty
     addProblem: (problem) => {
-      console.log('[Onboarding] Adding problem:', problem)
       set((state) => ({
         problems: [...state.problems, problem]
       }))
@@ -103,7 +100,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
     // Complete onboarding
     completeOnboarding: () => {
-      console.log('[Onboarding] Onboarding complete')
       set({
         isOnboarding: false,
         currentStep: 'complete'

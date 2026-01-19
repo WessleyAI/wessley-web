@@ -20,22 +20,10 @@ export function ChatWelcomeScreen() {
 
   const handleStartChat = async () => {
     if (!userInput.trim() || !profile) {
-      console.log('Chat creation blocked:', { userInput: userInput.trim(), profile })
       return
     }
-    
-    console.log('Creating chat with profile:', profile)
-    console.log('Profile user_id:', profile.user_id)
-    
+
     try {
-      console.log('About to call createChat with data:', {
-        title: "New Chat",
-        user_id: profile.user_id,
-        workspace_id: null,
-        ai_model: "gpt-4",
-        system_prompt: null
-      })
-      
       // Create orphaned chat (not associated with any project/workspace)
       const newChat = await createChat({
         title: "New Chat", // Will be auto-named after first message
@@ -44,31 +32,22 @@ export function ChatWelcomeScreen() {
         ai_model: "gpt-4",
         system_prompt: null
       })
-      
-      console.log('createChat returned:', newChat)
-      
+
       if (!newChat) {
         console.error('createChat returned null/undefined')
         return
       }
-      
+
       // Add to chats list
-      console.log('Adding chat to list...')
-      setChats(prevChats => {
-        console.log('Previous chats:', prevChats)
-        const updated = [newChat, ...prevChats]
-        console.log('Updated chats:', updated)
-        return updated
-      })
-      
+      setChats(prevChats => [newChat, ...prevChats])
+
       // Set the selected chat in context
       setSelectedChat(newChat)
-      
+
       // Set the user input for the chat
       setGlobalUserInput(userInput)
-      
+
       // Navigate to the new chat
-      console.log('Navigating to chat:', newChat.id)
       router.push(`/c/${newChat.id}`)
     } catch (error) {
       console.error('Error creating chat:', error)

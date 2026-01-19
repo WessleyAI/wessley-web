@@ -265,7 +265,6 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
       console.warn('User does not have permission to delete this workspace')
       return
     }
-    console.log('handleDelete called with workspace:', workspace)
     setWorkspaceForAction(workspace)
     setDeleteDialogOpen(true)
   }
@@ -295,16 +294,12 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
   }
 
   const confirmDelete = async () => {
-    console.log('confirmDelete called, workspaceForAction:', workspaceForAction)
     if (!workspaceForAction) {
-      console.log('No workspaceForAction, returning early')
       return
     }
-    
+
     try {
-      console.log('Deleting workspace:', workspaceForAction.id)
       await deleteWorkspace(workspaceForAction.id)
-      console.log('Workspace deleted successfully')
 
       setWorkspaces(prevWorkspaces => {
         const filteredWorkspaces = prevWorkspaces.filter(
@@ -325,8 +320,7 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
     } catch (error) {
       console.error('Error deleting workspace:', error)
     }
-    
-    console.log('Closing dialog and clearing workspaceForAction')
+
     setDeleteDialogOpen(false)
     setWorkspaceForAction(null)
   }
@@ -405,8 +399,6 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
 
       // Update the Zustand store to reflect the workspace change
       updateConversationWorkspace(draggedChatId, newWorkspaceId)
-
-      console.log(`Moved chat ${draggedChatId} to workspace ${newWorkspaceId || 'general'}`)
     } catch (error) {
       console.error('Error moving chat:', error)
     }
@@ -1209,12 +1201,9 @@ export const Sidebar: FC<SidebarProps> = ({ showSidebar, onMainViewChange, curre
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => {
-                console.log('Delete button clicked')
-                confirmDelete()
-              }}
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
             >
               Delete
             </Button>

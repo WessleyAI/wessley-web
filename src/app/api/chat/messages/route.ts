@@ -13,16 +13,12 @@ import {
 const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
 
 export async function POST(request: NextRequest) {
-  console.log('[API /chat/messages] POST request received')
-
   try {
     const body = await request.json()
-    console.log('[API /chat/messages] Request body:', body)
 
     const { chatId, userMessage, vehicle, workspaceId } = body
 
     if (!chatId || !userMessage) {
-      console.log('[API /chat/messages] Missing chatId or userMessage')
       return NextResponse.json({ error: 'Chat ID and user message are required' }, { status: 400 })
     }
 
@@ -34,7 +30,6 @@ export async function POST(request: NextRequest) {
     const isDemoWorkspace = workspaceId === DEMO_WORKSPACE_ID
 
     if (!user && !isDemoWorkspace) {
-      console.log('[API /chat/messages] Auth required for non-demo requests')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -46,7 +41,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
 
     if (!rateLimitResult.success) {
-      console.log('[API /chat/messages] Rate limit exceeded for:', rateLimitIdentifier)
       return createRateLimitResponse(rateLimitResult)
     }
 
@@ -58,7 +52,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Save user message to database using server client (not browser client)
-    console.log('[API /chat/messages] Creating user message in database...')
     const { data: userMessageRecord, error: userMessageError } = await supabase
       .from('chat_messages')
       .insert({
@@ -76,12 +69,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save user message' }, { status: 500 })
     }
 
-    console.log('[API /chat/messages] User message created:', userMessageRecord)
-
     // Load scene component data for GPT context
-    console.log('[API /chat/messages] Loading scene components...')
     const sceneComponentsData = await getSceneComponentsForGPT()
-    console.log('[API /chat/messages] Scene components loaded')
 
     // Build system context for vehicle restoration with scene interaction capabilities
     const systemPrompt = vehicle
@@ -271,7 +260,6 @@ Are there any other electrical problems you're experiencing, or would you like m
           ...event,
           timestamp: Date.now()
         }))
-        console.log('[API /chat/messages] Parsed scene events:', sceneEvents)
         // Remove the scene-events block from the message
         assistantMessage = assistantMessage.replace(/```scene-events\n[\s\S]*?\n```/, '').trim()
       } catch (err) {
@@ -287,7 +275,6 @@ Are there any other electrical problems you're experiencing, or would you like m
     }
 
     // Save assistant message to database using server client (not browser client)
-    console.log('[API /chat/messages] Creating assistant message in database...')
     const { data: assistantMessageRecord, error: assistantMessageError } = await supabase
       .from('chat_messages')
       .insert({
@@ -306,8 +293,6 @@ Are there any other electrical problems you're experiencing, or would you like m
       console.error('[API /chat/messages] Failed to create assistant message:', assistantMessageError)
       return NextResponse.json({ error: 'Failed to save assistant message' }, { status: 500 })
     }
-
-    console.log('[API /chat/messages] Assistant message created:', assistantMessageRecord)
 
     // Update chat's last_message_at
     await supabase

@@ -32,8 +32,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   }
 
   const handleStop = () => {
-    // In a real implementation, this would stop the API call
-    console.log('Stop generation requested')
+    // TODO: Implement stop generation - cancel the API call
   }
 
   return (

@@ -1,4 +1,4 @@
-import Loading from "@/app/[locale]/loading"
+import { ScreenLoader } from "@/components/ui/screen-loader"
 import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler"
 import { ChatbotUIContext } from "@/context/context"
 import { getAssistantToolsByAssistantId } from "@/db/assistant-tools"
@@ -192,7 +192,7 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
   }
 
   if (loading) {
-    return <Loading />
+    return <ScreenLoader />
   }
 
   // Show welcome screen when no specific chat is selected
@@ -226,9 +226,7 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
         {chatMessages.length === 0 ? (
           <div className="flex-1 flex items-end justify-center pb-4">
             <StarterPrompts onPromptSelect={(prompt) => {
-              // Handle prompt selection - add to chat input
-              // This would integrate with the chat input component
-              console.log('Selected prompt:', prompt)
+              // TODO: Handle prompt selection - integrate with chat input
             }} />
           </div>
         ) : (

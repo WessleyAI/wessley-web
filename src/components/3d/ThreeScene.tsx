@@ -65,19 +65,11 @@ function NDJSONLoader() {
 
     const loadComponentData = async () => {
       try {
-        console.log('[ThreeScene] Loading enhanced NDJSON data...')
         const ndjsonData = await loadNDJSON('/models/enhanced_model.ndjson')
-        console.log('[ThreeScene] NDJSON data loaded:', {
-          nodes: Object.keys(ndjsonData.nodesById).length,
-          edges: ndjsonData.edges.length,
-          zones: Object.keys(ndjsonData.byZone).length
-        })
-
         setNDJSONData(ndjsonData)
 
         // Build scene graph from NDJSON
         const sceneGraph = buildSceneGraphFromNDJSON(ndjsonData)
-        console.log('[ThreeScene] Scene graph built:', sceneGraph)
         setSceneGraph(sceneGraph)
 
         // Convert positioned nodes to VehicleComponents
@@ -86,8 +78,6 @@ function NDJSONLoader() {
           .map(ndjsonNodeToComponent)
           .filter((c): c is VehicleComponent => c !== null)
 
-        console.log(`[ThreeScene] Extracted ${components.length} positioned components`)
-        console.log('[ThreeScene] Sample components:', components.slice(0, 5))
         setComponents(components)
       } catch (error) {
         console.error('[ThreeScene] Failed to load NDJSON data:', error)

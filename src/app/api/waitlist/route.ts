@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(waitlistRatelimit, rateLimitIdentifier)
 
     if (!rateLimitResult.success) {
-      console.log('[API /waitlist] Rate limit exceeded for:', rateLimitIdentifier)
       return createRateLimitResponse(rateLimitResult)
     }
 
@@ -57,8 +56,6 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await beehiivResponse.json()
-
-    console.log('Beehiiv subscription result:', JSON.stringify(result, null, 2))
 
     return NextResponse.json({
       success: true,

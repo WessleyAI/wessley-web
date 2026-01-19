@@ -62,9 +62,6 @@ export function NewWorkspaceDialog({ children, open: externalOpen, onOpenChange 
   })
 
   const onSubmit = async (values: ProjectFormValues) => {
-    console.log('Form submitted with values:', values)
-    console.log('Profile:', profile)
-    
     if (!profile?.user_id) {
       toast.error("You must be logged in to create a project")
       return
@@ -73,7 +70,6 @@ export function NewWorkspaceDialog({ children, open: externalOpen, onOpenChange 
     setIsLoading(true)
 
     try {
-      console.log('Creating workspace...')
       // Create workspace
       const newWorkspace = await createWorkspace({
         user_id: profile.user_id,
@@ -82,8 +78,6 @@ export function NewWorkspaceDialog({ children, open: externalOpen, onOpenChange 
         status: "active",
         visibility: "private",
       })
-
-      console.log('Workspace created:', newWorkspace)
 
       // Update workspaces list
       setWorkspaces([newWorkspace, ...workspaces])

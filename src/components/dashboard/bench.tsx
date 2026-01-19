@@ -193,8 +193,7 @@ export function Bench({ chatId }: BenchProps) {
 
     // User must be authenticated to reach this point (auth guard handles redirect)
     if (!profile || !profile.user_id) {
-      console.error('[Bench] ❌ CRITICAL: handleOnboardingComplete called without authentication!')
-      console.error('[Bench] This should never happen - auth guard should prevent this')
+      console.error('[Bench] handleOnboardingComplete called without authentication')
       return
     }
 

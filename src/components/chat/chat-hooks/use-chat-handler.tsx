@@ -81,9 +81,6 @@ export const useChatHandler = () => {
   }, [isPromptPickerOpen, isFilePickerOpen, isToolPickerOpen])
 
   const handleNewChat = async () => {
-    console.log('handleNewChat called', { selectedWorkspace: !!selectedWorkspace })
-    
-    console.log('Clearing chat state...')
     setUserInput("")
     setChatMessages([])
     setSelectedChat(null)
@@ -162,7 +159,6 @@ export const useChatHandler = () => {
       })
     }
 
-    console.log('Navigating to /chat...')
     return router.push("/chat")
   }
 

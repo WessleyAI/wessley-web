@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
 
     if (!rateLimitResult.success) {
-      console.log('[API /chat/generate-title] Rate limit exceeded for:', rateLimitIdentifier)
       return createRateLimitResponse(rateLimitResult)
     }
 

@@ -161,7 +161,6 @@ export default function SetupPage() {
       })
 
       // Complete onboarding
-      console.log("🚀 Completing onboarding for user:", userId)
       const onboardingResult = await completeOnboarding(userId, {
         vehicle_expertise: vehicleExpertise,
         electrical_experience: electricalExperience,
@@ -172,9 +171,6 @@ export default function SetupPage() {
         share_projects: shareProjects,
         allow_community_help: allowCommunityHelp
       })
-
-      console.log("✅ Onboarding completion result:", onboardingResult)
-      console.log("🔄 Redirecting to chat page")
 
       // Track onboarding completion with PostHog
       posthog.capture('onboarding_completed', {

@@ -37,14 +37,14 @@ export async function GET(request: NextRequest) {
             try {
               cookieStore.set(name, value, options)
             } catch (error) {
-              console.error('[Auth Callback] ❌ Failed to set cookie:', name, error)
+              // Cookie setting handled by Next.js - error expected in some contexts
             }
           },
           remove(name: string, options: CookieOptions) {
             try {
               cookieStore.set(name, '', options)
             } catch (error) {
-              console.error('[Auth Callback] ❌ Failed to remove cookie:', name, error)
+              // Cookie removal handled by Next.js - error expected in some contexts
             }
           },
         },
