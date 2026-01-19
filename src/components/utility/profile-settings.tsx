@@ -11,8 +11,11 @@ import { supabase } from "@/lib/supabase/typed-client"
 import {
   IconCircleCheckFilled,
   IconCircleXFilled,
+  IconCreditCard,
+  IconExternalLink,
   IconLoader2,
   IconLogout,
+  IconSparkles,
   IconUser
 } from "@tabler/icons-react"
 import Image from "next/image"
@@ -32,6 +35,7 @@ import {
   SheetTrigger
 } from "../ui/sheet"
 import { TextareaAutosize } from "../ui/textarea-autosize"
+import { Separator } from "../ui/separator"
 import { ThemeSwitcher } from "./theme-switcher"
 
 interface ProfileSettingsProps {}
@@ -60,6 +64,7 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
   const [profileInstructions, setProfileInstructions] = useState(
     profile?.profile_context || ""
   )
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
 
   // Update state when profile changes
   useEffect(() => {
@@ -96,6 +101,46 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
     setProfile(updatedProfile)
     toast.success("Profile updated!")
     setIsOpen(false)
+  }
+
+  const handleManageSubscription = async () => {
+    if (!profile) return
+
+    // If user has no subscription (free tier), redirect to pricing
+    if (!profile.subscription_status || profile.subscription_status === 'inactive' || profile.subscription_tier === 'free') {
+      router.push('/pricing')
+      setIsOpen(false)
+      return
+    }
+
+    setIsLoadingPortal(true)
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No subscription found, redirect to pricing
+          toast.info('No active subscription found. Redirecting to pricing...')
+          router.push('/pricing')
+          setIsOpen(false)
+          return
+        }
+        throw new Error(data.error || 'Failed to open billing portal')
+      }
+
+      // Redirect to Stripe Customer Portal
+      window.location.href = data.url
+    } catch (error) {
+      console.error('Error opening billing portal:', error)
+      toast.error('Failed to open billing portal. Please try again.')
+    } finally {
+      setIsLoadingPortal(false)
+    }
   }
 
   const debounce = (func: (...args: any[]) => void, wait: number) => {
@@ -303,6 +348,60 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
                   used={profileInstructions.length}
                   limit={PROFILE_CONTEXT_MAX}
                 />
+              </div>
+
+              <Separator className="my-4" />
+
+              {/* Subscription Management Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Subscription</Label>
+
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                      {profile.subscription_status === 'active' ? (
+                        <IconCreditCard className="size-5 text-primary" />
+                      ) : (
+                        <IconSparkles className="size-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        {profile.subscription_tier === 'insiders' ? 'Insiders Plan' :
+                         profile.subscription_tier === 'pro' ? 'Pro Plan' :
+                         profile.subscription_tier === 'enterprise' ? 'Enterprise Plan' :
+                         'Free Plan'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {profile.subscription_status === 'active' ? 'Active subscription' :
+                         profile.subscription_status === 'past_due' ? 'Payment past due' :
+                         'No active subscription'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant={profile.subscription_status === 'active' ? 'outline' : 'default'}
+                    size="sm"
+                    onClick={handleManageSubscription}
+                    disabled={isLoadingPortal}
+                  >
+                    {isLoadingPortal ? (
+                      <IconLoader2 className="mr-1 size-4 animate-spin" />
+                    ) : profile.subscription_status === 'active' ? (
+                      <IconExternalLink className="mr-1 size-4" />
+                    ) : (
+                      <IconSparkles className="mr-1 size-4" />
+                    )}
+                    {profile.subscription_status === 'active' ? 'Manage' : 'Upgrade'}
+                  </Button>
+                </div>
+
+                {profile.subscription_status === 'past_due' && (
+                  <p className="text-xs text-amber-500">
+                    Your payment is past due. Please update your payment method to continue using premium features.
+                  </p>
+                )}
               </div>
           </div>
         </div>
