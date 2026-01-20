@@ -4,10 +4,11 @@ import React, { useState, useRef, KeyboardEvent } from 'react'
 import { useChatStore } from '@/stores/chat-store'
 import { useModelStore } from '@/stores/model-store'
 import { Button } from '@/components/ui/button'
-import { Send, Loader2, Plus, Mic, Square } from 'lucide-react'
+import { Send, Loader2, Plus, Mic, Square, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { SceneEvent } from '@/types/scene-events'
+import { useRAGQuery } from '@/lib/hooks/use-rag-query'
 
 interface ChatInputProps {
   disabled?: boolean
@@ -27,8 +28,10 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
   } = useChatStore()
 
   const { executeSceneEvent } = useModelStore()
+  const { queryRAG, isLoading: isRAGLoading } = useRAGQuery()
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const [isSearchingDocs, setIsSearchingDocs] = useState(false)
 
   const handleSubmit = async () => {
     if (!userInput.trim() || isGenerating || disabled) return
@@ -60,7 +63,29 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
         ai_confidence_score: null
       })
 
-      // Call API to get assistant response
+      // Query RAG for relevant context (if we have vehicle context)
+      let ragContext = null
+      const vehicleData = activeConversation.context_data
+      if (vehicleData?.vehicleId || vehicleData?.make) {
+        setIsSearchingDocs(true)
+        try {
+          ragContext = await queryRAG({
+            query: message,
+            vehicleId: vehicleData?.vehicleId,
+            systemName: vehicleData?.systemName,
+            includeGraph: true,
+            limit: 5,
+            workspaceId: activeConversation.workspace_id
+          })
+        } catch (ragError) {
+          // Continue without RAG context if it fails
+          console.error('[ChatInput] RAG query failed:', ragError)
+        } finally {
+          setIsSearchingDocs(false)
+        }
+      }
+
+      // Call API to get assistant response with RAG context
       const response = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: {
@@ -69,7 +94,8 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
         body: JSON.stringify({
           chatId: activeConversation.id,
           userMessage: message,
-          vehicle: activeConversation.context_data
+          vehicle: activeConversation.context_data,
+          ragContext: ragContext
         }),
         signal: controller.signal
       })
@@ -161,7 +187,7 @@ export function ChatInput({ disabled, isWelcomeSetup }: ChatInputProps) {
           value={userInput}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder={isWelcomeSetup ? "What vehicle model/brand/year are we working with?" : "Ask anything"}
+          placeholder={isWelcomeSetup ? "What vehicle model/brand/year are we working with?" : isSearchingDocs ? "Searching documentation..." : "Ask anything"}
           disabled={disabled || isGenerating}
           className="flex-1 bg-transparent border-none app-text-primary app-fw-medium focus:ring-0 focus:border-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto py-0"
           style={{

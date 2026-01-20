@@ -12,11 +12,91 @@ import {
 // Demo workspace ID for unauthenticated access
 const DEMO_WORKSPACE_ID = "cde0ea8e-07aa-4c59-a72b-ba0d56020484"
 
+// Type for RAG context passed from frontend
+interface RAGContext {
+  results?: Array<{
+    title?: string
+    content?: string
+    metadata?: {
+      source?: string
+      [key: string]: unknown
+    }
+    score?: number
+  }>
+  graphContext?: {
+    components?: Array<{
+      id: string
+      type: string
+      name: string
+    }>
+    connections?: Array<{
+      from_component: string
+      to_component: string
+      wire: {
+        color: string
+        gauge: string
+      }
+    }>
+  }
+  processingTimeMs?: number
+}
+
+/**
+ * Format RAG context for inclusion in the system prompt
+ */
+function formatRAGContextForSystemPrompt(ragContext: RAGContext): string {
+  const parts: string[] = []
+
+  if (ragContext.results && ragContext.results.length > 0) {
+    parts.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    parts.push('📚 RELEVANT DOCUMENTATION FROM KNOWLEDGE BASE:')
+    parts.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    ragContext.results.forEach((result, index) => {
+      const snippet = result.content?.substring(0, 400) || ''
+      parts.push(`\n${index + 1}. **${result.title || 'Document'}**`)
+      if (snippet) {
+        parts.push(`   ${snippet}${result.content && result.content.length > 400 ? '...' : ''}`)
+      }
+      if (result.metadata?.source) {
+        parts.push(`   Source: ${result.metadata.source}`)
+      }
+    })
+    parts.push('')
+  }
+
+  if (ragContext.graphContext) {
+    const { components, connections } = ragContext.graphContext
+
+    if (components && components.length > 0) {
+      parts.push('🔌 RELATED ELECTRICAL COMPONENTS FROM GRAPH:')
+      components.forEach(comp => {
+        parts.push(`- ${comp.name} (${comp.type})`)
+      })
+      parts.push('')
+    }
+
+    if (connections && connections.length > 0) {
+      parts.push('⚡ COMPONENT WIRING CONNECTIONS:')
+      connections.forEach(conn => {
+        parts.push(`- ${conn.from_component} → ${conn.to_component} via ${conn.wire.color} ${conn.wire.gauge} wire`)
+      })
+      parts.push('')
+    }
+  }
+
+  if (parts.length > 0) {
+    parts.push('Use the above documentation and component information to provide more accurate and specific answers.')
+    parts.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+  }
+
+  return parts.join('\n')
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { chatId, userMessage, vehicle, workspaceId } = body
+    const { chatId, userMessage, vehicle, workspaceId, ragContext } = body
 
     if (!chatId || !userMessage) {
       return NextResponse.json({ error: 'Chat ID and user message are required' }, { status: 400 })
@@ -101,6 +181,8 @@ Available event types:
 When users ask about specific components or circuits, ALWAYS include scene events to visualize what you're explaining. This makes your explanations much more helpful.
 
 ${sceneComponentsData}
+
+${ragContext ? formatRAGContextForSystemPrompt(ragContext) : ''}
 
 Provide detailed, accurate technical guidance for electrical system repairs, component identification, wiring diagrams, and troubleshooting. Be concise but thorough, and always prioritize safety.`
       : `You are an expert automotive electrical assistant specializing in vehicle restoration projects. Provide detailed, accurate technical guidance for electrical system repairs, component identification, wiring diagrams, and troubleshooting. Be concise but thorough, and always prioritize safety.`
