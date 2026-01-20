@@ -25,7 +25,9 @@ import {
   IconUpload,
   IconPhoto,
   IconLoader2,
-  IconCircuitCapacitor
+  IconCircuitCapacitor,
+  IconFileTypePdf,
+  IconChevronDown,
 } from "@tabler/icons-react"
 import {
   Select,
@@ -60,6 +62,13 @@ import { useModelStore } from "@/stores/model-store"
 import { type SceneEvent } from "@/types/scene-events"
 import { isDemoWorkspace, getDemoVehicle } from "@/lib/demo-workspace"
 import { toast } from "sonner"
+import { DocumentUploadDialog } from "@/components/rag/DocumentUploadDialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Chat skeleton component
 const ProjectChatSkeleton = () => (
@@ -116,12 +125,15 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [isSendingMessage, setIsSendingMessage] = useState(false)
 
-  // ML Analysis state
+  // ML Analysis state (for schematic analysis)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisError, setAnalysisError] = useState<string | null>(null)
+
+  // RAG Document Upload state
+  const [documentUploadDialogOpen, setDocumentUploadDialogOpen] = useState(false)
 
   // Store last message for each chat
   const [chatLastMessages, setChatLastMessages] = useState<Record<string, string>>({})
@@ -747,18 +759,44 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
               </motion.button>
             )}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-transparent app-text-secondary app-body-sm"
-            style={{ borderColor: 'var(--app-border)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            onClick={() => setUploadDialogOpen(true)}
-          >
-            <IconUpload className="w-4 h-4 mr-2" />
-            Add files
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-transparent app-text-secondary app-body-sm"
+                style={{ borderColor: 'var(--app-border)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <IconUpload className="w-4 h-4 mr-2" />
+                Add files
+                <IconChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => setUploadDialogOpen(true)}>
+                <IconCircuitCapacitor className="w-4 h-4 mr-2" />
+                <div className="flex flex-col">
+                  <span>Analyze Schematic</span>
+                  <span className="text-xs app-text-muted">Detect components from image</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                if (isDemo) {
+                  toast.info('Document upload is disabled in demo mode.')
+                  return
+                }
+                setDocumentUploadDialogOpen(true)
+              }}>
+                <IconFileTypePdf className="w-4 h-4 mr-2" />
+                <div className="flex flex-col">
+                  <span>Upload Document</span>
+                  <span className="text-xs app-text-muted">Add to knowledge base</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Chat Input - More rounded */}
@@ -1187,6 +1225,24 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
 
       {/* Hover label for 3D components */}
       <HoverLabel />
+
+      {/* Document Upload Dialog for RAG */}
+      <DocumentUploadDialog
+        open={documentUploadDialogOpen}
+        onOpenChange={setDocumentUploadDialogOpen}
+        vehicle={vehicle ? {
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          id: vehicle.id,
+        } : null}
+        workspaceId={projectId}
+        onSuccess={(job) => {
+          toast.success('Document uploaded successfully', {
+            description: `${job.result?.chunks_created || 0} text chunks indexed`,
+          })
+        }}
+      />
     </motion.div>
   )
 }
