@@ -331,9 +331,9 @@ export const useModelStore = create<ModelState>()(
 
         case 'zoom_to_area': {
           const data = event.data as import('@/types/scene-events').ZoomToAreaData
-          // Find components in this zone
+          // Find components in this zone (byZone values are already string arrays of IDs)
           if (state.ndjsonData && state.ndjsonData.byZone[data.zone]) {
-            const zoneComponentIds = state.ndjsonData.byZone[data.zone].map(n => n.id)
+            const zoneComponentIds = state.ndjsonData.byZone[data.zone]
             state.setHighlightedComponents(zoneComponentIds)
           }
           break
