@@ -1,37 +1,63 @@
 import { describe, it, expect } from 'vitest'
-import { traceElectricalPath, getPathSummary, TracedPaths } from './electrical-path-tracer'
+import { traceElectricalPath, getPathSummary } from './electrical-path-tracer'
 import { ParsedNDJSON, NDJSONNode, NDJSONEdge } from './ndjson-loader'
+
+// Helper to create mock node with required 'kind' field
+function createNode(id: string, node_type: string, name: string): NDJSONNode {
+  return { kind: 'node', id, node_type, name }
+}
+
+// Helper to create mock edge with required 'kind' field
+function createEdge(source: string, target: string): NDJSONEdge {
+  return { kind: 'edge', source, target }
+}
 
 function createMockNDJSONData(
   nodes: NDJSONNode[],
   edges: NDJSONEdge[]
 ): ParsedNDJSON {
   const nodesById: Record<string, NDJSONNode> = {}
+  const byZone: Record<string, string[]> = {}
+  const byType: Record<string, string[]> = {}
+
   for (const node of nodes) {
     nodesById[node.id] = node
+
+    // Index by zone if present
+    if (node.anchor_zone) {
+      if (!byZone[node.anchor_zone]) byZone[node.anchor_zone] = []
+      byZone[node.anchor_zone].push(node.id)
+    }
+
+    // Index by type if present
+    if (node.node_type) {
+      if (!byType[node.node_type]) byType[node.node_type] = []
+      byType[node.node_type].push(node.id)
+    }
   }
 
   return {
-    nodes,
     edges,
     nodesById,
-    metadata: {},
+    byZone,
+    byType,
+    metadata: null,
   }
 }
 
 describe('traceElectricalPath', () => {
   it('traces a simple linear path', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'battery', node_type: 'battery', name: 'Battery' },
-      { id: 'fuse1', node_type: 'fuse', name: 'Main Fuse' },
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
-      { id: 'ground', node_type: 'ground', name: 'Ground' },
+      createNode('battery', 'battery', 'Battery'),
+      createNode('fuse1', 'fuse', 'Main Fuse'),
+      createNode('component', 'sensor', 'Sensor'),
+      createNode('ground', 'ground', 'Ground'),
     ]
 
     const edges: NDJSONEdge[] = [
-      { source: 'battery', target: 'fuse1' },
-      { source: 'fuse1', target: 'component' },
-      { source: 'component', target: 'ground' },
+      createEdge('battery', 'fuse1'),
+      createEdge('fuse1', 'component'),
+      createEdge('component', 'ground'),
     ]
 
     const data = createMockNDJSONData(nodes, edges)
@@ -45,19 +71,19 @@ describe('traceElectricalPath', () => {
 
   it('handles branching circuits', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'battery', node_type: 'battery', name: 'Battery' },
-      { id: 'junction', node_type: 'junction', name: 'Junction' },
-      { id: 'left_sensor', node_type: 'sensor', name: 'Left Sensor' },
-      { id: 'right_sensor', node_type: 'sensor', name: 'Right Sensor' },
-      { id: 'ground', node_type: 'ground', name: 'Ground' },
+      createNode('battery', 'battery', 'Battery'),
+      createNode('junction', 'junction', 'Junction'),
+      createNode('left_sensor', 'sensor', 'Left Sensor'),
+      createNode('right_sensor', 'sensor', 'Right Sensor'),
+      createNode('ground', 'ground', 'Ground'),
     ]
 
     const edges: NDJSONEdge[] = [
-      { source: 'battery', target: 'junction' },
-      { source: 'junction', target: 'left_sensor' },
-      { source: 'junction', target: 'right_sensor' },
-      { source: 'left_sensor', target: 'ground' },
-      { source: 'right_sensor', target: 'ground' },
+      createEdge('battery', 'junction'),
+      createEdge('junction', 'left_sensor'),
+      createEdge('junction', 'right_sensor'),
+      createEdge('left_sensor', 'ground'),
+      createEdge('right_sensor', 'ground'),
     ]
 
     const data = createMockNDJSONData(nodes, edges)
@@ -72,8 +98,8 @@ describe('traceElectricalPath', () => {
 
   it('handles isolated component with no connections', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'component', node_type: 'sensor', name: 'Isolated Sensor' },
-      { id: 'other', node_type: 'sensor', name: 'Other Sensor' },
+      createNode('component', 'sensor', 'Isolated Sensor'),
+      createNode('other', 'sensor', 'Other Sensor'),
     ]
 
     const edges: NDJSONEdge[] = []
@@ -87,14 +113,14 @@ describe('traceElectricalPath', () => {
 
   it('traverses bidirectionally through edges', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'a', node_type: 'connector', name: 'A' },
-      { id: 'b', node_type: 'connector', name: 'B' },
-      { id: 'c', node_type: 'connector', name: 'C' },
+      createNode('a', 'connector', 'A'),
+      createNode('b', 'connector', 'B'),
+      createNode('c', 'connector', 'C'),
     ]
 
     const edges: NDJSONEdge[] = [
-      { source: 'a', target: 'b' },
-      { source: 'b', target: 'c' },
+      createEdge('a', 'b'),
+      createEdge('b', 'c'),
     ]
 
     const data = createMockNDJSONData(nodes, edges)
@@ -114,14 +140,14 @@ describe('traceElectricalPath', () => {
 
   it('returns completeCircuit with all connected nodes', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'battery', node_type: 'battery', name: 'Battery' },
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
-      { id: 'ground', node_type: 'ground', name: 'Ground' },
+      createNode('battery', 'battery', 'Battery'),
+      createNode('component', 'sensor', 'Sensor'),
+      createNode('ground', 'ground', 'Ground'),
     ]
 
     const edges: NDJSONEdge[] = [
-      { source: 'battery', target: 'component' },
-      { source: 'component', target: 'ground' },
+      createEdge('battery', 'component'),
+      createEdge('component', 'ground'),
     ]
 
     const data = createMockNDJSONData(nodes, edges)
@@ -135,8 +161,8 @@ describe('traceElectricalPath', () => {
 describe('getPathSummary', () => {
   it('detects ground node in path', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
-      { id: 'ground1', node_type: 'ground_point', name: 'Ground' },
+      createNode('component', 'sensor', 'Sensor'),
+      createNode('ground1', 'ground_point', 'Ground'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -148,8 +174,8 @@ describe('getPathSummary', () => {
 
   it('detects battery node in path', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'battery', node_type: 'battery_positive', name: 'Battery +' },
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
+      createNode('battery', 'battery_positive', 'Battery +'),
+      createNode('component', 'sensor', 'Sensor'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -161,7 +187,7 @@ describe('getPathSummary', () => {
 
   it('detects batt prefix for battery', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'batt_pos', node_type: 'batt_terminal', name: 'Battery Terminal' },
+      createNode('batt_pos', 'batt_terminal', 'Battery Terminal'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -172,9 +198,9 @@ describe('getPathSummary', () => {
 
   it('counts fuses correctly', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'fuse1', node_type: 'fuse_30A', name: '30A Fuse' },
-      { id: 'fuse2', node_type: 'fuse_15A', name: '15A Fuse' },
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
+      createNode('fuse1', 'fuse_30A', '30A Fuse'),
+      createNode('fuse2', 'fuse_15A', '15A Fuse'),
+      createNode('component', 'sensor', 'Sensor'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -185,8 +211,8 @@ describe('getPathSummary', () => {
 
   it('counts relays correctly', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'relay1', node_type: 'relay_spdt', name: 'SPDT Relay' },
-      { id: 'relay2', node_type: 'relay_dpdt', name: 'DPDT Relay' },
+      createNode('relay1', 'relay_spdt', 'SPDT Relay'),
+      createNode('relay2', 'relay_dpdt', 'DPDT Relay'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -197,9 +223,9 @@ describe('getPathSummary', () => {
 
   it('counts connectors correctly', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'conn1', node_type: 'connector_2pin', name: '2-Pin Connector' },
-      { id: 'conn2', node_type: 'connector_4pin', name: '4-Pin Connector' },
-      { id: 'conn3', node_type: 'connector_8pin', name: '8-Pin Connector' },
+      createNode('conn1', 'connector_2pin', '2-Pin Connector'),
+      createNode('conn2', 'connector_4pin', '4-Pin Connector'),
+      createNode('conn3', 'connector_8pin', '8-Pin Connector'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -210,9 +236,9 @@ describe('getPathSummary', () => {
 
   it('extracts harness IDs', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'harness_engine', node_type: 'harness', name: 'Engine Harness' },
-      { id: 'harness_body', node_type: 'harness', name: 'Body Harness' },
-      { id: 'component', node_type: 'sensor', name: 'Sensor' },
+      createNode('harness_engine', 'harness', 'Engine Harness'),
+      createNode('harness_body', 'harness', 'Body Harness'),
+      createNode('component', 'sensor', 'Sensor'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -225,7 +251,7 @@ describe('getPathSummary', () => {
 
   it('handles missing nodes gracefully', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'existing', node_type: 'sensor', name: 'Existing Sensor' },
+      createNode('existing', 'sensor', 'Existing Sensor'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
@@ -250,11 +276,11 @@ describe('getPathSummary', () => {
 
   it('is case insensitive for node type matching', () => {
     const nodes: NDJSONNode[] = [
-      { id: 'ground1', node_type: 'GROUND_POINT', name: 'Ground' },
-      { id: 'battery1', node_type: 'BATTERY', name: 'Battery' },
-      { id: 'fuse1', node_type: 'FUSE', name: 'Fuse' },
-      { id: 'relay1', node_type: 'RELAY', name: 'Relay' },
-      { id: 'conn1', node_type: 'CONNECTOR', name: 'Connector' },
+      createNode('ground1', 'GROUND_POINT', 'Ground'),
+      createNode('battery1', 'BATTERY', 'Battery'),
+      createNode('fuse1', 'FUSE', 'Fuse'),
+      createNode('relay1', 'RELAY', 'Relay'),
+      createNode('conn1', 'CONNECTOR', 'Connector'),
     ]
 
     const data = createMockNDJSONData(nodes, [])
