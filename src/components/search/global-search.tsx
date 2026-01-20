@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import {
   Command,
   CommandDialog,
@@ -31,8 +32,9 @@ interface SearchResult {
   id: string
   title: string
   description?: string
-  type: 'person' | 'project' | 'workspace' | 'part' | 'picture' | 'post' | 'vehicle' | 'tool' | 'document'
+  type: 'person' | 'project' | 'workspace' | 'part' | 'picture' | 'post' | 'vehicle' | 'tool' | 'document' | 'component'
   url?: string
+  score?: number
 }
 
 interface GlobalSearchProps {
@@ -49,68 +51,53 @@ interface QuickAction {
 }
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
+  const router = useRouter()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showNewWorkspaceDialog, setShowNewWorkspaceDialog] = useState(false)
 
-  // Mock search results for demonstration
-  const mockSearch = useCallback(async (searchQuery: string): Promise<SearchResult[]> => {
-    if (!searchQuery.trim()) return []
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 200))
-    
-    const mockData: SearchResult[] = [
-      {
-        id: "1",
-        title: "John Doe",
-        description: "Automotive Engineer",
-        type: "person",
-        url: "/users/john-doe"
-      },
-      {
-        id: "2", 
-        title: "BMW E46 M3 Project",
-        description: "Track car build with S54 engine",
-        type: "project",
-        url: "/projects/bmw-e46-m3"
-      },
-      {
-        id: "3",
-        title: "Public Garage",
-        description: "Community workspace for electric vehicle conversions",
-        type: "workspace", 
-        url: "/workspaces/public-garage"
-      },
-      {
-        id: "4",
-        title: "Bosch LSU 4.9 O2 Sensor",
-        description: "Wideband oxygen sensor for tuning",
-        type: "part",
-        url: "/parts/bosch-lsu-49"
-      },
-      {
-        id: "5",
-        title: "Engine Bay Wiring",
-        description: "Clean wire routing in BMW engine bay",
-        type: "picture",
-        url: "/gallery/engine-bay-wiring"
-      },
-      {
-        id: "6",
-        title: "ECU Tuning Guide",
-        description: "How to tune modern engine management systems", 
-        type: "post",
-        url: "/posts/ecu-tuning-guide"
-      }
-    ]
+  // Real search via API
+  const performRealSearch = useCallback(async (searchQuery: string): Promise<SearchResult[]> => {
+    if (!searchQuery.trim() || searchQuery.length < 2) return []
 
-    // Filter results based on query
-    return mockData.filter(item => 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    try {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: searchQuery,
+          limit: 20,
+          types: ['person', 'workspace', 'component', 'document']
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Map API response to SearchResult type
+      return (data.results || []).map((item: {
+        id: string
+        title: string
+        description?: string
+        type: string
+        url?: string
+        score?: number
+      }) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        type: item.type as SearchResult['type'],
+        url: item.url,
+        score: item.score
+      }))
+    } catch (error) {
+      console.error('Search API error:', error)
+      return []
+    }
   }, [])
 
   // Perform search when query changes
@@ -123,7 +110,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
       setIsLoading(true)
       try {
-        const searchResults = await mockSearch(query)
+        const searchResults = await performRealSearch(query)
         setResults(searchResults)
       } catch (error) {
         console.error("Search error:", error)
@@ -135,7 +122,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
     const debounceTimer = setTimeout(performSearch, 300)
     return () => clearTimeout(debounceTimer)
-  }, [query, mockSearch])
+  }, [query, performRealSearch])
 
   const getIcon = (type: SearchResult['type']) => {
     const iconProps = { size: 16, className: "mr-2" }
@@ -149,6 +136,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       case 'vehicle': return <IconCar {...iconProps} />
       case 'tool': return <IconSettings {...iconProps} />
       case 'document': return <IconFileText {...iconProps} />
+      case 'component': return <IconSettings {...iconProps} />
       default: return <IconSearch {...iconProps} />
     }
   }
@@ -164,6 +152,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       case 'vehicle': return 'Vehicles'
       case 'tool': return 'Tools'
       case 'document': return 'Documents'
+      case 'component': return 'Components'
       default: return 'Results'
     }
   }
@@ -181,8 +170,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const handleSelect = (result: SearchResult) => {
     onOpenChange(false)
     if (result.url) {
-      // Navigate to the result - you'll implement navigation logic here
-      // router.push(result.url)
+      router.push(result.url)
     }
   }
 
