@@ -14,7 +14,7 @@ npm warn config ignoring workspace config at /home/ralph/project/web/.npmrc
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 36.9s
+ ✓ Compiled successfully in 39.3s
    Skipping validation of types
    Skipping linting
    Collecting page data ...
