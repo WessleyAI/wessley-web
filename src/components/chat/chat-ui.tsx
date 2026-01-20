@@ -41,7 +41,8 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
     setChatFiles,
     setShowFilesDisplay,
     setUseRetrieval,
-    setSelectedTools
+    setSelectedTools,
+    setUserInput
   } = useContext(ChatbotUIContext)
 
   const { handleNewChat, handleFocusChatInput } = useChatHandler()
@@ -226,7 +227,7 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
         {chatMessages.length === 0 ? (
           <div className="flex-1 flex items-end justify-center pb-4">
             <StarterPrompts onPromptSelect={(prompt) => {
-              // TODO: Handle prompt selection - integrate with chat input
+              setUserInput(prompt)
             }} />
           </div>
         ) : (
