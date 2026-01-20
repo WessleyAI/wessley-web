@@ -401,7 +401,36 @@ Are there any other electrical problems you're experiencing, or would you like m
       }
     })
 
+    // Calculate confidence score based on RAG context availability and quality
+    let confidence = 0.5 // Default moderate confidence
+    if (ragContext?.results && ragContext.results.length > 0) {
+      // Higher confidence when RAG results are available
+      const avgScore = ragContext.results.reduce((sum, r) => sum + (r.score || 0), 0) / ragContext.results.length
+      confidence = Math.min(0.95, 0.6 + (avgScore * 0.35)) // Scale from 0.6-0.95 based on RAG scores
+    }
+    if (ragContext?.graphContext?.components && ragContext.graphContext.components.length > 0) {
+      // Boost confidence when graph context is available
+      confidence = Math.min(0.98, confidence + 0.1)
+    }
+
+    // Format sources from RAG context per api-contracts.md spec
+    const sources = ragContext?.results?.map(r => ({
+      title: r.title || 'Document',
+      url: r.metadata?.source || undefined,
+      similarity: r.score || 0,
+      snippet: r.content?.substring(0, 200) || ''
+    })) || []
+
+    // Return response conforming to api-contracts.md spec
+    // Includes both spec-compliant fields and legacy fields for backward compatibility
     return NextResponse.json({
+      // Spec-compliant fields (api-contracts.md POST /api/chat)
+      response: assistantMessage,
+      sources: sources,
+      confidence: confidence,
+      conversation_id: chatId,
+
+      // Legacy fields for backward compatibility with existing frontend
       success: true,
       userMessage: userMessageRecord,
       assistantMessage: assistantMessageRecord,
