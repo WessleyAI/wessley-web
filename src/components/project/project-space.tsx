@@ -640,6 +640,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Project Manager"
+            onClick={() => toast.info('Team management coming soon', { description: 'Collaborate with your team on vehicle projects' })}
           >
             <IconUser className="w-4 h-4" />
           </motion.button>
@@ -651,6 +652,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Budget & Expenses"
+            onClick={() => toast.info('Budget tracking coming soon', { description: 'Track repair costs and parts expenses' })}
           >
             <IconCalculator className="w-4 h-4" />
           </motion.button>
@@ -662,6 +664,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Todo List"
+            onClick={() => toast.info('Task management coming soon', { description: 'Organize your repair tasks and checklists' })}
           >
             <IconClipboard className="w-4 h-4" />
           </motion.button>
@@ -673,6 +676,7 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Settings"
+            onClick={() => setVehicleDialogOpen(true)}
           >
             <IconSettings className="w-4 h-4" />
           </motion.button>
@@ -698,19 +702,49 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             style={{ backgroundColor: 'transparent' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            onClick={async () => {
+              const shareUrl = `${window.location.origin}/g/${projectId}/project`
+              try {
+                await navigator.clipboard.writeText(shareUrl)
+                toast.success('Link copied to clipboard', { description: 'Share this project with others' })
+              } catch {
+                toast.info('Sharing coming soon', { description: 'Generate shareable links for your project' })
+              }
+            }}
           >
             Share
           </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
-            style={{ backgroundColor: 'transparent' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            •••
-          </motion.button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-3 py-2 rounded-lg app-text-secondary hover:app-text-primary transition-colors duration-200"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                •••
+              </motion.button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setVehicleDialogOpen(true)}>
+                <IconCar className="w-4 h-4 mr-2" />
+                Edit Vehicle Info
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setShowSceneControls(true)
+                setIsSceneControlsMinimized(false)
+              }}>
+                <IconMenu2 className="w-4 h-4 mr-2" />
+                Scene Controls
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toast.info('Export coming soon', { description: 'Export project as PDF report' })}>
+                <IconFolder className="w-4 h-4 mr-2" />
+                Export Report
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -846,6 +880,108 @@ export function ProjectSpace({ projectName, projectId }: ProjectSpaceProps) {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Quick Action Cards */}
+        <div className="w-full mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              const prompt = "Help me log a repair for my vehicle. I need to document what I replaced and add notes about the repair."
+              setChatInput(prompt)
+              if (isDemo) {
+                toast.info('Chat is disabled in demo mode.')
+                return
+              }
+              handleStartChat()
+            }}
+            className="flex flex-col items-start p-3 rounded-lg transition-colors duration-200 text-left"
+            style={{
+              backgroundColor: 'var(--app-bg-hover)',
+              border: '1px solid var(--app-border)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+          >
+            <span className="app-body-sm app-fw-medium app-text-primary mb-1">Log a repair</span>
+            <span className="app-caption app-text-muted">Document parts replaced</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              const prompt = "Analyze my vehicle's wiring harness and predict which components or wires are at risk of failure or overheating."
+              setChatInput(prompt)
+              if (isDemo) {
+                toast.info('Chat is disabled in demo mode.')
+                return
+              }
+              handleStartChat()
+            }}
+            className="flex flex-col items-start p-3 rounded-lg transition-colors duration-200 text-left"
+            style={{
+              backgroundColor: 'var(--app-bg-hover)',
+              border: '1px solid var(--app-border)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+          >
+            <span className="app-body-sm app-fw-medium app-text-primary mb-1">Predict weak spots</span>
+            <span className="app-caption app-text-muted">Find at-risk wires</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              executeSceneEvent({
+                type: 'HIGHLIGHT',
+                payload: { targets: ['ignition', 'starter', 'battery'], color: '#8BE196', intensity: 0.8 }
+              })
+              toast.success('Highlighting ignition circuit', {
+                description: 'Components connected to ignition are now highlighted'
+              })
+            }}
+            className="flex flex-col items-start p-3 rounded-lg transition-colors duration-200 text-left"
+            style={{
+              backgroundColor: 'var(--app-bg-hover)',
+              border: '1px solid var(--app-border)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+          >
+            <span className="app-body-sm app-fw-medium app-text-primary mb-1">Explore circuits</span>
+            <span className="app-caption app-text-muted">Highlight connections</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              const vehicleContext = vehicle
+                ? `for my ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+                : ''
+              const prompt = `Help me find compatible replacement parts ${vehicleContext}. I need to source parts from reliable vendors.`
+              setChatInput(prompt)
+              if (isDemo) {
+                toast.info('Chat is disabled in demo mode.')
+                return
+              }
+              handleStartChat()
+            }}
+            className="flex flex-col items-start p-3 rounded-lg transition-colors duration-200 text-left"
+            style={{
+              backgroundColor: 'var(--app-bg-hover)',
+              border: '1px solid var(--app-border)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-tertiary)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--app-bg-hover)'}
+          >
+            <span className="app-body-sm app-fw-medium app-text-primary mb-1">Source parts</span>
+            <span className="app-caption app-text-muted">Find compatible parts</span>
+          </motion.button>
+        </div>
 
         {/* Chat History with Separators */}
         <div className="w-full max-h-96">
