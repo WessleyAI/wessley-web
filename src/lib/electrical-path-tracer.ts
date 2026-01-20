@@ -3,14 +3,7 @@
  * Traces electrical connections from a component to ground, battery, and through fusebox/relays
  */
 
-import { type ParsedNDJSON, type NDJSONEdge, type NDJSONNode } from './ndjson-loader'
-
-interface PathNode {
-  id: string
-  node: NDJSONNode
-  depth: number
-  pathType: 'upstream' | 'downstream' | 'related'
-}
+import { type ParsedNDJSON, type NDJSONEdge } from './ndjson-loader'
 
 /**
  * Build adjacency list from edges for faster traversal
@@ -33,106 +26,6 @@ function buildAdjacencyList(edges: NDJSONEdge[]): {
   }
 
   return { forward, backward }
-}
-
-/**
- * BFS to find all connected nodes within maxDepth
- */
-function bfsTraverse(
-  startId: string,
-  adjacency: Map<string, string[]>,
-  maxDepth: number
-): Set<string> {
-  const visited = new Set<string>()
-  const queue: { id: string; depth: number }[] = [{ id: startId, depth: 0 }]
-
-  while (queue.length > 0) {
-    const { id, depth } = queue.shift()!
-
-    if (visited.has(id) || depth > maxDepth) continue
-    visited.add(id)
-
-    const neighbors = adjacency.get(id) || []
-    for (const neighborId of neighbors) {
-      if (!visited.has(neighborId)) {
-        queue.push({ id: neighborId, depth: depth + 1 })
-      }
-    }
-  }
-
-  return visited
-}
-
-/**
- * Find path from component to specific target types (battery, ground, etc.)
- */
-function findPathToType(
-  startId: string,
-  targetTypes: string[],
-  ndjsonData: ParsedNDJSON,
-  adjacency: Map<string, string[]>,
-  maxDepth: number = 10
-): string[] {
-  const visited = new Set<string>()
-  const queue: { id: string; path: string[] }[] = [{ id: startId, path: [startId] }]
-
-  while (queue.length > 0) {
-    const { id, path } = queue.shift()!
-
-    if (visited.has(id) || path.length > maxDepth) continue
-    visited.add(id)
-
-    const node = ndjsonData.nodesById[id]
-    if (node && targetTypes.some(type => node.node_type?.toLowerCase().includes(type.toLowerCase()))) {
-      return path
-    }
-
-    const neighbors = adjacency.get(id) || []
-    for (const neighborId of neighbors) {
-      if (!visited.has(neighborId)) {
-        queue.push({ id: neighborId, path: [...path, neighborId] })
-      }
-    }
-  }
-
-  return []
-}
-
-/**
- * Find SHORTEST path between two nodes using BFS
- * Returns the path as an array of node IDs
- */
-function findShortestPath(
-  startId: string,
-  targetTest: (nodeId: string, node: NDJSONNode) => boolean,
-  adjacency: Map<string, string[]>,
-  ndjsonData: ParsedNDJSON,
-  maxDepth: number = 15
-): string[] {
-  const visited = new Set<string>()
-  const queue: { id: string; path: string[] }[] = [{ id: startId, path: [startId] }]
-
-  while (queue.length > 0) {
-    const { id, path } = queue.shift()!
-
-    if (visited.has(id) || path.length > maxDepth) continue
-    visited.add(id)
-
-    const node = ndjsonData.nodesById[id]
-    if (node && targetTest(id, node)) {
-      // Found target! Return the complete path
-      return path
-    }
-
-    const neighbors = adjacency.get(id) || []
-    for (const neighborId of neighbors) {
-      if (!visited.has(neighborId)) {
-        queue.push({ id: neighborId, path: [...path, neighborId] })
-      }
-    }
-  }
-
-  return [] // No path found
 }
 
 /**
