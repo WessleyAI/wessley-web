@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe, SubscriptionTier } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendPaymentFailedEmail, sendSubscriptionCancelledEmail } from '@/lib/email'
 import Stripe from 'stripe'
 
 /**
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
         // Find user by Stripe customer ID
         const { data: profile, error: findError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email, full_name, display_name, subscription_status')
           .eq('stripe_customer_id', customerId)
           .single()
 
@@ -173,6 +174,9 @@ export async function POST(request: NextRequest) {
           console.error('[Stripe Webhook] Could not find user for customer:', customerId)
           break
         }
+
+        // Determine cancellation reason
+        const wasPastDue = profile.subscription_status === 'past_due'
 
         // Downgrade to free tier
         const { error } = await supabase
@@ -190,6 +194,24 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
+        // Send subscription cancelled email
+        if (profile.email) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wessley.ai'
+          const reactivateUrl = `${appUrl}/pricing`
+
+          const emailResult = await sendSubscriptionCancelledEmail(profile.email, {
+            customerName: profile.display_name || profile.full_name || undefined,
+            reactivateUrl,
+            reason: wasPastDue ? 'payment_failed' : 'user_cancelled',
+          })
+
+          if (emailResult.success) {
+            console.log('[Stripe Webhook] Subscription cancelled email sent:', emailResult.id)
+          } else {
+            console.error('[Stripe Webhook] Failed to send subscription cancelled email:', emailResult.error)
+          }
+        }
+
         break
       }
 
@@ -200,7 +222,7 @@ export async function POST(request: NextRequest) {
         // Find user by Stripe customer ID
         const { data: profile, error: findError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email, full_name, display_name')
           .eq('stripe_customer_id', customerId)
           .single()
 
@@ -220,7 +242,41 @@ export async function POST(request: NextRequest) {
           throw error
         }
 
-        // TODO: Send dunning email via Beehiiv or Resend
+        // Send dunning email via Resend
+        if (profile.email) {
+          const stripe = getStripe()
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wessley.ai'
+
+          // Create a portal session for updating payment
+          let updatePaymentUrl = `${appUrl}/pricing`
+          try {
+            const portalSession = await stripe.billingPortal.sessions.create({
+              customer: customerId,
+              return_url: `${appUrl}/dashboard`,
+            })
+            updatePaymentUrl = portalSession.url
+          } catch (portalError) {
+            console.error('[Stripe Webhook] Failed to create portal session for dunning email:', portalError)
+          }
+
+          // Calculate next retry date (Stripe typically retries after 3 days)
+          const nextRetryDate = invoice.next_payment_attempt
+            ? new Date(invoice.next_payment_attempt * 1000)
+            : undefined
+
+          const emailResult = await sendPaymentFailedEmail(profile.email, {
+            customerName: profile.display_name || profile.full_name || undefined,
+            nextRetryDate,
+            updatePaymentUrl,
+          })
+
+          if (emailResult.success) {
+            console.log('[Stripe Webhook] Dunning email sent:', emailResult.id)
+          } else {
+            console.error('[Stripe Webhook] Failed to send dunning email:', emailResult.error)
+          }
+        }
+
         break
       }
 

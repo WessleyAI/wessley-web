@@ -92,6 +92,7 @@
     "react-textarea-autosize": "^8.5.9",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "resend": "^6.8.0",
     "sonner": "^2.0.7",
     "stripe": "^20.2.0",
     "tailwind-merge": "^3.3.1",
