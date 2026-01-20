@@ -134,9 +134,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Update expiry date if subscription is ending
-        if (subscription.cancel_at_period_end && subscription.current_period_end) {
+        // Note: current_period_end is now at the subscription item level (API 2025-03-31+)
+        const firstItem = subscription.items?.data?.[0]
+        const periodEnd = firstItem?.current_period_end
+        if (subscription.cancel_at_period_end && periodEnd) {
           updateData.subscription_expires_at = new Date(
-            subscription.current_period_end * 1000
+            periodEnd * 1000
           ).toISOString()
         } else {
           updateData.subscription_expires_at = null
