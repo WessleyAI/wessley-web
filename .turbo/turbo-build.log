@@ -14,33 +14,39 @@ npm warn config ignoring workspace config at /home/ralph/project/web/.npmrc
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 33.8s
+ ✓ Compiled successfully in 36.9s
    Skipping validation of types
    Skipping linting
    Collecting page data ...
-   Generating static pages (0/23) ...
-   Generating static pages (5/23) 
-   Generating static pages (11/23) 
-   Generating static pages (17/23) 
- ✓ Generating static pages (23/23)
+   Generating static pages (0/26) ...
+   Generating static pages (6/26) 
+   Generating static pages (12/26) 
+   Generating static pages (19/26) 
+ ✓ Generating static pages (26/26)
    Finalizing page optimization ...
    Collecting build traces ...
 
 Route (app)                                 Size  First Load JS
 ┌ ○ /                                    17.4 kB         282 kB
 ├ ○ /_not-found                          1.01 kB         158 kB
-├ ƒ /api/chat/bench                        161 B         157 kB
-├ ƒ /api/chat/generate-title               161 B         157 kB
-├ ƒ /api/chat/messages                     161 B         157 kB
-├ ƒ /api/netlistify                        161 B         157 kB
-├ ƒ /api/rag/ingest                        161 B         157 kB
-├ ƒ /api/rag/query                         161 B         157 kB
-├ ƒ /api/stripe/checkout                   161 B         157 kB
-├ ƒ /api/stripe/portal                     161 B         157 kB
-├ ƒ /api/stripe/webhook                    161 B         157 kB
-├ ƒ /api/waitlist                          161 B         157 kB
+├ ƒ /api/admin/scraper/status              180 B         157 kB
+├ ƒ /api/chat/bench                        180 B         157 kB
+├ ƒ /api/chat/generate-title               180 B         157 kB
+├ ƒ /api/chat/messages                     180 B         157 kB
+├ ƒ /api/ingest                            180 B         157 kB
+├ ƒ /api/ingest/[job_id]                   180 B         157 kB
+├ ƒ /api/netlistify                        180 B         157 kB
+├ ƒ /api/rag/ingest                        180 B         157 kB
+├ ƒ /api/rag/query                         180 B         157 kB
+├ ƒ /api/search                            180 B         157 kB
+├ ƒ /api/stripe/checkout                   180 B         157 kB
+├ ƒ /api/stripe/portal                     180 B         157 kB
+├ ƒ /api/stripe/webhook                    180 B         157 kB
+├ ƒ /api/vehicle/[id]                      180 B         157 kB
+├ ƒ /api/vehicle/[id]/graph                180 B         157 kB
+├ ƒ /api/waitlist                          180 B         157 kB
 ├ ○ /auth/auth-code-error                1.43 kB         167 kB
-├ ƒ /auth/callback                         161 B         157 kB
+├ ƒ /auth/callback                         180 B         157 kB
 ├ ƒ /c/[chat-id]                           329 B         643 kB
 ├ ○ /chat                                  426 B         1.8 MB
 ├ ○ /checkout/cancel                     2.74 kB         210 kB
