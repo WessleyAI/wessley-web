@@ -1,8 +1,6 @@
 // Only used in use-chat-handler.tsx to keep it clean
 
-import { createChatFiles } from "@/db/chat-files"
 import { createChat, updateChat } from "@/db/chats"
-import { createMessageFileItems } from "@/db/message-file-items"
 import { createMessages, updateMessage } from "@/db/messages"
 import { uploadMessageImage } from "@/db/storage/message-images"
 import {
@@ -404,14 +402,7 @@ export const handleCreateChat = async (
   })
 
   if (newMessageFiles && newMessageFiles.length > 0) {
-    await createChatFiles(
-      newMessageFiles.map(file => ({
-        user_id: profile.user_id,
-        chat_id: createdChat.id,
-        file_id: file.id
-      }))
-    )
-
+    // Note: Chat file associations are now managed through the media_files table
     setChatFiles(prev => [...prev, ...newMessageFiles])
   }
 
@@ -510,15 +501,8 @@ export const handleCreateMessages = async (
       image_paths: paths
     })
 
-    const createdMessageFileItems = await createMessageFileItems(
-      retrievedFileItems.map(fileItem => {
-        return {
-          user_id: profile.user_id,
-          message_id: createdMessages[1].id,
-          file_item_id: fileItem.id
-        }
-      })
-    )
+    // Note: Message file item associations are tracked in memory only for now
+    // The file_items are associated with messages via the fileItems array in ChatMessage
 
     finalChatMessages = [
       ...chatMessages,

@@ -203,11 +203,12 @@ Provide detailed, accurate technical guidance for electrical system repairs, com
       .single()
 
     // Check if we're in welcome setup phase (first user message in welcome setup conversation)
-    const isWelcomeSetup = conversation?.context_data?.isWelcomeSetup === true &&
+    const contextData = conversation?.context_data as { isWelcomeSetup?: boolean } | null
+    const isWelcomeSetup = contextData?.isWelcomeSetup === true &&
                            previousMessages?.length === 0
 
     // Check if we're in onboarding problems collection phase
-    const isOnboardingProblems = previousMessages?.some(msg =>
+    const isOnboardingProblems = previousMessages?.some((msg: { role: string; metadata?: { type?: string } }) =>
       msg.role === 'assistant' && msg.metadata?.type === 'onboarding_problems'
     )
 
@@ -405,7 +406,8 @@ Are there any other electrical problems you're experiencing, or would you like m
     let confidence = 0.5 // Default moderate confidence
     if (ragContext?.results && ragContext.results.length > 0) {
       // Higher confidence when RAG results are available
-      const avgScore = ragContext.results.reduce((sum, r) => sum + (r.score || 0), 0) / ragContext.results.length
+      interface RAGResult { score?: number; title?: string; content?: string; metadata?: { source?: string } }
+      const avgScore = ragContext.results.reduce((sum: number, r: RAGResult) => sum + (r.score || 0), 0) / ragContext.results.length
       confidence = Math.min(0.95, 0.6 + (avgScore * 0.35)) // Scale from 0.6-0.95 based on RAG scores
     }
     if (ragContext?.graphContext?.components && ragContext.graphContext.components.length > 0) {
@@ -414,7 +416,8 @@ Are there any other electrical problems you're experiencing, or would you like m
     }
 
     // Format sources from RAG context per api-contracts.md spec
-    const sources = ragContext?.results?.map(r => ({
+    interface RAGResult { score?: number; title?: string; content?: string; metadata?: { source?: string } }
+    const sources = ragContext?.results?.map((r: RAGResult) => ({
       title: r.title || 'Document',
       url: r.metadata?.source || undefined,
       similarity: r.score || 0,

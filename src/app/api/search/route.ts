@@ -140,8 +140,8 @@ async function searchWorkspaces(
   try {
     const { data, error } = await supabase
       .from('workspaces')
-      .select('id, name, description, slug, is_public')
-      .eq('is_public', true)
+      .select('id, name, description, visibility')
+      .eq('visibility', 'public')
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .limit(limit)
 

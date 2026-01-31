@@ -1,9 +1,5 @@
 import { ChatbotUIContext } from "@/context/context"
-import { getAssistantCollectionsByAssistantId } from "@/db/assistant-collections"
-import { getAssistantFilesByAssistantId } from "@/db/assistant-files"
-import { getAssistantToolsByAssistantId } from "@/db/assistant-tools"
 import { updateChat } from "@/db/chats"
-import { getCollectionFilesByCollectionId } from "@/db/collection-files"
 import { deleteMessagesIncludingAndAfter } from "@/db/messages"
 import { buildFinalMessages } from "@/lib/build-prompt"
 import { Tables } from "@/supabase/types"
@@ -101,6 +97,8 @@ export const useChatHandler = () => {
     setToolInUse("none")
 
     if (selectedAssistant) {
+      // Note: Assistant feature is not yet implemented (tables don't exist)
+      // Apply assistant settings if available
       setChatSettings({
         model: selectedAssistant.model as LLMID,
         prompt: selectedAssistant.prompt,
@@ -113,37 +111,6 @@ export const useChatHandler = () => {
           | "openai"
           | "local"
       })
-
-      let allFiles = []
-
-      const assistantFiles = (
-        await getAssistantFilesByAssistantId(selectedAssistant.id)
-      ).files
-      allFiles = [...assistantFiles]
-      const assistantCollections = (
-        await getAssistantCollectionsByAssistantId(selectedAssistant.id)
-      ).collections
-      for (const collection of assistantCollections) {
-        const collectionFiles = (
-          await getCollectionFilesByCollectionId(collection.id)
-        ).files
-        allFiles = [...allFiles, ...collectionFiles]
-      }
-      const assistantTools = (
-        await getAssistantToolsByAssistantId(selectedAssistant.id)
-      ).tools
-
-      setSelectedTools(assistantTools)
-      setChatFiles(
-        allFiles.map(file => ({
-          id: file.id,
-          name: file.name,
-          type: file.type,
-          file: null
-        }))
-      )
-
-      if (allFiles.length > 0) setShowFilesDisplay(true)
     } else if (selectedPreset) {
       setChatSettings({
         model: selectedPreset.model as LLMID,

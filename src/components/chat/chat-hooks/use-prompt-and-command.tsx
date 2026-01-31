@@ -1,8 +1,4 @@
 import { ChatbotUIContext } from "@/context/context"
-import { getAssistantCollectionsByAssistantId } from "@/db/assistant-collections"
-import { getAssistantFilesByAssistantId } from "@/db/assistant-files"
-import { getAssistantToolsByAssistantId } from "@/db/assistant-tools"
-import { getCollectionFilesByCollectionId } from "@/db/collection-files"
 import { Tables } from "@/supabase/types"
 import { LLMID } from "@/types"
 import { useContext } from "react"
@@ -100,31 +96,11 @@ export const usePromptAndCommand = () => {
   const handleSelectUserCollection = async (
     collection: Tables<"collections">
   ) => {
+    // Note: Collections feature is not yet implemented (tables don't exist)
+    // For now, just update UI state
     setShowFilesDisplay(true)
     setIsFilePickerOpen(false)
     setUseRetrieval(true)
-
-    const collectionFiles = await getCollectionFilesByCollectionId(
-      collection.id
-    )
-
-    setNewMessageFiles(prev => {
-      const newFiles = collectionFiles.files
-        .filter(
-          file =>
-            !prev.some(prevFile => prevFile.id === file.id) &&
-            !chatFiles.some(chatFile => chatFile.id === file.id)
-        )
-        .map(file => ({
-          id: file.id,
-          name: file.name,
-          type: file.type,
-          file: null
-        }))
-
-      return [...prev, ...newFiles]
-    })
-
     setUserInput(userInput.replace(/#[^ ]*$/, ""))
   }
 
@@ -135,6 +111,8 @@ export const usePromptAndCommand = () => {
   }
 
   const handleSelectAssistant = async (assistant: Tables<"assistants">) => {
+    // Note: Assistants feature is not yet implemented (tables don't exist)
+    // Just update UI state for now
     setIsAssistantPickerOpen(false)
     setUserInput(userInput.replace(/@[^ ]*$/, ""))
     setSelectedAssistant(assistant)
@@ -149,34 +127,9 @@ export const usePromptAndCommand = () => {
       embeddingsProvider: assistant.embeddings_provider as "openai" | "local"
     })
 
-    let allFiles = []
-
-    const assistantFiles = (await getAssistantFilesByAssistantId(assistant.id))
-      .files
-    allFiles = [...assistantFiles]
-    const assistantCollections = (
-      await getAssistantCollectionsByAssistantId(assistant.id)
-    ).collections
-    for (const collection of assistantCollections) {
-      const collectionFiles = (
-        await getCollectionFilesByCollectionId(collection.id)
-      ).files
-      allFiles = [...allFiles, ...collectionFiles]
-    }
-    const assistantTools = (await getAssistantToolsByAssistantId(assistant.id))
-      .tools
-
-    setSelectedTools(assistantTools)
-    setChatFiles(
-      allFiles.map(file => ({
-        id: file.id,
-        name: file.name,
-        type: file.type,
-        file: null
-      }))
-    )
-
-    if (allFiles.length > 0) setShowFilesDisplay(true)
+    // Clear any previous file/tool selections since we can't fetch from database
+    setSelectedTools([])
+    setChatFiles([])
   }
 
   return {

@@ -2004,6 +2004,8 @@ export type Database = {
           notification_preferences: Json | null
           preferred_units: string | null
           profile_context: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           subscription_expires_at: string | null
           subscription_started_at: string | null
           subscription_status: string | null
@@ -2030,6 +2032,8 @@ export type Database = {
           notification_preferences?: Json | null
           preferred_units?: string | null
           profile_context?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_status?: string | null
@@ -2056,6 +2060,8 @@ export type Database = {
           notification_preferences?: Json | null
           preferred_units?: string | null
           profile_context?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_status?: string | null

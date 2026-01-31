@@ -1,10 +1,7 @@
 import { ScreenLoader } from "@/components/ui/screen-loader"
 import { useChatHandler } from "@/components/chat/chat-hooks/use-chat-handler"
 import { ChatbotUIContext } from "@/context/context"
-import { getAssistantToolsByAssistantId } from "@/db/assistant-tools"
-import { getChatFilesByChatId } from "@/db/chat-files"
 import { getChatById } from "@/db/chats"
-import { getMessageFileItemsByMessageId } from "@/db/message-file-items"
 import { getMessagesByChatId } from "@/db/messages"
 import { getMessageImageFromStorage } from "@/db/storage/message-images"
 import { convertBlobToBase64 } from "@/lib/blob-to-b64"
@@ -124,37 +121,15 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
     const images: MessageImage[] = await Promise.all(imagePromises.flat())
     setChatImages(images)
 
-    const messageFileItemPromises = fetchedMessages.map(
-      async message => await getMessageFileItemsByMessageId(message.id)
-    )
-
-    const messageFileItems = await Promise.all(messageFileItemPromises)
-
-    const uniqueFileItems = messageFileItems.flatMap(item => item.file_items)
-    setChatFileItems(uniqueFileItems)
-
-    const chatFiles = await getChatFilesByChatId(params.chatid as string)
-
-    setChatFiles(
-      chatFiles.files.map(file => ({
-        id: file.id,
-        name: file.name,
-        type: file.type,
-        file: null
-      }))
-    )
-
-    setUseRetrieval(true)
-    setShowFilesDisplay(true)
+    // Note: File item associations are not yet implemented in the new schema
+    // Files are now tracked through media_files table
+    setChatFileItems([])
+    setChatFiles([])
 
     const fetchedChatMessages = fetchedMessages.map(message => {
       return {
         message,
-        fileItems: messageFileItems
-          .filter(messageFileItem => messageFileItem.id === message.id)
-          .flatMap(messageFileItem =>
-            messageFileItem.file_items.map(fileItem => fileItem.id)
-          )
+        fileItems: []
       }
     })
 
@@ -166,17 +141,15 @@ export const ChatUI: FC<ChatUIProps> = ({}) => {
     if (!chat) return
 
     if (chat.assistant_id) {
+      // Note: Assistants feature is not yet implemented (tables don't exist)
+      // Assistant lookup is skipped for now
       const assistant = assistants.find(
         assistant => assistant.id === chat.assistant_id
       )
 
       if (assistant) {
         setSelectedAssistant(assistant)
-
-        const assistantTools = (
-          await getAssistantToolsByAssistantId(assistant.id)
-        ).tools
-        setSelectedTools(assistantTools)
+        setSelectedTools([])
       }
     }
 
