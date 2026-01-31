@@ -28,6 +28,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check subscription status for authenticated non-demo users
+    // Demo workspace bypasses subscription check to allow free trial experience
+    if (user && !isDemoWorkspace) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_status")
+        .eq("id", user.id)
+        .single()
+
+      if (profile?.subscription_status !== "active") {
+        return NextResponse.json(
+          {
+            error: "Subscription required",
+            message: "Chat features require an active subscription.",
+            upgrade_url: "/pricing",
+          },
+          { status: 402 }
+        )
+      }
+    }
+
     // Apply rate limiting (60 requests per minute for chat endpoints)
     const rateLimitIdentifier = getRateLimitIdentifier(user?.id, request)
     const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)

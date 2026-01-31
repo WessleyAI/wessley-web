@@ -32,6 +32,24 @@ export async function GET(
       )
     }
 
+    // Check subscription status - vehicle graph access is a paid feature
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_status")
+      .eq("id", user.id)
+      .single()
+
+    if (profile?.subscription_status !== "active") {
+      return NextResponse.json(
+        {
+          error: "subscription_required",
+          message: "Vehicle graph access requires an active subscription.",
+          upgrade_url: "/pricing",
+        },
+        { status: 402 }
+      )
+    }
+
     // First verify vehicle exists and user has access via workspace
     const { data: vehicle, error: vehicleError } = await supabase
       .from('vehicles')

@@ -87,7 +87,21 @@ describe('/api/chat/bench', () => {
               error: null,
             }),
           },
-          from: vi.fn(),
+          from: vi.fn((table: string) => {
+            if (table === 'profiles') {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    single: vi.fn().mockResolvedValue({
+                      data: { subscription_status: 'active' },
+                      error: null,
+                    }),
+                  })),
+                })),
+              }
+            }
+            return {}
+          }),
         })),
       }))
 
@@ -125,7 +139,21 @@ describe('/api/chat/bench', () => {
               error: null,
             }),
           },
-          from: vi.fn(),
+          from: vi.fn((table: string) => {
+            if (table === 'profiles') {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    single: vi.fn().mockResolvedValue({
+                      data: { subscription_status: 'active' },
+                      error: null,
+                    }),
+                  })),
+                })),
+              }
+            }
+            return {}
+          }),
         })),
       }))
 
@@ -168,7 +196,21 @@ describe('/api/chat/bench', () => {
               error: null,
             }),
           },
-          from: vi.fn(),
+          from: vi.fn((table: string) => {
+            if (table === 'profiles') {
+              return {
+                select: vi.fn(() => ({
+                  eq: vi.fn(() => ({
+                    single: vi.fn().mockResolvedValue({
+                      data: { subscription_status: 'active' },
+                      error: null,
+                    }),
+                  })),
+                })),
+              }
+            }
+            return {}
+          }),
         })),
       }))
 

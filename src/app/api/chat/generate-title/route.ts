@@ -17,6 +17,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check subscription status - title generation is a paid feature
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_status")
+      .eq("id", user.id)
+      .single()
+
+    if (profile?.subscription_status !== "active") {
+      return NextResponse.json(
+        {
+          error: "Subscription required",
+          message: "Title generation requires an active subscription.",
+          upgrade_url: "/pricing",
+        },
+        { status: 402 }
+      )
+    }
+
     // Apply rate limiting (60 requests per minute for chat endpoints)
     const rateLimitIdentifier = getRateLimitIdentifier(user.id, request)
     const rateLimitResult = await checkRateLimit(chatRatelimit, rateLimitIdentifier)
