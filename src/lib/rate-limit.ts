@@ -102,8 +102,29 @@ export async function checkRateLimit(
   ratelimit: Ratelimit | null,
   identifier: string
 ): Promise<RateLimitResult> {
-  // If rate limiting is not configured, allow all requests
+  // If rate limiting is not configured in production, deny requests for security
+  // In development mode, allow requests but log a warning
   if (!ratelimit) {
+    const isProduction = process.env.NODE_ENV === "production"
+
+    if (isProduction) {
+      console.error(
+        "[SECURITY] Rate limiting not configured in production. " +
+        "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to enable rate limiting."
+      )
+      return {
+        success: false,
+        limit: 0,
+        remaining: 0,
+        reset: Date.now() + 60000,
+      }
+    }
+
+    // Development mode: warn but allow (for local testing)
+    console.warn(
+      "[WARN] Rate limiting not configured. Requests are not rate limited in development. " +
+      "Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for production."
+    )
     return {
       success: true,
       limit: -1,
