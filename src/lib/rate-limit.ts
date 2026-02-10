@@ -68,6 +68,19 @@ export const netlistifyRatelimit = (() => {
   })
 })()
 
+// Rate limiter for search endpoint: 10 requests per minute per IP/user
+export const searchRatelimit = (() => {
+  const redis = getRedis()
+  if (!redis) return null
+
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, "1 m"),
+    analytics: true,
+    prefix: "ratelimit:search",
+  })
+})()
+
 // Rate limiter for waitlist: 5 requests per minute (prevent spam)
 export const waitlistRatelimit = (() => {
   const redis = getRedis()
