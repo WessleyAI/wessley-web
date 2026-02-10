@@ -35,8 +35,13 @@ export default defineConfig({
     hookTimeout: 10000,
   },
   resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: '@', replacement: resolve(__dirname, './src') },
+      // Fix #58: monorepo root hoists react-dom@18 (peer dep from @dnd-kit,
+      // radix, etc.) but web/ needs React 19. Pin all react resolution to
+      // web/node_modules so @testing-library/react and other deps use React 19.
+      { find: /^react-dom($|\/)/, replacement: resolve(__dirname, './node_modules/react-dom$1') },
+      { find: /^react($|\/)/, replacement: resolve(__dirname, './node_modules/react$1') },
+    ],
   },
 })

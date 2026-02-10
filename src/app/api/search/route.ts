@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { searchRatelimit, checkRateLimit, getRateLimitIdentifier, createRateLimitResponse, addRateLimitHeaders } from '@/lib/rate-limit'
 
 const SEMANTIC_SERVICE_URL = process.env.SEMANTIC_SERVICE_URL || 'http://localhost:8003'
 
@@ -21,6 +22,16 @@ export interface SearchResponse {
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting: 10 req/min per user or IP
+    const supabaseForAuth = await createClient()
+    const { data: { user: authUser } } = await supabaseForAuth.auth.getUser()
+    const rateLimitId = getRateLimitIdentifier(authUser?.id, request)
+    const rateLimitResult = await checkRateLimit(searchRatelimit, rateLimitId)
+
+    if (!rateLimitResult.success) {
+      return createRateLimitResponse(rateLimitResult)
+    }
+
     const { query, limit = 10, types } = await request.json()
 
     if (!query || typeof query !== 'string') {

@@ -38,8 +38,8 @@ const PAID_ROUTES = [
   '/chat',
 ]
 
-// Enable/disable waitlist mode (pre-launch)
-const WAITLIST_MODE = true
+// Enable/disable waitlist mode (pre-launch) — controlled via environment variable
+const WAITLIST_MODE = process.env.NEXT_PUBLIC_WAITLIST_MODE === 'true'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
