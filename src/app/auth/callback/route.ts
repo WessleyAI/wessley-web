@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getPostHogClient } from "@/lib/posthog-server"
 
 // Allowed redirect paths after OAuth authentication
-const ALLOWED_REDIRECTS = ['/chat', '/demo/bench', '/g/', '/c/', '/dashboard', '/projects']
+const ALLOWED_REDIRECTS = ['/chat', '/demo/bench', '/g/', '/c/', '/dashboard', '/projects', '/waitlist', '/pricing']
 
 function isAllowedRedirect(path: string): boolean {
   // Must start with / to be a relative path
