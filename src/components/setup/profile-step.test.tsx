@@ -1,3 +1,4 @@
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ProfileStep } from './profile-step'
@@ -10,11 +11,10 @@ vi.mock('sonner', () => ({
   },
 }))
 
-// Mock LimitDisplay
+// Mock LimitDisplay - use React.createElement to avoid React version mismatch
 vi.mock('../ui/limit-display', () => ({
-  LimitDisplay: ({ used, limit }: { used: number; limit: number }) => (
-    <div data-testid="limit-display">{used}/{limit}</div>
-  ),
+  LimitDisplay: ({ used, limit }: { used: number; limit: number }) =>
+    React.createElement('div', { 'data-testid': 'limit-display' }, `${used}/${limit}`),
 }))
 
 // Mock db limits

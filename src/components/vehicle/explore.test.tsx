@@ -1,15 +1,15 @@
+import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Explore } from './explore'
 
 vi.mock('next/image', () => ({
-  default: ({ alt, ...props }: any) => <img alt={alt} {...props} />,
+  default: ({ alt, ...props }: any) => React.createElement('img', { alt, ...props }),
 }))
 
 vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>{children}</a>
-  ),
+  default: ({ children, href, ...props }: any) =>
+    React.createElement('a', { href, ...props }, children),
 }))
 
 describe('Explore', () => {

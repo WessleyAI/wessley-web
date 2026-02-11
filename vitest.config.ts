@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
+const webModules = resolve(__dirname, './node_modules')
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -23,8 +25,6 @@ export default defineConfig({
         'src/**/*.d.ts',
       ],
       thresholds: {
-        // Start with low thresholds, increment as coverage improves
-        // Target: 70% for lines, functions, branches, statements
         lines: 1,
         functions: 1,
         branches: 1,
@@ -33,10 +33,28 @@ export default defineConfig({
     },
     testTimeout: 10000,
     hookTimeout: 10000,
+    deps: {
+      optimizer: {
+        web: {
+          include: [
+            '@testing-library/react',
+            '@testing-library/jest-dom',
+            '@testing-library/dom',
+            '@tabler/icons-react',
+            'react-dom',
+            'react-dom/client',
+          ],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      'react': resolve(webModules, 'react'),
+      'react-dom': resolve(webModules, 'react-dom'),
+      'react/jsx-runtime': resolve(webModules, 'react/jsx-runtime'),
+      'react/jsx-dev-runtime': resolve(webModules, 'react/jsx-dev-runtime'),
     },
   },
 })

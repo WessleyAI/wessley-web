@@ -1,20 +1,36 @@
+import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Footer } from './Footer'
 
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} />,
+  default: (props: any) => React.createElement('img', props),
 }))
 
 vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ children, href, ...props }: any) => React.createElement('a', { href, ...props }, children),
 }))
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div>{children}</div>,
-    button: ({ children, onClick, ...props }: any) => <button onClick={onClick}>{children}</button>,
+    div: ({ children, ...props }: any) => React.createElement('div', null, children),
+    button: ({ children, onClick, ...props }: any) => React.createElement('button', { onClick }, children),
   },
+}))
+
+// Override lucide-react mock for this test (global proxy mock may not export named icons)
+function makeLucideIcon(name: string) {
+  const Icon = React.forwardRef(({ size = 24, ...props }: any, ref: any) =>
+    React.createElement('svg', { ref, width: size, height: size, 'data-testid': `lucide-${name}`, ...props })
+  )
+  Icon.displayName = name
+  return Icon
+}
+vi.mock('lucide-react', () => ({
+  Instagram: makeLucideIcon('Instagram'),
+  Twitter: makeLucideIcon('Twitter'),
+  Linkedin: makeLucideIcon('Linkedin'),
+  Youtube: makeLucideIcon('Youtube'),
 }))
 
 describe('Footer', () => {
